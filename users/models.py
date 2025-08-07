@@ -4,6 +4,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from pi_devices.models import Device
 
 
 # 自訂 User Manager，負責建立使用者和超級使用者的邏輯
@@ -56,6 +57,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False
     )  # 是否有管理站台的權限（進入 admin 後台）
     date_joined = models.DateTimeField(auto_now_add=True)  # 建立帳號的時間，自動填入
+
+    # 使用 OneToOneField（一對一關聯）
+    device = models.OneToOneField(
+        Device,  # 關連到pi_devices.models.Device Model
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,  # 如果原本綁定的設備被刪除了，user.device 這個欄位會被設為 NULL，不會連同 User 一起刪掉
+        help_text="綁定的樹梅派設備，如有",
+    )
 
     objects = UserManager()  # 指定自訂的 User Manager 負責建立使用者和超級使用者
 
