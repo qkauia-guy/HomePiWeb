@@ -16,6 +16,11 @@ class UserRegisterForm(forms.ModelForm):
         model = User
         fields = ["email"]  # 表單只顯示 email，其餘欄位為自訂欄位
 
+    def __init__(self, *args, **kwargs):
+        # 將 token 從 URL 或 view 傳入 form
+        self.token = kwargs.pop("token", None)
+        super().__init__(*args, **kwargs)
+
     def clean_password2(self):
         pw1 = self.cleaned_data.get("password1")
         pw2 = self.cleaned_data.get("password2")
@@ -46,15 +51,20 @@ class UserRegisterForm(forms.ModelForm):
         cleaned_data = super().clean()
         serial = cleaned_data.get("device_serial")
         code = cleaned_data.get("verification_code")
+        token = self.token
 
         if serial and code:
             try:
-                device = Device.objects.get(serial_number=serial)
+                device = Device.objects.get(token=token)
             except Device.DoesNotExist:
-                raise forms.ValidationError("找不到此設備")
+                raise forms.ValidationError("找不到對應的設備 Token")
+            if serial and device.serial_number != serial:
+                raise forms.ValidationError("設備序號不一致")
+
             if device.verification_code != code:
                 raise forms.ValidationError("驗證碼錯誤")
+
             if device.is_bound:
-                raise forms.ValidationError("此設備已被綁定")
+                raise forms.ValidationError("此設備已綁定")
             self.device = device  # 驗證通過後，存放設備供 save() 使用
         return cleaned_data
