@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}首頁{% endblock %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2>👋 歡迎回來 {{ user.email }}</h2>
+    <p>目前身份：<strong>{{ user.get_role_display }}</strong></p>
+
+    {% if user.is_superadmin %}
+      <div class="alert alert-success">您是 SuperAdmin，可以管理所有設備與使用者。</div>
+    {% elif user.is_admin %}
+      <div class="alert alert-info">您是 Admin，擁有管理權限。</div>
+    {% else %}
+      <div class="alert alert-secondary">您是一般使用者。</div>
+    {% endif %}
+  </div>
+{% endblock %}
