@@ -1,1 +1,5 @@
 .env
+# 忽略所有 .pyc 檔案
+*.pyc
+# 忽略所有 __pycache__ 目錄（內含 .pyc 檔）
+__pycache__/
