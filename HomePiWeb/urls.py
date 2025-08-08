@@ -10,6 +10,11 @@ urlpatterns = [
     path("register/", views.register_view, name="register"),  # 註冊
     path("login/", login_view, name="login"),
     path("home/", home_view, name="home"),
-    path("", lambda request: redirect("home")),
+    path(
+        "",
+        lambda request: (
+            redirect("home") if request.user.is_authenticated else redirect("login")
+        ),
+    ),
     path("", include("pi_devices.urls")),
 ]
