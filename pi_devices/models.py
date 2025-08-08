@@ -31,6 +31,10 @@ class Device(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True, help_text="裝置在系統中建立的時間"
     )
+    ip_address = models.GenericIPAddressField(
+        null=True, blank=True, help_text="綁定裝置的內網 IP"
+    )
+    last_ping = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # 若尚未設定 serial_number，則自動產生
