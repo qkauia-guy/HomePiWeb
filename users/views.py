@@ -5,6 +5,7 @@ from .forms import UserRegisterForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+import subprocess
 
 
 def register_view(request):
@@ -38,13 +39,33 @@ def register_view(request):
     return render(request, "users/register.html", {"form": form})
 
 
+def is_device_online(ip_address, port=8800, timeout=2):
+    try:
+        with socket.create_connection((ip_address, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+
 def login_view(request):
     form = AuthenticationForm(data=request.POST or None)
+
     if request.method == "POST":
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect("home")  # 登入後導向首頁或其他頁面
+
+            try:
+                device = user.device  # 前提：user 有 OneToOne 或 ForeignKey 到 Device
+                if is_device_online(device.ip_address):
+                    messages.success(request, "設備在線 ✅")
+                else:
+                    messages.warning(request, "設備不在線 ❌")
+            except Exception as e:
+                messages.warning(request, f"找不到綁定設備或無法連線：{e}")
+
+            return redirect("home")
+
     return render(request, "users/login.html", {"form": form})
 
 
