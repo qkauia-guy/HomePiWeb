@@ -43,6 +43,21 @@
 - `python manage.py createsuperuser`
 - 進入 [Django 後台](http://localhost:8000/admin) 測試登入看看
 
+##### <u>utils</u> 目錄建立原因 和 為什麼要加 **`__init__.py`** 檔案：
+
+- utils 是「工具函式模組（Utility Functions）」的簡稱，專門放置整個專案中可以重複使用的通用程式碼
+- 在資料夾下建立 `__init__.py` 是 Python 用來辨識「這是一個可匯入的套件（Package）」的標記。
+- 有這個檔案，才能在其他地方使用這樣的語法來匯入：
+
+```python
+from pi_devices.utils.qrcode_utils import generate_qrcode
+```
+
+##### conda 虛擬機套件 匯入 / 匯出 指令：
+
+- 匯出 `conda env export > environment.yml`
+- 之後要重建環境可以用： `conda env create -f environment.yml`
+
 ##### Github commit 範例：
 
 1. `<類型>: <簡要描述>`
