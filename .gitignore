@@ -1,7 +1,11 @@
 .env
-# 忽略所有 .pyc 檔案
+# 所有 .pyc 檔案
 *.pyc
-# 忽略所有 __pycache__ 目錄（內含 .pyc 檔）
+# 所有 __pycache__ 目錄（內含 .pyc 檔）
 __pycache__/
-# 忽略 資料庫
+#  資料檔
 db.sqlite3
+#  註冊連結生成的QR CODE
+static/qrcodes/
+#  待整理文件目錄
+/待整理文件/
