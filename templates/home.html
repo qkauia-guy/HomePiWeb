@@ -15,4 +15,23 @@
       <div class="alert alert-secondary">您是一般使用者。</div>
     {% endif %}
   </div>
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const serial = "{{ request.user.device.serial_number|default:'' }}";
+    if (serial) {
+      fetch("/api/device/ping/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ serial_number: serial }),
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("設備狀態：", data);
+      })
+      .catch((err) => console.error("Ping 失敗", err));
+    }
+  });
+</script>
 {% endblock %}
