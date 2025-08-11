@@ -3,9 +3,10 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from pi_devices.models import Device
 from .forms import UserRegisterForm
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.views.decorators.http import require_POST
 
 
 def register_view(request):
@@ -72,3 +73,11 @@ def login_view(request):
 @login_required
 def home_view(request):
     return render(request, "home.html", {"user": request.user})
+
+
+@require_POST
+@login_required
+def logout_view(request):
+    logout(request)
+    messages.info(request, "你已登出。")
+    return redirect("login")
