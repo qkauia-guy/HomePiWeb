@@ -5,7 +5,6 @@
 {% block content %}
   <div class="container mt-4">
     <h2>👋 歡迎回來 {{ user.email }}</h2>
-    <p>目前身份：<strong>{{ user.get_role_display }}</strong></p>
 
     {% if user.is_superadmin %}
       <div class="alert alert-success">您是 SuperAdmin，可以管理所有設備與使用者。</div>
@@ -14,8 +13,14 @@
     {% else %}
       <div class="alert alert-secondary">您是一般使用者。</div>
     {% endif %}
+    {% if request.user.is_authenticated %}
+      <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm">登出</button>
+      </form>
+    {% endif %}
   </div>
-  <script>
+<script>
   document.addEventListener("DOMContentLoaded", function () {
     const serial = "{{ request.user.device.serial_number|default:'' }}";
     if (serial) {
