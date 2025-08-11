@@ -17,7 +17,7 @@ class UserRegisterForm(forms.ModelForm):
         fields = ["email"]  # 表單只顯示 email，其餘欄位為自訂欄位
 
     def __init__(self, *args, **kwargs):
-        # 將 token 從 URL 或 view 傳入 form
+        # 在建立表單時，可以額外傳入 token ，這個 token 是用來找到對應的設備。
         self.token = kwargs.pop("token", None)
         super().__init__(*args, **kwargs)
 
