@@ -1,17 +1,62 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}登入{% endblock %}
 
 {% block content %}
-  <h2 class="mb-4">登入</h2>
+<div class="container py-4 py-md-5">
+  <div class="row justify-content-center">
+    <div class="col-11 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="h4 brand mb-4 text-center text-md-start">登入</h1>
 
-  {% if form.errors %}
-    <div class="alert alert-danger">登入失敗，請確認帳號密碼是否正確</div>
-  {% endif %}
+          <form method="post" id="login-form" novalidate>
+            {% csrf_token %}
 
-  <form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">登入</button>
-  </form>
+            <div class="mb-3">
+              <label for="id_username" class="form-label">Email</label>
+              <input type="email"
+                     name="username"
+                     class="form-control"
+                     id="id_username"
+                     placeholder="you@example.com"
+                     autocomplete="username"
+                     inputmode="email"
+                     required autofocus>
+            </div>
+
+            <div class="mb-2">
+              <label for="id_password" class="form-label">密碼</label>
+              <input type="password"
+                     name="password"
+                     class="form-control"
+                     id="id_password"
+                     placeholder="••••••••"
+                     autocomplete="current-password"
+                     required>
+            </div>
+
+            <div class="mt-4">
+              <div class="mb-3 text-center text-sm-start">
+                <a href="{% url 'password_reset_request' %}" class="text-decoration-underline">
+                  忘記密碼？
+                </a>
+              </div>
+              <div>
+                <button type="submit" class="btn btn-primary w-100 w-sm-auto" id="login-btn">
+                  登入
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script defer src="{% static 'users/js/login.js' %}"></script>
 {% endblock %}
