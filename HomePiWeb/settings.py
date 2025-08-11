@@ -131,3 +131,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/home/"  # 登入成功後導向
 LOGOUT_REDIRECT_URL = "/login/"  # 登出後導向（可選）
+
+# 忘記密碼：是否寄信（False=頁面顯示重設連結，True=寄信）
+PASSWORD_RESET_SEND_EMAIL = False
+# 寄信基礎設定（先留著，未來開啟就能用）
+DEFAULT_FROM_EMAIL = "no-reply@example.com"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # 先用 console
