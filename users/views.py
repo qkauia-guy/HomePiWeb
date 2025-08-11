@@ -49,23 +49,33 @@ def is_device_online(ip_address, port=8800, timeout=2):
 
 
 def login_view(request):
-    form = AuthenticationForm(data=request.POST or None)
+    form = AuthenticationForm(request, data=request.POST or None)
 
     if request.method == "POST":
         if form.is_valid():
             user = form.get_user()
             login(request, user)
 
-            try:
-                device = user.device  # 前提：user 有 OneToOne 或 ForeignKey 到 Device
-                if is_device_online(device.ip_address):
-                    messages.success(request, "設備在線 ✅")
-                else:
-                    messages.warning(request, "設備不在線 ❌")
-            except Exception as e:
-                messages.warning(request, f"找不到綁定設備或無法連線：{e}")
+            # ✅ 組 HTML 訊息
+            role_msg = ""
+            if user.is_superadmin:
+                role_msg = '<div style="color:green;">您是 SuperAdmin，可以管理所有設備與使用者。</div>'
+            elif user.is_admin:
+                role_msg = '<div style="color:blue;">您是 Admin，擁有管理權限。</div>'
+            else:
+                role_msg = '<div style="color:gray;">您是一般使用者。</div>'
+
+            html_msg = f"""
+                <h2>👋 歡迎回來 {user.email}</h2>
+                <p>目前身份：<strong>{user.get_role_display()}</strong></p>
+                {role_msg}
+            """
+
+            messages.success(request, html_msg)
 
             return redirect("home")
+        else:
+            messages.error(request, "帳號或密碼不正確，請再試一次。")
 
     return render(request, "users/login.html", {"form": form})
 
