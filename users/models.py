@@ -1,87 +1,162 @@
 from django.contrib.auth.models import (
-    AbstractBaseUser,
-    BaseUserManager,
-    PermissionsMixin,
+    AbstractBaseUser,  # 提供密碼雜湊與驗證的基底類
+    BaseUserManager,  # 自訂使用者模型時需要的 Manager
+    PermissionsMixin,  # 提供 is_superuser、groups、user_permissions
 )
 from django.db import models
-from pi_devices.models import Device
+from django.utils.html import format_html  # 產生安全 HTML（用於 admin 顯示徽章等）
+from django.conf import settings
+from pi_devices.models import (
+    Device,
+)  # 你的裝置模型（需具備 is_online(window_seconds) 等）
 
 
-# 自訂 User Manager，負責建立使用者和超級使用者的邏輯
 class UserManager(BaseUserManager):
+
     def create_user(self, email, password=None, **extra_fields):
-        # 建立一般使用者帳號，必填 email
+        """
+        建立一般使用者：
+        - email 必填，並會正規化
+        - 密碼使用 set_password 雜湊儲存
+        - 其他欄位從 extra_fields 帶入
+        """
         if not email:
-            raise ValueError("Email必要填入")  # 沒有 email 則拋錯
-        email = self.normalize_email(email)  # 將 email 正規化(如全部小寫)
-        user = self.model(
-            email=email, **extra_fields
-        )  # 建立 User 物件，但還沒存入資料庫
-        user.set_password(password)  # 設定密碼（加密）
+            raise ValueError("Email必要填入")
+        email = self.normalize_email(email)  # 正規化 email（小寫網域等）
+        user = self.model(email=email, **extra_fields)  # 建立模型實例（尚未存檔）
+        user.set_password(password)  # 以 Django 方式雜湊密碼
         user.save()  # 寫入資料庫
-        return user  # 回傳 User 物件
+        return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        # 建立超級使用者(管理員)帳號，並設定必要權限 setdefault 會先檢查字典裡是否有這個鍵，如果已經存在，就保持不變；如果不存在，才給它一個預設值。
-        extra_fields.setdefault("is_staff", True)  # 管理員權限標記
-        extra_fields.setdefault("is_superuser", True)  # 超級使用者權限標記
-        extra_fields.setdefault("role", "superadmin")  # 自訂角色欄位設為 superadmin
-        return self.create_user(
-            email, password, **extra_fields
-        )  # 呼叫 create_user 來完成建立
+
+        extra_fields.setdefault("is_staff", True)  # 能登入 Django admin
+        extra_fields.setdefault("is_superuser", True)  # 擁有所有權限
+        extra_fields.setdefault("role", "superadmin")  # 自訂角色設為最高層級
+
+        # 防呆：避免被外部覆寫成 False
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True")
+
+        return self.create_user(email, password, **extra_fields)
 
 
-# 自訂使用者模型，繼承 Django 認證基本功能與權限功能
 class User(AbstractBaseUser, PermissionsMixin):
-    # 使用者角色選項，定義該欄位可用的字串與顯示名稱
+    """
+    自訂使用者模型：
+    - 使用 email 當作登入識別（取代 username）
+    - 角色欄位 role 作為自訂權限邏輯的輔助
+    - 可選擇性綁定一台 Device（用於線上狀態判斷）
+    - 支援邀請制度（記錄邀請人）
+    """
+
+    # 角色選項：定義系統中的使用者層級
     ROLE_CHOICES = [
-        ("user", "User"),
-        ("admin", "Admin"),
-        ("superadmin", "SuperAdmin"),
+        ("user", "User"),  # 一般使用者
+        ("admin", "Admin"),  # 管理員
+        ("superadmin", "SuperAdmin"),  # 超級管理員
     ]
 
-    email = models.EmailField(unique=True)  # 電子郵件欄位且唯一，作為登入帳號
+    # === 基本帳號資訊 ===
+    email = models.EmailField(unique=True)  # 當作帳號使用，需唯一（取代 username）
     role = models.CharField(
-        max_length=20, choices=ROLE_CHOICES, default="user"
-    )  # 角色欄位預設為 user
-    # invited_by 自我關聯欄位，紀錄是被哪個 User 邀請註冊，可為空
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default="user",  # 新註冊使用者預設為一般使用者
+        help_text="使用者在系統中的角色層級",
+    )
+
+    # === 邀請制度 ===
     invited_by = models.ForeignKey(
-        "self",
+        "self",  # 自我關聯：紀錄該使用者由誰邀請
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
-        related_name="invited_users",  # 反向關聯名稱，查邀請此人的清單用
+        on_delete=models.SET_NULL,  # 邀請人刪除時設為 NULL（保護被邀請者）
+        related_name="invited_users",  # 反向關聯：某使用者.invited_users -> 被他邀請的人
+        help_text="邀請此使用者的人",
     )
-    is_active = models.BooleanField(default=True)  # 帳號是否啟用，False 將無法登入
-    is_staff = models.BooleanField(
-        default=False
-    )  # 是否有管理站台的權限（進入 admin 後台）
-    date_joined = models.DateTimeField(auto_now_add=True)  # 建立帳號的時間，自動填入
 
-    # 使用 OneToOneField（一對一關聯）
+    # === Django 標準欄位 ===
+    is_active = models.BooleanField(default=True)  # 是否啟用帳號（Django 慣例）
+    is_staff = models.BooleanField(default=False)  # 是否能登入 Django admin
+    date_joined = models.DateTimeField(auto_now_add=True)  # 建立時間（自動設定）
+
+    # === 裝置綁定 ===
     device = models.OneToOneField(
-        Device,  # 關連到pi_devices.models.Device Model
+        Device,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,  # 如果原本綁定的設備被刪除了，user.device 這個欄位會被設為 NULL，不會連同 User 一起刪掉
-        help_text="綁定的樹梅派設備，如有",
+        on_delete=models.SET_NULL,  # 裝置刪除時，使用者的 device 設為 NULL
+        help_text="綁定的樹梅派設備，如有（用於判斷線上狀態）",
     )
 
-    objects = UserManager()  # 指定自訂的 User Manager 負責建立使用者和超級使用者
+    # === Django 設定 ===
+    objects = UserManager()  # 指定自訂 Manager，供 createsuperuser 等使用
 
-    USERNAME_FIELD = "email"  # 指定用來登入的欄位為 email
-    REQUIRED_FIELDS = (
-        []
-    )  # 建議在此加上 'role' 欄位，若要強制 superuser 建立時輸入此欄位
+    USERNAME_FIELD = "email"  # 指定用 email 當作登入識別（取代 username）
+    REQUIRED_FIELDS = []  # createsuperuser 額外必填欄位（空表示不用）
 
+    # === 線上狀態判斷 ===
+    def is_online(self, window_seconds: int | None = None) -> bool:
+        """
+        判斷使用者是否在線：
+        - 需先綁定 device，否則回傳 False
+        - 預設時間窗從 settings.DEVICE_ONLINE_WINDOW_SECONDS 讀取（預設 60 秒）
+        - 委派給 device.is_online(window_seconds) 以統一邏輯
+        """
+        if not self.device:
+            return False  # 沒綁定裝置，視為離線
+
+        # 取得判斷時間窗：優先用參數，其次用 settings，最後預設 60 秒
+        window = window_seconds or getattr(settings, "DEVICE_ONLINE_WINDOW_SECONDS", 60)
+
+        # 將實際判斷邏輯委派給 Device 模型（職責分離）
+        return self.device.is_online(window_seconds=window)
+
+    @property
+    def online(self) -> str:
+        """
+        中文狀態字串（方便模板直接顯示）：
+        - 回傳 "在線" 或 "離線"
+        - 使用 @property 讓模板可用 {{ user.online }} 而非 {{ user.online() }}
+        """
+        return "在線" if self.is_online() else "離線"
+
+    def online_badge(self) -> str:
+        """
+        以彩色徽章顯示線上狀態（可於 admin list_display 使用）：
+        - 綠色：在線
+        - 灰色：離線
+        - 使用 format_html 確保 HTML 安全性
+        """
+        status = "在線" if self.is_online() else "離線"
+        color = "green" if status == "在線" else "gray"
+        return format_html(
+            '<span style="color: white; background-color: {}; padding: 3px 6px; border-radius: 4px; font-size: 12px;">{}</span>',
+            color,
+            status,
+        )
+
+    # 設定在 Django admin 列表頁面的欄位標題
+    online_badge.short_description = "線上狀態"
+
+    # === 基本方法 ===
     def __str__(self):
-        # 當用 print(user) 或 admin 顯示使用者名稱時，回傳 email 字串呈現
+        # 在 Django admin、shell、或 print() 時顯示 > 回傳使用者的 email
         return self.email
 
+    # === 權限輔助方法 ===
     def is_admin(self):
-        # 方便判斷此使用者是否是 admin 角色，回傳 True / False
         return self.role == "admin"
 
     def is_superadmin(self):
-        # 方便判斷此使用者是否是 superadmin 角色，回傳 True / False
+        # 檢查是否為超級管理員：
         return self.role == "superadmin"
+
+    class Meta:
+        verbose_name = "使用者"
+        verbose_name_plural = "使用者"
+        db_table = "users_user"  # 可選：自訂資料表名稱
+        ordering = ["-date_joined"]  # 預設排序：最新註冊的在前
