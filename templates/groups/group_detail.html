@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <div>
+    <h3>群組：{{ group.name }}</h3>
+    <p>擁有者：{{ group.owner.email }}</p>
+  </div>
+  <div class="btn-group">
+    <a href="{% url 'group_members' group.id %}" class="btn btn-outline-info">成員管理</a>
+    <a href="{% url 'group_update' group.id %}" class="btn btn-outline-secondary">編輯</a>
+    <a href="{% url 'group_list' %}" class="btn btn-outline-dark">回列表</a>
+  </div>
+</div>
+
+<hr>
+
+<h5>群組裝置</h5>
+<ul>
+  {% for d in devices %}
+    <li>
+      {{ d.serial_number }}（擁有者：
+      {% if d.user %}{{ d.user.email }}{% else %}-{% endif %}）
+      <form method="post" action="{% url 'group_detach_device' group.id d.id %}" class="d-inline">
+        {% csrf_token %}
+        <button class="btn btn-sm btn-outline-danger">移除</button>
+      </form>
+      {# 可選：建立邀請（需要 invites app 路由） #}
+      <a href="{% url 'invite_create' group.id d.id %}" class="btn btn-sm btn-outline-primary ms-2">建立邀請</a>
+    </li>
+  {% empty %}
+    <li>尚無裝置</li>
+  {% endfor %}
+</ul>
+
+<hr>
+
+{# 可選：把自己擁有、尚未掛入此群組的裝置列出 #}
+{% if attachable_devices %}
+  <h5 class="mt-4">將我的裝置加入此群組</h5>
+  <ul>
+    {% for ad in attachable_devices %}
+      <li>
+        {{ ad.serial_number }}
+        <form method="post" action="{% url 'group_attach_device' group.id ad.id %}" class="d-inline">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-success">加入</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{% endblock %}
