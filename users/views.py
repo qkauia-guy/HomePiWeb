@@ -56,7 +56,7 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
 
-            # ✅ 組 HTML 訊息
+            # HTML 訊息
             role_msg = ""
             if user.is_superadmin:
                 role_msg = '<div style="color:green;">您是 SuperAdmin，可以管理所有設備與使用者。</div>'
