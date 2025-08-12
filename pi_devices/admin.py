@@ -48,6 +48,7 @@ class DeviceAdmin(admin.ModelAdmin):
         "online",
         "ip_address",
         "last_ping",
+        "groups_count",
     )
     list_select_related = ("user",)
     search_fields = ("serial_number", "verification_code", "token", "user__email")
@@ -72,3 +73,7 @@ class DeviceAdmin(admin.ModelAdmin):
     @admin.display(boolean=True, description="在線", ordering="last_ping")
     def online(self, obj):
         return obj.is_online()
+
+    @admin.display(description="群組數")
+    def groups_count(self, obj):
+        return obj.groups.count()
