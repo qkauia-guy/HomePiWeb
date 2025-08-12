@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "users",
     "pi_devices",
+    "groups",
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,7 @@ PASSWORD_RESET_SEND_EMAIL = False
 # 寄信基礎設定（先留著，未來開啟就能用）
 DEFAULT_FROM_EMAIL = "no-reply@example.com"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # 先用 console
+
+
+# 是否允許「一般成員」將自己的裝置掛入群組（預設 False）
+GROUP_ALLOW_MEMBER_ATTACH = False

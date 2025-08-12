@@ -7,6 +7,7 @@ urlpatterns = [
     # 使用者相關路由（register/login/home + 密碼重設）
     path("", include("users.urls")),
     path("", include("pi_devices.urls")),
+    path("groups/", include("groups.urls")),
     path(
         "",
         lambda request: (
