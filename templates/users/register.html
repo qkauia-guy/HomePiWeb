@@ -1,39 +1,53 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}註冊設備{% endblock %}
 
 {% block content %}
-  <h2 class="mb-4">📲 裝置註冊</h2>
+<div class="container py-4 py-md-5">
+  <div class="row justify-content-center">
+    <div class="col-11 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="h4 brand mb-4 text-center text-md-start">裝置註冊</h1>
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
+          <form method="post" id="register-form" novalidate>
+            {% csrf_token %}
 
-  <form method="POST" novalidate>
-    {% csrf_token %}
-    {% for field in form %}
-      <div class="mb-3">
-        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-          <div class="text-danger small">
-            {{ field.errors.as_text }}
-          </div>
-        {% endif %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% if field.errors %}
+                  <div class="text-danger small mt-1">
+                    {{ field.errors|join:", " }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            <div class="mt-4">
+              <div>
+                <button type="submit" class="btn btn-primary w-100 w-sm-auto" id="register-btn">
+                  註冊帳號
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
       </div>
-    {% endfor %}
-    <button type="submit" class="btn btn-primary">註冊帳號</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
-    {% if form.non_field_errors %}
-      <div class="alert alert-danger">
-        <ul class="mb-0">
-          {% for error in form.non_field_errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-  </form>
+{% block extra_js %}
+  <script defer src="{% static 'users/js/register.js' %}"></script>
 {% endblock %}

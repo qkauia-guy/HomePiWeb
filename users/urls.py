@@ -1,4 +1,3 @@
-# /Users/qkauia/Desktop/HomePiWeb/users/urls.py
 from django.urls import path
 from .views import register_view, login_view, logout_view, home_view
 from .views_password_reset import (
