@@ -8,6 +8,7 @@ urlpatterns = [
     path("", include("users.urls")),
     path("", include("pi_devices.urls")),
     path("groups/", include("groups.urls")),
+    path("invites/", include("invites.urls")),
     path(
         "",
         lambda request: (
