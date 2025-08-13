@@ -8,6 +8,9 @@ from .models import Group, GroupMembership, GroupDevice
 from .permissions import can_attach_device_to_group, is_group_admin
 from .forms import GroupForm, AddMemberForm, UpdateMemberForm
 from pi_devices.models import Device
+from invites.models import Invitation
+from django.utils import timezone
+from datetime import timedelta
 
 
 # ========== 群組列表 ==========
@@ -159,39 +162,54 @@ def group_members(request, group_id):
 
     memberships = group.memberships.select_related("user").all()
 
+    # 沒有裝置就無法建立邀請（需要綁一台裝置）
+    if not group.devices.exists():
+        messages.info(request, "此群組尚無裝置，請先將裝置加入群組後再建立邀請。")
+
     if request.method == "POST":
         form = AddMemberForm(request.POST)
+        # 注入當前群組的裝置選單
+        form.fields["device"].queryset = group.devices.all()
         if form.is_valid():
             email = form.cleaned_data["email"].lower()
             role = form.cleaned_data["role"]
-            from users.models import User
+            device = form.cleaned_data["device"]
 
-            # 不要把擁有者加成員
+            # 不要對擁有者發邀請
             if group.owner.email.lower() == email:
-                messages.info(request, "此 Email 為群組擁有者，無需加入成員。")
+                messages.info(request, "此 Email 為群組擁有者，無需邀請。")
                 return redirect("group_members", group_id=group.id)
 
-            try:
-                user = User.objects.get(email__iexact=email)
-            except User.DoesNotExist:
-                messages.error(
-                    request,
-                    "找不到該 Email 的使用者。若對方尚未註冊，請使用邀請連結流程。",
-                )
-                return redirect("group_members", group_id=group.id)
-
-            GroupMembership.objects.get_or_create(
-                user=user, group=group, defaults={"role": role}
+            # 建立「單次、可選綁 email」的邀請（預設 7 天）
+            inv = Invitation.objects.create(
+                group=group,
+                device=device,
+                invited_by=request.user,
+                email=email,  # 綁定該信箱；受邀者必須用這個 email 接受
+                role=role,  # viewer / operator
+                max_uses=1,  # 單次使用
+                expires_at=timezone.now() + timedelta(days=7),
             )
-            messages.success(request, f"已加入成員：{email}（{role}）")
-            return redirect("group_members", group_id=group.id)
+
+            # 生成可分享連結
+            invite_url = request.build_absolute_uri(f"/invites/accept/{inv.code}/")
+            # 直接顯示「已建立頁」給擁有者/管理員複製
+            return render(
+                request, "invites/created.html", {"invite_url": invite_url, "inv": inv}
+            )
     else:
         form = AddMemberForm()
+        form.fields["device"].queryset = group.devices.all()
 
     return render(
         request,
         "groups/group_members.html",
-        {"group": group, "memberships": memberships, "form": form},
+        {
+            "group": group,
+            "memberships": memberships,
+            "form": form,
+            "role_choices": GroupMembership.ROLE_CHOICES,  # 供下方列表的角色下拉使用
+        },
     )
 
 
