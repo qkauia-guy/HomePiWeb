@@ -68,3 +68,41 @@ class UserRegisterForm(forms.ModelForm):
                 raise forms.ValidationError("此設備已綁定")
             self.device = device  # 驗證通過後，存放設備供 save() 使用
         return cleaned_data
+
+
+class InviteRegisterForm(forms.ModelForm):
+    password1 = forms.CharField(label="密碼", widget=forms.PasswordInput)
+    password2 = forms.CharField(label="確認密碼", widget=forms.PasswordInput)
+
+    class Meta:
+        model = User
+        fields = ["email"]  # 只需要 Email
+
+    def __init__(self, *args, fixed_email: str | None = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fixed_email = (fixed_email or "").lower()
+        if self.fixed_email:
+            self.fields["email"].initial = self.fixed_email
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if self.fixed_email and email != self.fixed_email:
+            raise ValidationError("此邀請僅限指定 Email 使用")
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError("此 Email 已被註冊，請改用登入")
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("password1") != cleaned.get("password2"):
+            raise ValidationError("兩次密碼不一致")
+        return cleaned
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        # 受邀註冊 → 一般會員；不綁裝置、不改 is_staff/superuser
+        user.role = "user"
+        if commit:
+            user.save()
+        return user
