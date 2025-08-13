@@ -11,7 +11,7 @@ urlpatterns = [
     path("logout/", logout_view, name="logout"),
     path("home/", home_view, name="home"),
     # 忘記密碼（可切換不寄信 / 寄信）
-    path("password-reset/", password_reset_request_view, name="password_reset_request"),
+    path("password_reset/", password_reset_request_view, name="password_reset_request"),
     path(
         "reset/<uidb64>/<token>/",
         password_reset_confirm_view,
