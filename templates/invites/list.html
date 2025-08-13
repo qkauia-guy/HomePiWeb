@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h3>邀請列表：{{ group.name }}</h3>
+  <div class="btn-group">
+    <a href="{% url 'group_detail' group.id %}" class="btn btn-outline-secondary">回群組</a>
+  </div>
+</div>
+
+<form method="get" class="mt-3 mb-2">
+  <label class="me-2">狀態篩選：</label>
+  <select name="status" onchange="this.form.submit()">
+    <option value="all" {% if status == 'all' %}selected{% endif %}>全部</option>
+    <option value="active" {% if status == 'active' %}selected{% endif %}>有效</option>
+    <option value="used" {% if status == 'used' %}selected{% endif %}>已使用</option>
+    <option value="expired" {% if status == 'expired' %}selected{% endif %}>已失效/過期</option>
+  </select>
+</form>
+
+<table class="table table-sm align-middle">
+  <thead>
+    <tr>
+      <th>裝置</th>
+      <th>對象 Email</th>
+      <th>角色</th>
+      <th>建立者</th>
+      <th>使用次數</th>
+      <th>到期</th>
+      <th>狀態</th>
+      <th>連結</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for inv in invites %}
+    <tr>
+      <td>{{ inv.device.serial_number }}</td>
+      <td>{{ inv.email|default:"-" }}</td>
+      <td>{{ inv.role }}</td>
+      <td>{{ inv.invited_by.email }}</td>
+      <td>{{ inv.used_count }}/{{ inv.max_uses }}</td>
+      <td>{% if inv.expires_at %}{{ inv.expires_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
+      <td>
+        {% if inv.is_active %}
+          {% if not inv.expires_at or inv.expires_at > now %}
+            <span class="badge bg-success">有效</span>
+          {% else %}
+            <span class="badge bg-secondary">失效</span>
+          {% endif %}
+        {% else %}
+          <span class="badge bg-secondary">失效</span>
+        {% endif %}
+      </td>
+      <td>
+        <code style="user-select: all;">/invites/accept/{{ inv.code }}/</code>
+      </td>
+      <td>
+        {% if inv.is_active %}
+          <form method="post" action="{% url 'invite_revoke' inv.code %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('確定撤銷？')">撤銷</button>
+          </form>
+        {% else %}
+          -
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="9">尚無邀請</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

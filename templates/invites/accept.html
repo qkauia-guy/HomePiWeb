@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>接受邀請</h3>
+<p>群組：<strong>{{ inv.group.name }}</strong></p>
+<p>裝置：<code>{{ inv.device.serial_number }}</code></p>
+<p class="text-muted">本連結僅限受邀者使用，使用一次後即失效。</p>
+
+<div class="row mt-4">
+  <div class="col-md-6">
+    <h5>已有帳號登入</h5>
+    <form method="post" class="mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="login" value="1">
+      {{ login_form.as_p }}
+      <button class="btn btn-success">登入並加入群組</button>
+    </form>
+  </div>
+  <div class="col-md-6">
+    <h5>受邀註冊</h5>
+    <p class="text-muted">受邀註冊會建立一般會員（不可調整裝置環境/不可群組管理）。</p>
+    <form method="post" class="mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="register" value="1">
+      {{ register_form.as_p }}
+      <button class="btn btn-primary">註冊並加入群組</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
