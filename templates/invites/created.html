@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>邀請已建立</h3>
+<p class="text-muted">以下連結僅能使用一次，過期或使用後將失效。</p>
+
+<div class="input-group my-3">
+  <input id="inviteLink" type="text" class="form-control" readonly value="{{ invite_url }}">
+  <button class="btn btn-outline-primary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('inviteLink').value)">複製</button>
+</div>
+
+<p>裝置：<code>{{ inv.device.serial_number }}</code></p>
+<p>角色：<code>{{ inv.role }}</code></p>
+<p>限定 Email：<code>{{ inv.email|default:"-" }}</code></p>
+<p>到期：<code>{% if inv.expires_at %}{{ inv.expires_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}</code></p>
+
+<div class="mt-3">
+  <a href="{% url 'invite_list' inv.group.id %}" class="btn btn-outline-primary">查看邀請列表</a>
+  <a href="{% url 'group_detail' inv.group.id %}" class="btn btn-secondary">返回群組</a>
+</div>
+{% endblock %}

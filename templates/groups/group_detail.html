@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center">
   <div>
@@ -14,6 +15,13 @@
 
 <hr>
 
+{# 如果 invites app 啟用，顯示建立邀請和邀請列表按鈕 #}
+{% if invites_enabled %}
+  <div class="mb-3">
+    <a href="{% url 'invite_list' group.id %}" class="btn btn-sm btn-outline-secondary">邀請列表</a>
+  </div>
+{% endif %}
+
 <h5>群組裝置</h5>
 <ul>
   {% for d in devices %}
@@ -24,8 +32,10 @@
         {% csrf_token %}
         <button class="btn btn-sm btn-outline-danger">移除</button>
       </form>
-      {# 可選：建立邀請（需要 invites app 路由） #}
-      <a href="{% url 'invite_create' group.id d.id %}" class="btn btn-sm btn-outline-primary ms-2">建立邀請</a>
+      {# 針對每個裝置顯示建立邀請按鈕 #}
+      {% if invites_enabled %}
+        <a href="{% url 'invite_create' group.id d.id %}" class="btn btn-sm btn-outline-primary ms-2">建立邀請</a>
+      {% endif %}
     </li>
   {% empty %}
     <li>尚無裝置</li>
@@ -33,6 +43,15 @@
 </ul>
 
 <hr>
+
+{# 顯示錯誤訊息區塊 #}
+{% if message %}
+  <div class="alert alert-danger" role="alert">
+    <h3>錯誤</h3>
+    <p>{{ message }}</p>
+    <a href="/" class="btn btn-secondary mt-2">回首頁</a>
+  </div>
+{% endif %}
 
 {# 可選：把自己擁有、尚未掛入此群組的裝置列出 #}
 {% if attachable_devices %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>加入成功！</h3>
+<p>你已加入群組：<strong>{{ group.name }}</strong></p>
+<p>可操作裝置：<code>{{ device.serial_number }}</code></p>
+<div class="mt-3">
+  <a href="{% url 'group_detail' group.id %}" class="btn btn-primary">前往群組</a>
+</div>
+{% endblock %}

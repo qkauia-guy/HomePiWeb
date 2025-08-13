@@ -5,20 +5,24 @@
 <div class="container my-4">
   <h2 class="mb-3">「{{ group.name }}」成員管理</h2>
 
-  {# 新增成員表單 #}
+  <!-- 新增成員表單 -->
   <div class="card mb-4">
-    <div class="card-header">新增成員</div>
+    <div class="card-header">建立邀請</div>
     <div class="card-body">
       <form method="post" action="{% url 'group_members' group.id %}">
         {% csrf_token %}
         <div class="row g-3 align-items-end">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="form-label" for="id_email">Email</label>
             {{ form.email }}
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label" for="id_role">角色</label>
             {{ form.role }}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="id_device">裝置</label>
+            {{ form.device }}
           </div>
           <div class="col-md-2">
             <button class="btn btn-primary w-100" type="submit">加入</button>
@@ -28,7 +32,7 @@
     </div>
   </div>
 
-  {# 成員列表 #}
+  <!-- 成員列表 -->
   <div class="card">
     <div class="card-header">成員列表</div>
     <div class="card-body p-0">
@@ -40,7 +44,7 @@
               <th>Email</th>
               <th>角色</th>
               <th>加入時間</th>
-              <th style="width:260px;">操作</th>
+              <th style="width:300px;">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -49,32 +53,32 @@
               <td>{{ forloop.counter }}</td>
               <td>{{ ms.user.email }}</td>
               <td>
-                {# 顯示目前角色 #}
-                <span class="badge bg-secondary text-uppercase">{{ ms.role }}</span>
+                <!-- 以模型顯示名稱呈現（Admin / Operator / Viewer） -->
+                <span class="badge bg-secondary text-uppercase">{{ ms.get_role_display }}</span>
               </td>
-              <td>
-                {# 依你的模型欄位調整，常見是 created_at 或 date_joined #}
-                {{ ms.created_at|default:ms.created|date:"Y-m-d H:i" }}
-              </td>
+              <td>{{ ms.joined_at|date:"Y-m-d H:i" }}</td>
               <td>
                 <div class="d-flex gap-2">
+                  {% if ms.user_id != request.user.id %}
+                    <!-- 更新角色：用模型 choices 迭代，避免手動寫錯 -->
+                    <form method="post" action="{% url 'member_set_role' group.id ms.id %}" class="d-flex gap-2">
+                      {% csrf_token %}
+                      <select name="role" class="form-select form-select-sm" style="width:160px;">
+                        {% for value,label in role_choices %}
+                          <option value="{{ value }}" {% if ms.role == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                      <button class="btn btn-sm btn-outline-primary" type="submit">更新角色</button>
+                    </form>
 
-                  {# 更新角色 #}
-                  <form method="post" action="{% url 'member_set_role' group.id ms.id %}" class="d-flex gap-2">
-                    {% csrf_token %}
-                    <select name="role" class="form-select form-select-sm" style="width:140px;">
-                      <option value="member" {% if ms.role == "member" %}selected{% endif %}>成員</option>
-                      <option value="admin"  {% if ms.role == "admin"  %}selected{% endif %}>管理員</option>
-                    </select>
-                    <button class="btn btn-sm btn-outline-primary" type="submit">更新角色</button>
-                  </form>
-
-                  {# 移除成員 #}
-                  <form method="post" action="{% url 'member_remove' group.id ms.id %}" onsubmit="return confirm('確定要移除此成員嗎？');">
-                    {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-danger" type="submit">移除</button>
-                  </form>
-
+                    <!-- 移除成員 -->
+                    <form method="post" action="{% url 'member_remove' group.id ms.id %}" onsubmit="return confirm('確定要移除此成員嗎？');">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger" type="submit">移除</button>
+                    </form>
+                  {% else %}
+                    <span class="text-muted">（無法變更/移除自己）</span>
+                  {% endif %}
                 </div>
               </td>
             </tr>
