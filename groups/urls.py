@@ -1,3 +1,4 @@
+# groups/urls.py
 from django.urls import path
 from . import views
 
@@ -20,7 +21,7 @@ urlpatterns = [
         views.member_remove,
         name="member_remove",
     ),
-    # 你原本的裝置掛入/移除
+    # 裝置掛入/移除
     path(
         "<int:group_id>/attach/<int:device_id>/",
         views.attach_device,
@@ -30,5 +31,27 @@ urlpatterns = [
         "<int:group_id>/detach/<int:device_id>/",
         views.detach_device,
         name="group_detach_device",
+    ),
+    # 成員裝置分享申請 & 審核
+    path(
+        "<int:group_id>/devices/<int:device_id>/request-share/",
+        views.request_share_device,
+        name="request_share_device",
+    ),
+    path(
+        "<int:group_id>/requests/<int:req_id>/review/",
+        views.review_share_request,
+        name="review_share_request",
+    ),
+    # 管理員持續性授權管理
+    path(
+        "<int:group_id>/grants/<int:user_id>/grant/",
+        views.grant_share_permission,
+        name="grant_share_permission",
+    ),
+    path(
+        "<int:group_id>/grants/<int:user_id>/revoke/",
+        views.revoke_share_permission,
+        name="revoke_share_permission",
     ),
 ]

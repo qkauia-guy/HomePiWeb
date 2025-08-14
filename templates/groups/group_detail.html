@@ -1,71 +1,125 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="d-flex justify-content-between align-items-center">
-  <div>
-    <h3>群組：{{ group.name }}</h3>
-    <p>擁有者：{{ group.owner.email }}</p>
-  </div>
-  <div class="btn-group">
-    <a href="{% url 'group_members' group.id %}" class="btn btn-outline-info">成員管理</a>
-    <a href="{% url 'group_update' group.id %}" class="btn btn-outline-secondary">編輯</a>
-    <a href="{% url 'group_list' %}" class="btn btn-outline-dark">回列表</a>
-  </div>
-</div>
+<h2>群組：{{ group.name }}</h2>
+<p>擁有者：{{ group.owner.email }}</p>
 
 <hr>
-
-{# 如果 invites app 啟用，顯示建立邀請和邀請列表按鈕 #}
-{% if invites_enabled %}
-  <div class="mb-3">
-    <a href="{% url 'invite_list' group.id %}" class="btn btn-sm btn-outline-secondary">邀請列表</a>
-  </div>
-{% endif %}
-
-<h5>群組裝置</h5>
-<ul>
-  {% for d in devices %}
-    <li>
-      {{ d.serial_number }}（擁有者：
-      {% if d.user %}{{ d.user.email }}{% else %}-{% endif %}）
-      <form method="post" action="{% url 'group_detach_device' group.id d.id %}" class="d-inline">
-        {% csrf_token %}
-        <button class="btn btn-sm btn-outline-danger">移除</button>
-      </form>
-      {# 針對每個裝置顯示建立邀請按鈕 #}
-      {% if invites_enabled %}
-        <a href="{% url 'invite_create' group.id d.id %}" class="btn btn-sm btn-outline-primary ms-2">建立邀請</a>
-      {% endif %}
-    </li>
-  {% empty %}
-    <li>尚無裝置</li>
-  {% endfor %}
-</ul>
-
-<hr>
-
-{# 顯示錯誤訊息區塊 #}
-{% if message %}
-  <div class="alert alert-danger" role="alert">
-    <h3>錯誤</h3>
-    <p>{{ message }}</p>
-    <a href="/" class="btn btn-secondary mt-2">回首頁</a>
-  </div>
-{% endif %}
-
-{# 可選：把自己擁有、尚未掛入此群組的裝置列出 #}
-{% if attachable_devices %}
-  <h5 class="mt-4">將我的裝置加入此群組</h5>
+<h3>群組裝置</h3>
+{% if group_devices %}
   <ul>
-    {% for ad in attachable_devices %}
+    {% for gd in group_devices %}
       <li>
-        {{ ad.serial_number }}
-        <form method="post" action="{% url 'group_attach_device' group.id ad.id %}" class="d-inline">
-          {% csrf_token %}
-          <button class="btn btn-sm btn-outline-success">加入</button>
-        </form>
+        {{ gd.device.serial_number }}（擁有者：{{ gd.device.user.email }}）
+        <span class="text-muted">
+          加入者：
+          {% if gd.added_by %}
+            {{ gd.added_by.email }}
+          {% else %}
+            未知
+          {% endif %}
+        </span>
+
+        {% if is_admin %}
+          <form method="post" action="{% url 'group_detach_device' group.id gd.device.id %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger">從群組移除</button>
+          </form>
+        {% elif gd.added_by and gd.added_by.id == request.user.id %}
+          <form method="post" action="{% url 'group_detach_device' group.id gd.device.id %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger">從群組移除</button>
+          </form>
+        {% endif %}
       </li>
     {% endfor %}
   </ul>
+{% else %}
+  <p class="text-muted">目前沒有裝置</p>
 {% endif %}
+
+<hr>
+<h3>可掛入的我的裝置</h3>
+{% if attachable_devices %}
+  <ul>
+    {% for d in attachable_devices %}
+      <li>
+        {{ d.serial_number }}
+        {% if user_has_grant or is_admin %}
+          {# ★ 有授權或是管理員 → 直接掛入 #}
+          <form method="post" action="{% url 'group_attach_device' group.id d.id %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-primary">直接掛入群組</button>
+          </form>
+        {% else %}
+          {# ★ 沒授權 → 送出分享申請 #}
+          <form method="post" action="{% url 'request_share_device' group.id d.id %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="message" value="請求分享此裝置">
+            <button class="btn btn-sm btn-outline-primary">送出分享申請</button>
+          </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">你目前沒有可分享（尚未加入本群組）的裝置。</p>
+{% endif %}
+
+{% if is_admin %}
+<hr>
+<h3>待審核的分享申請</h3>
+{% if pending_requests %}
+<ul>
+  {% for r in pending_requests %}
+    <li>
+      {{ r.requester.email }} 想分享 {{ r.device.serial_number }}
+      <form method="post" action="{% url 'review_share_request' group.id r.id %}" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="approve">
+        <button type="submit">核准並加入</button>
+      </form>
+      <form method="post" action="{% url 'review_share_request' group.id r.id %}" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reject">
+        <button type="submit">拒絕</button>
+      </form>
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>沒有待審核申請</p>
+{% endif %}
+
+<hr>
+<h3>持續性授權管理</h3>
+<ul>
+{% for m in memberships %}
+  <li>
+    {{ m.user.email }}（{{ m.role }}）
+    {% if m.user.id in granted_user_ids %}
+      <form method="post" action="{% url 'revoke_share_permission' group.id m.user.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit">關閉授權</button>
+      </form>
+    {% else %}
+      <form method="post" action="{% url 'grant_share_permission' group.id m.user.id %}" style="display:inline;">
+        {% csrf_token %}
+        <input type="number" name="expires_days" placeholder="天數(可空)">
+        <button type="submit">開通授權</button>
+      </form>
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+<hr>
+<h3>成員列表</h3>
+<ul>
+  <li>{{ group.owner.email }}（群長）</li>
+  {% for m in memberships %}
+    <li>{{ m.user.email }}（{{ m.role }}）</li>
+  {% endfor %}
+</ul>
+
 {% endblock %}
