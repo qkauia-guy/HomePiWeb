@@ -9,6 +9,8 @@ from django.conf import settings
 from pi_devices.models import (
     Device,
 )  # 你的裝置模型（需具備 is_online(window_seconds) 等）
+from django.utils import timezone
+from datetime import timedelta
 
 
 class UserManager(BaseUserManager):
@@ -78,19 +80,26 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text="邀請此使用者的人",
     )
 
+    member_groups = models.ManyToManyField(
+        "groups.Group",
+        through="groups.GroupMembership",
+        related_name="users",  # group.users.all() 依然好用
+        blank=True,
+    )
+
     # === Django 標準欄位 ===
     is_active = models.BooleanField(default=True)  # 是否啟用帳號（Django 慣例）
     is_staff = models.BooleanField(default=False)  # 是否能登入 Django admin
     date_joined = models.DateTimeField(auto_now_add=True)  # 建立時間（自動設定）
 
-    # === 裝置綁定 ===
-    device = models.OneToOneField(
-        Device,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,  # 裝置刪除時，使用者的 device 設為 NULL
-        help_text="綁定的樹梅派設備，如有（用於判斷線上狀態）",
-    )
+    # # === 裝置綁定 ===
+    # device = models.OneToOneField(
+    #     Device,
+    #     null=True,
+    #     blank=True,
+    #     on_delete=models.SET_NULL,  # 裝置刪除時，使用者的 device 設為 NULL
+    #     help_text="綁定的樹梅派設備，如有（用於判斷線上狀態）",
+    # )
 
     # === Django 設定 ===
     objects = UserManager()  # 指定自訂 Manager，供 createsuperuser 等使用
@@ -100,20 +109,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # === 線上狀態判斷 ===
     def is_online(self, window_seconds: int | None = None) -> bool:
-        """
-        判斷使用者是否在線：
-        - 需先綁定 device，否則回傳 False
-        - 預設時間窗從 settings.DEVICE_ONLINE_WINDOW_SECONDS 讀取（預設 60 秒）
-        - 委派給 device.is_online(window_seconds) 以統一邏輯
-        """
-        if not self.device:
-            return False  # 沒綁定裝置，視為離線
-
-        # 取得判斷時間窗：優先用參數，其次用 settings，最後預設 60 秒
         window = window_seconds or getattr(settings, "DEVICE_ONLINE_WINDOW_SECONDS", 60)
-
-        # 將實際判斷邏輯委派給 Device 模型（職責分離）
-        return self.device.is_online(window_seconds=window)
+        # 只要有任一台裝置在線，就視為在線
+        return self.devices.filter(
+            last_ping__gte=timezone.now() - timedelta(seconds=window)
+        ).exists()
 
     @property
     def online(self) -> str:

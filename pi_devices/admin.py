@@ -40,6 +40,7 @@ class OnlineStatusFilter(admin.SimpleListFilter):
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
     list_display = (
+        "display_name",
         "serial_number",
         "verification_code",
         "is_bound",
@@ -51,8 +52,14 @@ class DeviceAdmin(admin.ModelAdmin):
         "groups_count",
     )
     list_select_related = ("user",)
-    search_fields = ("serial_number", "verification_code", "token", "user__email")
-    list_filter = ("is_bound", "created_at", OnlineStatusFilter)  # ← 加上這個
+    search_fields = (
+        "serial_number",
+        "verification_code",
+        "token",
+        "user__email",
+        "display_name",
+    )
+    list_filter = ("is_bound", "created_at", OnlineStatusFilter)
     ordering = ("-created_at",)
     empty_value_display = "-"
     readonly_fields = (

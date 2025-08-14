@@ -1,25 +1,21 @@
+from django.conf import settings
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
-import uuid
-import secrets
-import string
+import uuid, secrets, string
 from datetime import timedelta
 
 
 def gen_serial_number() -> str:
-    # 例：PI-7A5D3C1B
     return f"PI-{uuid.uuid4().hex[:8].upper()}"
 
 
 def gen_verification_code(length: int = 6) -> str:
-    # 大寫 + 數字，使用 secrets 提升隨機性
     alphabet = string.ascii_uppercase + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def gen_token() -> str:
-    # 32位hex，若想 64 可 secrets.token_hex(32)
     return uuid.uuid4().hex
 
 
@@ -46,9 +42,18 @@ class Device(models.Model):
         help_text="註冊連結專用 Token",
         default=gen_token,
     )
-    is_bound = models.BooleanField(
-        default=False, help_text="是否已綁定為 SuperAdmin，綁定後不可再次註冊"
+
+    # ✅ 新增：多台裝置歸屬同一使用者
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="devices",
+        help_text="裝置擁有者（綁定後）",
     )
+
+    is_bound = models.BooleanField(default=False, help_text="是否已被某位使用者綁定")
     created_at = models.DateTimeField(
         auto_now_add=True, help_text="裝置在系統中建立的時間"
     )
@@ -56,12 +61,24 @@ class Device(models.Model):
         null=True, blank=True, help_text="綁定裝置的內網 IP"
     )
     last_ping = models.DateTimeField(null=True, blank=True, db_index=True)
+    display_name = models.CharField(
+        max_length=100, blank=True, help_text="自訂裝置顯示名稱；若留空則顯示序號"
+    )
 
     def is_online(self, window_seconds: int = 60) -> bool:
-        """近 window_seconds 內有 ping 視為在線"""
         if not self.last_ping:
             return False
         return self.last_ping >= timezone.now() - timedelta(seconds=window_seconds)
 
+    def name(self) -> str:
+        return self.display_name or self.serial_number
+
     def __str__(self):
-        return f"Device {self.serial_number} (Bound: {self.is_bound})"
+        return f"{self.name()} (SN: {self.serial_number}, Bound: {self.is_bound})"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["is_bound"]),
+            models.Index(fields=["last_ping"]),
+            models.Index(fields=["user"]),  # ✅ 查詢「我的裝置」更快
+        ]
