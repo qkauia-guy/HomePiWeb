@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>編輯裝置名稱</h3>
+<p class="text-muted">序號：{{ device.serial_number }}</p>
+<form method="post" class="mt-3">
+  {% csrf_token %}
+  <div class="mb-3">
+    {{ form.display_name.label_tag }}
+    {{ form.display_name }}
+    <div class="form-text">留空則顯示序號。</div>
+  </div>
+  <button type="submit" class="btn btn-primary">儲存</button>
+  <a href="{% url 'my_devices' %}" class="btn btn-outline-secondary ms-2">取消</a>
+</form>
+{% endblock %}

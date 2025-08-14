@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>綁定新裝置</h3>
+<form method="post" class="mt-3">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">設備序號</label>
+    <input type="text" name="serial_number" class="form-control" placeholder="例如：PI-7A5D3C1B" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">驗證碼</label>
+    <input type="text" name="verification_code" class="form-control" placeholder="設備上的驗證碼" required>
+  </div>
+  <button type="submit" class="btn btn-primary">綁定</button>
+  <a href="{% url 'my_devices' %}" class="btn btn-outline-secondary ms-2">取消</a>
+</form>
+{% endblock %}

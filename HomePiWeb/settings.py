@@ -29,6 +29,13 @@ DEBUG = True  # 上線改 False
 
 ALLOWED_HOSTS = ["*"]  # 開發時使用
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8800",
+    "http://127.0.0.1:8800",
+    "http://192.168.67.42:8800",
+    "http://192.168.0.101:8800",
+]
+
 AUTH_USER_MODEL = "users.User"  # 自訂 User 模型是在 users app 內，叫 User 這個 class
 
 # Application definition
