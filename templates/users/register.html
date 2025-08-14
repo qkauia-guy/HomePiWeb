@@ -40,12 +40,28 @@
               </div>
             </div>
           </form>
-
+          <hr class="my-4">
+          <form method="post" action="{% url 'login' %}" class="row g-2">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="col-12">
+              <label class="form-label" for="id_username">Email</label>
+              <input type="text" name="username" class="form-control" id="id_username" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="id_password">密碼</label>
+              <input type="password" name="password" class="form-control" id="id_password" required>
+            </div>
+            <div class="col-12 mt-2">
+              <button type="submit" class="btn btn-outline-secondary w-100 w-sm-auto">登入</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
