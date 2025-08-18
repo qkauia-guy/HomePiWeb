@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Q
+from django.urls import reverse
 
 
 class Group(models.Model):
@@ -22,6 +23,10 @@ class Group(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        # 你的群組詳情頁 URL name 若不同，請改掉 'group_detail'
+        return reverse("group_detail", kwargs={"group_id": self.pk})
 
 
 class GroupMembership(models.Model):
