@@ -49,21 +49,22 @@ def register_view(request):
         # GET：顯示綁定確認頁
         return render(request, "pi_devices/device_bind.html", {"device": device})
 
-    # === 未登入：註冊模式 ===
+    # 若 query 帶到合法 device，先把 token 存到 session 當備援
     if device:
-        # 備援：把待綁定資訊放 session，避免 next 遺失
-        request.session["pending_device_bind"] = {"serial": serial, "code": code}
+        request.session["reg_token"] = device.token
 
-    form = UserRegisterForm(request.POST or None)
+    # ★ 把 token 傳進表單；若當下 device 為 None，就用 session 備援
+    token = device.token if device else request.session.get("reg_token")
+    form = UserRegisterForm(request.POST or None, token=token)
+
     if request.method == "POST" and form.is_valid():
-        user = form.save()
-        if device:
-            device.user = user
-            device.is_bound = True
-            device.save(update_fields=["user", "is_bound"])
-            request.session.pop("pending_device_bind", None)
+        user = form.save()  # 表單裡會用 token 完成設備驗證與綁定
+        # 🔥 不要在 view 這裡再綁一次，避免重複或競態
         login(request, user)
         messages.success(request, "註冊成功，歡迎！")
+        # 綁定成功後清掉備援
+        request.session.pop("reg_token", None)
+        request.session.pop("pending_device_bind", None)
         return redirect("group_list")
 
     return render(request, "users/register.html", {"form": form, "device": device})

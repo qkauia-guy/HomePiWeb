@@ -65,27 +65,23 @@ class UserRegisterForm(forms.ModelForm):
     @transaction.atomic
     def save(self, commit=True):
         if not hasattr(self, "device"):
-            # 理論上 clean() 驗證通過才會到 save()
             raise ValidationError("未通過設備驗證，無法完成註冊")
 
         user = super().save(commit=False)
         user.email = user.email.lower()
         user.set_password(self.cleaned_data["password1"])
-
-        # 註冊者不應成為 staff/superuser
         user.is_staff = False
         user.is_superuser = False
 
-        # 綁定設備
-        user.device = self.device
-        self.device.is_bound = True
-
         if commit:
             user.save()
-            self.device.save()
-        else:
-            # 若先不 commit，至少回傳時 device 的 is_bound 也被更新在記憶體中
-            pass
+
+        # ✅ 正確的綁定方向：把 user 寫到 Device 上
+        d = Device.objects.select_for_update().get(pk=self.device.pk)
+        if not d.is_bound:
+            d.user = user
+            d.is_bound = True
+            d.save(update_fields=["user", "is_bound"])
         return user
 
 
