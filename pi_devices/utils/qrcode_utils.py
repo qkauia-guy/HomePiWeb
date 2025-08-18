@@ -33,8 +33,9 @@ def generate_device_qrcode(device):
     根據 device 產生 QRCode 圖片，並儲存為 PNG 檔案在 static/qrcodes/ 下。
     圖片檔名為：<serial_number>.png
     """
-    # register_url = f"http://192.168.0.100:8800/register/?serial={device.serial_number}&code={device.verification_code}" # 宿舍 IP
-    register_url = f"http://192.168.67.42:8800/register/?serial={device.serial_number}&code={device.verification_code}"  # 406 教室 IP
+    register_url = f"http://192.168.0.100:8800/register/?serial={device.serial_number}&code={device.verification_code}"  # 宿舍 IP
+    # register_url = f"http://192.168.67.42:8800/register/?serial={device.serial_number}&code={device.verification_code}"  # 406 教室 IP
+    # register_url = f"http://192.168.197.104:8800/register/?serial={device.serial_number}&code={device.verification_code}"  # home
     qr_img = qrcode.make(register_url)
 
     qr_dir = os.path.join(settings.BASE_DIR, "static", "qrcodes")
