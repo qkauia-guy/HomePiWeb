@@ -20,6 +20,9 @@ from django.utils.http import urlsafe_base64_decode
 # 反向解析路由組成重設連結（可改用
 from .utils.password_reset import build_reset_url
 
+from django.db import transaction
+from notifications.services import notify_password_changed
+
 User = get_user_model()  # 取得專案中實際使用的 User 模型(django.contrib.auth 模組)
 
 
@@ -84,31 +87,46 @@ def password_reset_request_view(request):
 """
 
 
-@require_http_methods(["GET", "POST"])  # 僅允許 GET 顯示新密碼表單、POST 送出新密碼
+@require_http_methods(["GET", "POST"])
 def password_reset_confirm_view(request, uidb64, token):
+    # 1) 解碼使用者
+    user = None
     try:
-        # 將 URL 中的 uidb64 還原成原始主鍵字串：
-        # urlsafe_base64_decode 回傳 bytes，再用 force_str 轉成字串（Django 新版使用 force_str；舊文可見 force_text）
         uid = force_str(urlsafe_base64_decode(uidb64))
-        # 僅允許已啟用帳號，避免對停用帳號進行重設
         user = User.objects.get(pk=uid, is_active=True)
     except Exception:
-        # 任一步驟出錯（解碼/查無此人），視為無效請求
         user = None
 
-    # 驗證 token：
-    # default_token_generator.check_token(user, token) 會校驗簽名與時間窗（PASSWORD_RESET_TIMEOUT），
-    # 並以使用者當前狀態重算比對；若密碼已變更或 last_login 變化，舊 token 自然失效
+    # 2) 驗證 token
     if not user or not default_token_generator.check_token(user, token):
         messages.error(request, "重設連結無效或已過期，請重新申請。")
         return redirect("password_reset_request")
 
-    # 顯示/處理「設定新密碼」表單；與 user 綁定可確保 set_password 寫回正確帳號
-    form = SetPasswordForm(user, data=request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        form.save()  # 內部呼叫 set_password 並保存；更新 password hash 後，舊 token 便無法再通過驗證
-        messages.success(request, "密碼已更新，請使用新密碼登入。")
-        return redirect("login")
+    # 3) 建立/驗證表單
+    if request.method == "POST":
+        form = SetPasswordForm(user, data=request.POST)
+        if form.is_valid():
+            form.save()  # set_password + save
 
-    # 初次進入或驗證失敗的表單呈現
+            # 來源 IP / UA（僅做紀錄）
+            xff = request.META.get("HTTP_X_FORWARDED_FOR")
+            client_ip = (
+                xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
+            )
+            ua = request.META.get("HTTP_USER_AGENT", "")
+
+            # 提交成功後才發通知
+            transaction.on_commit(
+                lambda: notify_password_changed(
+                    user=user, actor=user, ip=client_ip, user_agent=ua
+                )
+            )
+
+            messages.success(request, "密碼已更新，請使用新密碼登入。")
+            return redirect("login")
+        # 表單無效 → 繼續往下 render，帶出錯誤
+    else:
+        form = SetPasswordForm(user)
+
+    # 4) 一定要有回傳：初次 GET 或表單無效
     return render(request, "users/password_reset_confirm.html", {"form": form})
