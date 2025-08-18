@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 from django.utils import timezone
 import uuid, secrets, string
 from datetime import timedelta
+from django.urls import reverse, NoReverseMatch
 
 
 def gen_serial_number() -> str:
@@ -75,6 +76,18 @@ class Device(models.Model):
 
     def __str__(self):
         return f"{self.name()} (SN: {self.serial_number}, Bound: {self.is_bound})"
+
+    def get_absolute_url(self):
+        # 若有裝置詳情頁就導去那；沒有就退到「我的裝置」列表。
+        try:
+            # 目前應該沒有這頁面
+            return reverse("/", kwargs={"device_id": self.pk})
+        except NoReverseMatch:
+            return reverse("my_devices")
+
+    @property
+    def label(self):
+        return self.display_name or self.serial_number
 
     class Meta:
         indexes = [

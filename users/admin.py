@@ -15,7 +15,7 @@ class UserAdmin(BaseUserAdmin):
     add_form = UserRegisterForm
 
     # 設定在 admin 「使用者列表頁」中顯示的欄位 (email, role, is_staff)
-    list_display = ("email", "role", "is_staff")
+    list_display = ("email", "role", "is_staff", "id")
 
     # 排序方式，根據 email 欄位排序使用者列表
     ordering = ("email",)

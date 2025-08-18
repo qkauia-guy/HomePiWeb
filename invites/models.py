@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import secrets
+from django.urls import reverse
 
 """
 token_urlsafe(nbytes=None) 函式：
@@ -61,6 +62,10 @@ class Invitation(models.Model):
         if self.used_count >= self.max_uses:
             self.is_active = False
         self.save(update_fields=["used_count", "is_active"])
+
+    def get_absolute_url(self):
+        # 導回該群組的成員管理頁，或 group 詳情頁
+        return reverse("group_detail", kwargs={"group_id": self.group_id})
 
     def __str__(self):
         return f"{self.group.name} / {self.device.serial_number} / {self.code[:6]}…"
