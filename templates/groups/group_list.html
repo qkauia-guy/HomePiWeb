@@ -14,7 +14,7 @@
       </div>
       <div class="btn-group">
         <a href="{% url 'group_update' g.id %}" class="btn btn-sm btn-outline-secondary">編輯</a>
-        <a href="{% url 'group_members' g.id %}" class="btn btn-sm btn-outline-info">成員</a>
+        <a href="{% url 'group_members' g.id %}" class="btn btn-sm btn-outline-info">成員管理</a>
         {% if g.owner_id == request.user.id %}
           <a href="{% url 'group_delete' g.id %}" class="btn btn-sm btn-outline-danger">刪除</a>
         {% endif %}

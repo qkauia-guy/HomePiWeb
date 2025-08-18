@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center mb-3">
+    <div class="btn-group">
+      <a href="{% url 'notifications_list' %}" class="btn btn-sm {% if not kind %}btn-dark{% else %}btn-outline-dark{% endif %}">全部通知</a>
+      <a href="{% url 'notifications_list' %}?kind=member" class="btn btn-sm {% if kind == 'member' %}btn-dark{% else %}btn-outline-dark{% endif %}">會員通知</a>
+      <a href="{% url 'notifications_list' %}?kind=device" class="btn btn-sm {% if kind == 'device' %}btn-dark{% else %}btn-outline-dark{% endif %}">裝置通知</a>
+    </div>
+    <div class="ms-auto">
+      <form action="{% url 'notifications_read_all' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <button class="btn btn-sm btn-outline-secondary">全部標為已讀</button>
+      </form>
+    </div>
+  </div>
+
+  <ul class="list-group">
+    {% for n in page.object_list %}
+      <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start position-relative {% if not n.is_read %}fw-bold{% endif %}">
+        <div>
+          <a href="{% url 'notifications_detail_redirect' n.id %}" class="stretched-link" aria-label="查看通知"></a>
+          <div class="small text-muted">{{ n.created_at|date:"Y-m-d H:i" }} · {{ n.get_kind_display }}</div>
+          <div>{{ n.title }}</div>
+          {% if n.body %}<div class="small text-muted">{{ n.body }}</div>{% endif %}
+        </div>
+
+        {% if not n.is_read %}
+        <div class="d-flex gap-2">
+          <form action="{% url 'notification_read' n.id %}" method="post" class="mb-0" onclick="event.stopPropagation()">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-secondary">標為已讀</button>
+          </form>
+        </div>
+        {% endif %}
+      </li>
+
+    {% empty %}
+      <li class="list-group-item text-muted">目前沒有通知</li>
+    {% endfor %}
+  </ul>
+  
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+      <ul class="pagination">
+        {% if page.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page.previous_page_number }}{% if base_qs %}&{{ base_qs }}{% endif %}">上一頁</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">上一頁</span></li>
+        {% endif %}
+
+        <li class="page-item disabled"><span class="page-link">第 {{ page.number }} / {{ page.paginator.num_pages }} 頁</span></li>
+        {# 未讀徽章（粗體也保留） #}
+
+        {% if page.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page.next_page_number }}{% if base_qs %}&{{ base_qs }}{% endif %}">下一頁</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">下一頁</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif%}
+</div>
+{% endblock %}
+
