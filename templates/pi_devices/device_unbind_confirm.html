@@ -1,7 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
 <h3>解除綁定確認</h3>
-<p class="text-muted">裝置：{{ device.name }}（{{ device.serial_number }}）</p>
+<p class="text-muted">
+  裝置：{{ device.name }}（{{ device.serial_number }}）
+</p>
+
+{# 若這台裝置有分享到群組，列出清單 #}
+{% if group_devices %}
+  <div class="alert alert-warning">
+    <div class="d-flex align-items-center">
+      <strong class="me-2">注意：</strong>
+      <span>此裝置目前分享在下列 {{ group_devices|length }} 個群組中。解除綁定時，系統會自這些群組一併移除該裝置。</span>
+    </div>
+  </div>
+
+  <ul class="list-group mb-3">
+    {% for gd in group_devices %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <div class="fw-semibold">{{ gd.group.name }}</div>
+          {% if gd.device_name_cache %}
+            <div class="small text-muted">群組中的顯示名稱：{{ gd.device_name_cache }}</div>
+          {% endif %}
+        </div>
+        <a href="{% url 'group_detail' gd.group.id %}" class="btn btn-sm btn-outline-primary">查看群組</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="alert alert-info">
+    此裝置目前未分享至任何群組。
+  </div>
+{% endif %}
+
 <form method="post">
   {% csrf_token %}
   <button type="submit" class="btn btn-danger">確認解除</button>
