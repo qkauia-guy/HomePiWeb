@@ -9,6 +9,10 @@ urlpatterns = [
     path("", include("pi_devices.urls")),
     path("groups/", include("groups.urls")),
     path("invites/", include("invites.urls")),
+    # HTML 頁面
+    path("notifications/", include("notifications.web_urls")),
+    # DRF API（若需要）
+    path("api/", include("notifications.api_urls")),
     path(
         "",
         lambda request: (
