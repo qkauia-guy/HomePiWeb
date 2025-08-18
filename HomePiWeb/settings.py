@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "groups",
     "invites",
     "notifications",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -151,3 +152,7 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # 先用 conso
 
 # 是否允許「一般成員」將自己的裝置掛入群組（預設 False）
 GROUP_ALLOW_MEMBER_ATTACH = False
+
+TEMPLATES[0]["OPTIONS"]["context_processors"] += [
+    "notifications.context_processors.notifications_summary",
+]
