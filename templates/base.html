@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-bs-theme="dark>
 <head>
   {% load static %}
   <meta charset="UTF-8">
@@ -15,30 +15,110 @@
 
   <!-- 導覽列 -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/">🏠 HomePi</a>
-    </div>
-    <div class="text-white">
-      👋 歡迎回來 {{ user.email }}
-    </div>
-    <div>
-      <a href="{% url 'my_devices' %}" class="text-white btn btn-outline-secondary me-2">我的裝置</a>
-    </div>
-    <div>
-      <a href="{% url 'group_list' %}" class="text-white btn btn-outline-secondary me-2">我的群組</a>
-    </div>
-    <div>
-      <a href="{% url 'password_reset_request' %}" class="text-white btn btn-outline-secondary me-2">忘記密碼</a>
-    </div>
-    <div>
+  <div class="container-fluid">
+
+    <!-- Brand -->
+    <a class="navbar-brand" href="/">🏠 HomePi</a>
+
+    <!-- Toggler -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+            aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible -->
+    <div class="collapse navbar-collapse" id="mainNavbar">
+
+      <!-- Left menu -->
       {% if request.user.is_authenticated %}
-        <form action="{% url 'logout' %}" method="post">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-outline-secondary me-2 text-white">登出</button>
-        </form>
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a href="{% url 'my_devices' %}" class="nav-link">我的裝置</a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'group_list' %}" class="nav-link">我的群組</a>
+        </li>
+      </ul>
       {% endif %}
+
+      <!-- Right side: notifications + user -->
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+
+        {% if request.user.is_authenticated %}
+          <!-- Notifications -->
+          <li class="nav-item dropdown me-lg-2">
+            <a class="nav-link position-relative" href="#" id="notifDropdown" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+              🔔 通知
+              {% with total=notif_total_unread|default:0 %}
+                {% if total %}
+                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ total }}
+                    <span class="visually-hidden">未讀通知</span>
+                  </span>
+                {% endif %}
+              {% endwith %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start" aria-labelledby="notifDropdown" style="min-width: 320px;">
+              <li class="dropdown-header d-flex justify-content-between align-items-center">
+                <span>最新通知</span>
+                <span class="ms-2">
+                  <span class="badge bg-secondary">會員 {{ notif_member_unread|default:0 }}</span>
+                  <span class="badge bg-secondary">裝置 {{ notif_device_unread|default:0 }}</span>
+                </span>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+
+              {% for n in notif_latest %}
+                <li>
+                  <a class="dropdown-item d-flex justify-content-between align-items-start {% if not n.is_read %}fw-bold{% endif %}"
+                     href="{% url 'notifications_detail_redirect' n.id %}">
+                    <div class="me-2">
+                      <div class="small text-muted">{{ n.created_at|date:"Y-m-d H:i" }} · {{ n.get_kind_display }}</div>
+                      <div class="text-wrap">{{ n.title }}</div>
+                    </div>
+                    {% if not n.is_read %}<span class="badge bg-primary">新</span>{% endif %}
+                  </a>
+                </li>
+              {% empty %}
+                <li class="px-3 text-muted small">目前沒有通知</li>
+              {% endfor %}
+
+              <li><hr class="dropdown-divider"></li>
+              <li class="px-3 pb-2 d-flex gap-2">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'notifications_list' %}">全部通知</a>
+                <form action="{% url 'notifications_read_all' %}" method="post" class="ms-auto">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-primary">全部標為已讀</button>
+                </form>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Greeting -->
+          <li class="nav-item me-lg-3">
+            <span class="navbar-text text-white">👋 歡迎回來 {{ user.email }}</span>
+          </li>
+
+          <!-- Logout -->
+          <li class="nav-item">
+            <form action="{% url 'logout' %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-secondary text-white">登出</button>
+            </form>
+          </li>
+
+        {% else %}
+          <!-- 未登入狀態（可自行替換為登入/註冊連結） -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">登入</a>
+          </li>
+        {% endif %}
+
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
 
   <!-- 主要內容 -->
   <div class="container mt-4">
