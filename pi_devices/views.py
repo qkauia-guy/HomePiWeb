@@ -1,20 +1,21 @@
 # pi_devices/views.py
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction
+from django.conf import settings
 
 import json
 from datetime import timedelta  # ← 用這個，不要 timezone.timedelta
-from django.conf import settings
 
-from .models import Device
+from .models import Device, DeviceCommand
 from groups.models import GroupDevice
 from .forms import DeviceNameForm, BindDeviceForm
+import uuid, time
 
 # 🔔 通知服務
 from notifications.services import (
@@ -300,3 +301,153 @@ def device_ping(request):
         return JsonResponse({"error": "Device not found"}, status=404)
 
     return JsonResponse({"status": "pong", "ip": client_ip})
+
+
+# === 使用者下指令：建立一筆 pending 指令 ===
+@login_required
+@require_POST
+def unlock_device(request, device_id: int):
+    device = get_object_or_404(Device, pk=device_id)
+    # 最小 MVP 權限：必須是擁有者（之後再擴充群組規則）
+    if device.user_id != request.user.id:
+        return HttpResponseForbidden("你沒有權限控制此裝置。")
+
+    req_id = uuid.uuid4().hex
+    expires = timezone.now() + timedelta(
+        seconds=getattr(settings, "DEVICE_COMMAND_EXPIRES_SECONDS", 30)
+    )
+
+    DeviceCommand.objects.create(
+        device=device,
+        command="unlock",
+        payload={},
+        req_id=req_id,
+        expires_at=expires,
+        status="pending",
+    )
+    return JsonResponse({"ok": True, "req_id": req_id})
+
+
+# === 裝置長輪詢：領取最舊的 pending 指令 ===
+@csrf_exempt
+@require_POST
+def device_pull(request):
+    """
+    輸入：
+      { "serial_number": "...", "token": "...", "max_wait": 20 }
+    回傳：
+      取得指令 → {"cmd":"unlock","req_id":"...","payload":{...}}
+      無指令 → 204 No Content（或 {"cmd": null}）
+    """
+    # 解析/驗證
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    serial = data.get("serial_number")
+    token = data.get("token")
+    max_wait = int(
+        data.get("max_wait") or getattr(settings, "DEVICE_COMMAND_MAX_WAIT_SECONDS", 20)
+    )
+    if not serial or not token:
+        return JsonResponse({"error": "serial_number/token required"}, status=400)
+
+    try:
+        device = Device.objects.only("id", "serial_number", "token").get(
+            serial_number=serial
+        )
+    except Device.DoesNotExist:
+        return JsonResponse({"error": "Device not found"}, status=404)
+
+    if device.token != token:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    # 長輪詢：每 200ms 嘗試撈一次，直到超時
+    deadline = time.time() + max_wait
+    while True:
+        with transaction.atomic():
+            # 過期的 pending 先標 expired（保險）
+            now = timezone.now()
+            DeviceCommand.objects.filter(
+                device=device, status="pending", expires_at__lte=now
+            ).update(status="expired")
+
+            # 撈一筆最舊的 pending（未過期），用鎖避免重取
+            cmd = (
+                DeviceCommand.objects.select_for_update(skip_locked=True)
+                .filter(device=device, status="pending", expires_at__gt=now)
+                .order_by("created_at")
+                .first()
+            )
+            if cmd:
+                cmd.status = "taken"
+                cmd.taken_at = now
+                cmd.save(update_fields=["status", "taken_at"])
+                return JsonResponse(
+                    {"cmd": cmd.command, "req_id": cmd.req_id, "payload": cmd.payload}
+                )
+
+        # 沒拿到 → 判斷是否超時
+        if time.time() >= deadline:
+            return HttpResponse(status=204)  # No Content
+        time.sleep(0.2)  # 輕量輪詢間隔
+
+
+# === 裝置回報：執行結果 ACK ===
+@csrf_exempt
+@require_POST
+def device_ack(request):
+    """
+    輸入：
+      { "serial_number": "...", "token": "...", "req_id": "...", "ok": true/false, "error": "" }
+    """
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    serial = data.get("serial_number")
+    token = data.get("token")
+    req_id = data.get("req_id")
+    ok = bool(data.get("ok"))
+    error = data.get("error") or ""
+
+    if not serial or not token or not req_id:
+        return JsonResponse(
+            {"error": "serial_number/token/req_id required"}, status=400
+        )
+
+    try:
+        device = Device.objects.only("id", "serial_number", "token", "user_id").get(
+            serial_number=serial
+        )
+    except Device.DoesNotExist:
+        return JsonResponse({"error": "Device not found"}, status=404)
+
+    if device.token != token:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    with transaction.atomic():
+        cmd = (
+            DeviceCommand.objects.select_for_update()
+            .filter(device=device, req_id=req_id)
+            .first()
+        )
+        if not cmd:
+            return JsonResponse({"error": "Command not found"}, status=404)
+
+        if cmd.status in ("done", "failed", "expired"):
+            # 已處理過就當作成功回應（冪等）
+            return JsonResponse({"ok": True})
+
+        cmd.status = "done" if ok else "failed"
+        cmd.error = "" if ok else (error or "unknown")
+        cmd.done_at = timezone.now()
+        cmd.save(update_fields=["status", "error", "done_at"])
+
+        # （可選）在此觸發通知：成功/失敗
+        # from notifications.services import notify_xxx
+        # transaction.on_commit(lambda: notify_xxx(...))
+
+    return JsonResponse({"ok": True})
