@@ -95,3 +95,40 @@ class Device(models.Model):
             models.Index(fields=["last_ping"]),
             models.Index(fields=["user"]),  # ✅ 查詢「我的裝置」更快
         ]
+
+
+class DeviceCommand(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "pending"),
+        ("taken", "taken"),
+        ("done", "done"),
+        ("failed", "failed"),
+        ("expired", "expired"),
+    ]
+
+    device = models.ForeignKey(
+        "pi_devices.Device", on_delete=models.CASCADE, related_name="commands"
+    )
+    command = models.CharField(max_length=50)  # 例如：unlock
+    payload = models.JSONField(default=dict, blank=True)
+    req_id = models.CharField(max_length=64, db_index=True)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending", db_index=True
+    )
+    error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    taken_at = models.DateTimeField(null=True, blank=True)
+    done_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    def is_expired(self) -> bool:
+        return bool(self.expires_at and timezone.now() >= self.expires_at)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["device", "status"]),
+            models.Index(fields=["req_id"]),
+        ]
+
+    def __str__(self):
+        return f"{self.device_id} {self.command} [{self.status}]"

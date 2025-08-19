@@ -156,3 +156,12 @@ GROUP_ALLOW_MEMBER_ATTACH = False
 TEMPLATES[0]["OPTIONS"]["context_processors"] += [
     "notifications.context_processors.notifications_summary",
 ]
+
+# 裝置線上視窗（你 ping 已使用）
+DEVICE_ONLINE_WINDOW_SECONDS = 60
+
+# 長輪詢單次等待上限（秒）
+DEVICE_COMMAND_MAX_WAIT_SECONDS = 20
+
+# 指令有效期（秒）
+DEVICE_COMMAND_EXPIRES_SECONDS = 30
