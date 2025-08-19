@@ -9,6 +9,28 @@
 3. `cd pi`
 4. 將`pi_agent`資料夾移動到這`pi`目錄
 5. 確認是否有`pi_agent/http_agent.py`檔案
+6. 進入 shell 建立裝置：
+
+```python
+from pi_devices.models import Device
+
+# 建立一筆新裝置
+d = Device.objects.create()
+
+print(d.id)                 # 新增後的 ID
+print(d.serial_number)      # 系統自動產生的序號
+print(d.verification_code)  # 自動產生的驗證碼
+print(d.token)              # 自動產生的 Token
+print(d.is_bound)           # 預設 False
+print(d.created_at)         # 自動時間戳記
+```
+
+```python
+# 進行轉換成註冊頁面QR CODE png
+from pi_devices.utils.qrcode_utils import generate_device_qrcode
+file_path = generate_device_qrcode(d)
+print("QR Code 已儲存於：", file_path) # QR Code 已儲存於： /Users/qkauia/Desktop/HomePiWeb/static/qrcodes/PI-AA5CA0A5.png
+```
 
 ```python
 # http_agent.py:
