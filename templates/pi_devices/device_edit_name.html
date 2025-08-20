@@ -10,6 +10,7 @@
     <div class="form-text">留空則顯示序號。</div>
   </div>
   <button type="submit" class="btn btn-primary">儲存</button>
+  <a href="{% url 'device_unbind' pk=device.pk %}" class="btn btn-outline-danger">解除綁定</a>
   <a href="{% url 'my_devices' %}" class="btn btn-outline-secondary ms-2">取消</a>
 </form>
 {% endblock %}

@@ -1,36 +1,146 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'home_pi_web/css/home.css' %}">
+{% endblock %}
 
 {% block title %}首頁{% endblock %}
 
 {% block content %}
-  <div class="container mt-4">
-    <h2>👋 歡迎回來 {{ user.email }}</h2>
+  <!-- 輪播照片廣告 -->
+  <div class="row">
+    <div class="col p-0">
+      <div class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000" id="cf">
+        <div class="carousel-inner">
+          <div class="carousel-item active" id="p1"></div>
+          <div class="carousel-item" id="p2"></div>
+          <div class="carousel-item" id="p3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    {% if user.is_superadmin %}
-      <div class="alert alert-success">您是 SuperAdmin，可以管理所有設備與使用者。</div>
-    {% elif user.is_admin %}
-      <div class="alert alert-info">您是 Admin，擁有管理權限。</div>
+  <!-- 資訊狀態卡片效果（示意，可改成真實資料） -->
+  <div class="container my-5">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">空調 <span class="badge h6 bg-success">啟動</span></h5>
+            <p class="card-text">目前溫度:26.5&#8451;</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body pb-4">
+            <h5 class="card-title">燈光 <span class="spinner-border spinner-border-sm text-warning"></span></h5>
+            <p class="card-text">目前狀態:開啟中</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">門鎖 <span class="badge bg-secondary h6">已上鎖</span></h5>
+            <p class="card-text">最後操作:5分鐘前</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的裝置控制：選擇裝置 → 顯示對應表單（目前只有燈光） -->
+  <div class="container my-5">
+    <h4 class="mb-3">我的裝置控制</h4>
+
+    {% if devices %}
+      <div class="row g-3">
+        <!-- 左：裝置下拉選單 -->
+        <div class="col-md-4">
+          <label for="deviceSelect" class="form-label">選擇設備</label>
+          <select id="deviceSelect" class="form-select">
+            <option selected disabled value="">請選擇</option>
+            {% for d in devices %}
+              <option value="{{ d.id }}" data-kind="{{ d.kind|default:'light' }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- 右：依選擇顯示該裝置的控制表單 -->
+        <div class="col-md-8">
+          <div id="deviceForms">
+            {% for d in devices %}
+              <div class="device-form" id="device-form-{{ d.id }}" data-kind="{{ d.kind|default:'light' }}" hidden>
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title mb-3">{{ d.name }} 控制</h5>
+
+                    {# 目前只有「燈光」：三個 POST 表單按鈕（on/off/toggle） #}
+                    <div class="d-flex gap-2 flex-wrap">
+                      <form method="post" action="{% url 'device_light_action' d.id 'on' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-sm">開燈</button>
+                      </form>
+
+                      <form method="post" action="{% url 'device_light_action' d.id 'off' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary btn-sm">關燈</button>
+                      </form>
+
+                      <form method="post" action="{% url 'device_light_action' d.id 'toggle' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning btn-sm">切換</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div id="deviceFormPlaceholder" class="text-muted">
+            請從左側下拉選單選擇一個設備…
+          </div>
+        </div>
+      </div>
     {% else %}
-      <div class="alert alert-secondary">您是一般使用者。</div>
+      <div class="alert alert-info">你目前沒有綁定裝置。</div>
     {% endif %}
   </div>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const serial = "{{ request.user.device.serial_number|default:'' }}";
-    if (serial) {
-      fetch("/api/device/ping/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ serial_number: serial }),
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("設備狀態：", data);
-      })
-      .catch((err) => console.error("Ping 失敗", err));
-    }
-  });
-</script>
+
+  {# 顯示/隱藏對應裝置表單的簡單腳本（純切換，不做 AJAX） #}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const selectEl = document.getElementById('deviceSelect');
+      const forms = document.querySelectorAll('.device-form');
+      const placeholder = document.getElementById('deviceFormPlaceholder');
+
+      function showFormFor(id) {
+        forms.forEach(el => el.hidden = true);
+        if (!id) {
+          if (placeholder) placeholder.hidden = false;
+          return;
+        }
+        const target = document.getElementById(`device-form-${id}`);
+        if (target) {
+          target.hidden = false;
+          if (placeholder) placeholder.hidden = true;
+        }
+      }
+
+      if (selectEl) {
+        selectEl.addEventListener('change', (e) => showFormFor(e.target.value));
+        // 預設選中第一個裝置並顯示（有需要就保留）
+        {% if devices %}
+          const firstId = '{{ devices.0.id }}';
+          if (firstId) {
+            selectEl.value = firstId;
+            showFormFor(firstId);
+          }
+        {% endif %}
+      }
+    });
+  </script>
 {% endblock %}

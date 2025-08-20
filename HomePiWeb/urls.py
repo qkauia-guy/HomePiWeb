@@ -1,6 +1,8 @@
 from django.contrib import admin
+from pi_devices import views as device_views
 from django.urls import path, include
 from django.shortcuts import redirect
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -20,4 +22,5 @@ urlpatterns = [
         ),
         name="index",
     ),
+    path("devices/offcanvas/", device_views.offcanvas_list, name="devices_offcanvas"),
 ]
