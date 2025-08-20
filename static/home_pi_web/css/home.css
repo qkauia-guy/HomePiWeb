@@ -1,0 +1,30 @@
+#p1,
+#p2,
+#p3 {
+  background-position: center;
+  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
+  background-repeat: no-repeat;
+  height: 75vh;
+  border-radius: 10px;
+}
+#p1 {
+  background-image: url('../images/01.jpg');
+  background-position: center;
+  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
+  height: 75vh;
+}
+#p2 {
+  background: url('../images/02.jpg');
+  background-position: center;
+  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
+  height: 75vh;
+}
+#p3 {
+  background: url('../images/03.jpg');
+  background-position: center;
+  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
+  height: 75vh;
+}
+.bgColor {
+  background-color: rgba(255, 255, 255, 0.9);
+}

@@ -1,0 +1,69 @@
+/* 限制 Offcanvas 內容最大寬度，避免看起來太寬 */
+#sideBar .offcanvas-body {
+  max-width: 420px;
+}
+
+/* 清單容器（用 gap 模擬 list-group 的間距） */
+#sideBar .device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+/* 單一項目卡片化 */
+#sideBar .device-item {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bs-body-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  text-decoration: none; /* 移除預設底線 */
+}
+
+/* hover/active 效果 */
+#sideBar .device-item:hover,
+#sideBar .device-item:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* 左側狀態點 */
+#sideBar .status-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--bs-secondary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-secondary), transparent 75%);
+}
+#sideBar .status-dot.on {
+  background: var(--bs-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-success), transparent 75%);
+}
+
+/* 次要資訊一點行高 */
+#sideBar .device-sub {
+  line-height: 1.2;
+}
+
+/* 右側箭頭 */
+#sideBar .chev {
+  font-size: 1.25rem;
+  opacity: 0.5;
+}
+
+/* 手機時更緊湊一點 */
+@media (max-width: 576px) {
+  #sideBar .offcanvas-body {
+    max-width: 92vw;
+  }
+  #sideBar .device-item {
+    padding: 0.65rem 0.85rem;
+  }
+}
