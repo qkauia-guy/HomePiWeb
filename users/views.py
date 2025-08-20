@@ -119,7 +119,8 @@ def login_view(request):
 
 @login_required
 def home_view(request):
-    return render(request, "home.html", {"user": request.user})
+    devices = request.user.devices.all().order_by("-created_at")
+    return render(request, "home.html", {"devices": devices})
 
 
 @require_POST

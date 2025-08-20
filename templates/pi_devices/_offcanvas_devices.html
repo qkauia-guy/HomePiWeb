@@ -1,0 +1,30 @@
+{% if devices and devices|length > 0 %}
+  <div class="device-list">
+    <a href="{% url 'device_bind' %}" class="btn btn-success">+ 綁定新裝置</a>
+    {% for d in devices %}
+      {% with title=d.display_name|default:d.serial_number %}
+      <a href="{% url 'device_edit_name' d.id %}"
+         class="device-item list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <span class="status-dot {% if d.is_online %}on{% endif %}" aria-hidden="true"></span>
+          <div>
+            <div class="fw-semibold">{{ title }}</div>
+            <div class="device-sub small text-body-secondary">
+              {% if d.ip_address %}<span class="text-monospace">{{ d.ip_address }}</span> · {% endif %}
+              {% if d.is_online %}
+                <span class="text-success">在線</span>
+              {% else %}
+                <span class="text-secondary">離線</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <span class="chev" aria-hidden="true">›</span>
+      </a>
+      {% endwith %}
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">你目前沒有綁定任何裝置。</p>
+  <a href="{% url 'device_bind' %}" class="btn btn-success">去綁定一台</a>
+{% endif %}
