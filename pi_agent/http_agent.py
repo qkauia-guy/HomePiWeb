@@ -1,94 +1,56 @@
-import time, requests, json
+# -*- coding: utf-8 -*-
+"""
+http_agent.py
+- 主程式：專心處理指令分發
+- 硬體控制：devices/
+- HTTP API：utils/http.py
+"""
 
-SERIAL = "PI-E2390730"  # 需更換
-TOKEN = "3de6279eae104e0b858b648dc659e9ba"  # 需更換
-API_BASE = "http://172.28.232.36:8800"  # 看專案開誰的
+import time
+from devices import led
+from utils import http
 
-PING_PATH = "/api/device/ping/"
-PULL_PATH = "/device_pull"
-ACK_PATH = "/device_ack"
+# 啟動時先初始化 LED（沒 GPIO 也不會掛掉）
+led.setup_led()
 
-
-def ping():
-    # url = f"{API_BASE}/api/device/ping/"
-    url = f"{API_BASE}{PING_PATH}"
-    try:
-        r = requests.post(
-            url, json={"serial_number": SERIAL, "token": TOKEN}, timeout=5
-        )
-        r.raise_for_status()
-        print("ping ok:", r.json())
-        return True
-    except Exception as e:
-        print("ping err:", e)
-        return False
-
-
-def pull(max_wait=20):
-    url = f"{API_BASE}/device_pull"
-    try:
-        r = requests.post(
-            url,
-            json={"serial_number": SERIAL, "token": TOKEN, "max_wait": max_wait},
-            timeout=max_wait + 5,
-        )
-        if r.status_code == 204:
-            return None
-        r.raise_for_status()
-        data = r.json()
-        print("pull got:", data)
-        return data
-    except Exception as e:
-        print("pull err:", e)
-        return None
-
-
-def ack(req_id, ok=True, error=""):
-    url = f"{API_BASE}/device_ack"
-    try:
-        r = requests.post(
-            url,
-            json={
-                "serial_number": SERIAL,
-                "token": TOKEN,
-                "req_id": req_id,
-                "ok": ok,
-                "error": error,
-            },
-            timeout=5,
-        )
-        r.raise_for_status()
-        print("ack sent")
-    except Exception as e:
-        print("ack err:", e)
-
-
-def unlock_hw():
-    # TODO: GPIO 控制
-    print("[HW] unlock pulse")
-    time.sleep(0.2)
+# 命令分發表
+COMMANDS = {
+    "light_on": led.light_on,
+    "light_off": led.light_off,
+    "light_toggle": led.light_toggle,
+    # 之後可加更多：
+    # "unlock": lock.unlock_hw,
+    # "read_temp": sensor.read_temp,
+}
 
 
 def main():
     last_ping = 0
     while True:
-        # 每 30 秒 ping 一次
+        # 每 30 秒回報一次在線
         if time.time() - last_ping > 30:
-            ping()
+            http.ping()
             last_ping = time.time()
 
-        # 拉指令
-        cmd = pull(max_wait=20)
+        # 拉取下一筆待執行指令
+        cmd = http.pull(max_wait=20)
         if not cmd:
             continue
 
-        if cmd.get("cmd") == "unlock":
-            req_id = cmd.get("req_id")
-            try:
-                unlock_hw()
-                ack(req_id, ok=True)
-            except Exception as e:
-                ack(req_id, ok=False, error=str(e))
+        name = (cmd.get("cmd") or "").strip()
+        req_id = cmd.get("req_id") or ""
+
+        try:
+            handler = COMMANDS.get(name)
+            if handler is None:
+                http.ack(req_id, ok=False, error=f"unknown command: {name}")
+                continue
+
+            handler()  # 執行對應硬體操作
+            http.ack(req_id, ok=True)
+
+        except Exception as e:
+            http.ack(req_id, ok=False, error=str(e))
 
 
 if __name__ == "__main__":
