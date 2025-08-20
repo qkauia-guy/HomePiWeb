@@ -5,6 +5,7 @@ from django.utils import timezone
 import uuid, secrets, string
 from datetime import timedelta
 from django.urls import reverse, NoReverseMatch
+from django.utils.text import slugify
 
 
 def gen_serial_number() -> str:
@@ -128,6 +129,12 @@ class DeviceCommand(models.Model):
         indexes = [
             models.Index(fields=["device", "status"]),
             models.Index(fields=["req_id"]),
+            models.Index(fields=["device", "created_at"]),  # 取最舊 pending 會快很多
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["device", "req_id"], name="uniq_req_per_device"
+            ),
         ]
 
     def __str__(self):
@@ -155,8 +162,12 @@ class DeviceCapability(models.Model):
     enabled = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = [("device", "slug")]
+        unique_together = [("device", "slug")]  # 可保留
         ordering = ["order", "id"]
+        indexes = [
+            models.Index(fields=["device", "kind"]),
+            models.Index(fields=["device", "enabled"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -164,7 +175,7 @@ class DeviceCapability(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.device.name} / {self.name} ({self.kind})"
+        return f"{self.device.name()} / {self.name} ({self.kind})"
 
     def get_absolute_url(self):
         return reverse("device_detail", kwargs={"pk": self.device_id})
