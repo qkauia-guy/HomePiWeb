@@ -132,3 +132,39 @@ class DeviceCommand(models.Model):
 
     def __str__(self):
         return f"{self.device_id} {self.command} [{self.status}]"
+
+
+# 裝置下的擁有功能
+class DeviceCapability(models.Model):
+    KIND_CHOICES = [
+        ("light", "燈光"),
+        ("fan", "風扇/空調"),
+        # 之後還能加：("lock","門鎖"), ("camera","攝影機"), ...
+    ]
+
+    device = models.ForeignKey(
+        Device, related_name="capabilities", on_delete=models.CASCADE
+    )
+    kind = models.CharField(max_length=20, choices=KIND_CHOICES)
+    name = models.CharField(max_length=100)  # UI 顯示名稱：客廳燈、主臥風扇...
+    slug = models.SlugField(max_length=50)  # 在同一台裝置內唯一識別
+    config = models.JSONField(
+        default=dict, blank=True
+    )  # 腳位/反相/速度階數... {"pin":17,"active_high":true}
+    order = models.PositiveIntegerField(default=0)
+    enabled = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = [("device", "slug")]
+        ordering = ["order", "id"]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)[:50] or "cap"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.device.name} / {self.name} ({self.kind})"
+
+    def get_absolute_url(self):
+        return reverse("device_detail", kwargs={"pk": self.device_id})
