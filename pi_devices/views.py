@@ -10,12 +10,41 @@ from django.db import transaction
 from django.conf import settings
 
 import json
-from datetime import timedelta  # ← 用這個，不要 timezone.timedelta
+from datetime import timedelta
 
 from .models import Device, DeviceCommand
 from groups.models import GroupDevice
 from .forms import DeviceNameForm, BindDeviceForm
 import uuid, time
+from django.db.models.functions import Coalesce, NullIf
+from django.db.models import Value, IntegerField, Case, When
+
+
+@login_required
+def offcanvas_list(request):
+    # 與你的 is_online(window_seconds=60) 一致
+    threshold = timezone.now() - timedelta(seconds=60)
+
+    devices = (
+        Device.objects.filter(user=request.user)
+        # 排序/顯示名稱：display_name（若為空/None就退回 serial_number）
+        .annotate(
+            sort_name=Coalesce(NullIf("display_name", Value("")), "serial_number")
+        )
+        # 註記一個可排序的「是否在線」欄位（1/0）
+        .annotate(
+            online_int=Case(
+                When(last_ping__gte=threshold, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        )
+        # ★ 用 online_int 排序，不要用 is_online
+        .order_by("-online_int", "sort_name", "id")
+    )
+
+    return render(request, "pi_devices/_offcanvas_devices.html", {"devices": devices})
+
 
 # 🔔 通知服務
 from notifications.services import (
@@ -202,7 +231,7 @@ def device_unbind(request, pk):
         transaction.on_commit(_after_commit)
 
     messages.success(request, f"已解除綁定，並自 {len(related_groups)} 個群組移除。")
-    return redirect("my_devices")
+    return redirect("home")
 
 
 @csrf_exempt
@@ -451,3 +480,60 @@ def device_ack(request):
         # transaction.on_commit(lambda: notify_xxx(...))
 
     return JsonResponse({"ok": True})
+
+
+@login_required  # 先確保使用者已登入
+@require_POST  # 僅允許 POST，避免 GET 誤觸發副作用
+def device_light_action(request, device_id, action):
+    """
+    建立一筆裝置控制指令，交由樹莓派 agent（/device_pull）取走執行。
+
+    參數
+    ----
+    device_id : int
+        要操作的裝置主鍵
+    action : str
+        'on' | 'off' | 'toggle' 三選一（對應設備端的 light_on/off/toggle）
+
+    回傳
+    ----
+    - 若標頭含 X-Requested-With: XMLHttpRequest → JsonResponse
+      內容包含 req_id/cmd_id，方便前端後續追蹤狀態
+    - 否則 → redirect 到前一頁並顯示成功訊息
+    """
+
+    # 1) 輸入驗證：只接受 on/off/toggle
+    if action not in ("on", "off", "toggle"):
+        # 非法參數 → 400；若想非 AJAX 也維持 UX，可改為 messages.error + redirect
+        return JsonResponse({"error": "invalid action"}, status=400)
+
+    # 2) 取得裝置並做擁有者權限檢查
+    device = get_object_or_404(Device, pk=device_id)
+    if device.user_id != request.user.id:
+        # 若未來支援「分享/授權」，此處可改為 user_can_control(user, device)
+        return HttpResponseForbidden("你沒有權限操作此裝置。")
+
+    # 3) 將人類語意 action 轉成設備端命令名稱（Pi 端 main() 會吃這個）
+    cmd_map = {"on": "light_on", "off": "light_off", "toggle": "light_toggle"}
+    cmd_name = cmd_map[action]
+
+    # 4) 寫入一筆 pending 指令，等待 Pi 的 /device_pull 取走
+    cmd = DeviceCommand.objects.create(
+        device=device,
+        command=cmd_name,
+        payload={},  # 可放參數（如強度/時長），現為空物件
+        req_id=uuid.uuid4().hex,  # Pi ack 用的唯一識別
+        expires_at=timezone.now() + timedelta(minutes=2),  # 兩分鐘內有效
+        status="pending",  # 讓 /device_pull 能查到
+    )
+
+    # 5) 依請求型態決定回傳格式
+    #    - AJAX（XMLHttpRequest）→ 回 JSON
+    #    - 非 AJAX → redirect + flash message
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse(
+            {"ok": True, "req_id": cmd.req_id, "cmd_id": cmd.id}, status=200
+        )
+
+    messages.success(request, f"已送出 {action} 指令")
+    return redirect(request.META.get("HTTP_REFERER", "my_devices"))

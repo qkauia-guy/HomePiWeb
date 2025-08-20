@@ -18,4 +18,12 @@ urlpatterns = [
     # 裝置端長輪詢 & 回報（無需 CSRF，使用 serial_number + token 驗證）
     path("device_pull", views.device_pull, name="device_pull"),
     path("device_ack", views.device_ack, name="device_ack"),
+    path(
+        "api/devices/<int:device_id>/unlock/", views.unlock_device, name="unlock_device"
+    ),
+    path(
+        "api/devices/<int:device_id>/light/<str:action>/",
+        views.device_light_action,
+        name="device_light_action",
+    ),
 ]
