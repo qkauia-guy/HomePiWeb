@@ -1,5 +1,6 @@
 from django.contrib import admin
-from pi_devices import views as device_views
+
+from pi_devices.views import device as device_views
 from django.urls import path, include
 from django.shortcuts import redirect
 

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Device
+from .models import Device, DeviceCapability
 
 
 class DeviceNameForm(forms.ModelForm):
@@ -34,3 +34,14 @@ class BindDeviceForm(forms.Form):
 
         cleaned["device"] = device
         return cleaned
+
+
+class DeviceCapabilityForm(forms.ModelForm):
+    # Django 4.0+ 內建 forms.JSONField 會幫你驗證 JSON
+    config = forms.JSONField(
+        required=False, initial=dict, help_text='例如：{"pin": 17, "active_high": true}'
+    )
+
+    class Meta:
+        model = DeviceCapability
+        fields = ("name", "kind", "slug", "config", "order", "enabled")
