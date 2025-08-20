@@ -119,7 +119,11 @@ def login_view(request):
 
 @login_required
 def home_view(request):
-    devices = request.user.devices.all().order_by("-created_at")
+    devices = (
+        request.user.devices.all()
+        .prefetch_related("capabilities")
+        .order_by("-created_at")
+    )
     return render(request, "home.html", {"devices": devices})
 
 
