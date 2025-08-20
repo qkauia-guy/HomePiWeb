@@ -11,9 +11,9 @@ from typing import Optional
 # === 環境設定 ===
 
 # === 掛上自己裝置的 裝置序號 ===
-SERIAL = os.getenv("SERIAL", "PI-E239XXXX")
+SERIAL = os.getenv("SERIAL", "PI-E2390730")
 # === 掛上自己裝置的 token ===
-TOKEN = os.getenv("TOKEN", "3de6279eae104e0b858b648dc659xxxx")
+TOKEN = os.getenv("TOKEN", "3de6279eae104e0b858b648dc659e9ba")
 # === 固定勿修改 ===
 API_BASE = os.getenv("API_BASE", "http://172.28.232.36:8800")
 PING_PATH = "/api/device/ping/"
@@ -21,13 +21,13 @@ PULL_PATH = "/device_pull"
 ACK_PATH = "/device_ack"
 
 
-def ping() -> bool:
-    """回報裝置在線"""
+def ping(extra: dict | None = None) -> bool:
     url = f"{API_BASE}{PING_PATH}"
+    payload = {"serial_number": SERIAL, "token": TOKEN}
+    if extra:
+        payload.update(extra)
     try:
-        r = requests.post(
-            url, json={"serial_number": SERIAL, "token": TOKEN}, timeout=5
-        )
+        r = requests.post(url, json=payload, timeout=5)
         r.raise_for_status()
         print("ping ok:", r.json())
         return True

@@ -1,0 +1,10 @@
+[
+  {
+    "kind": "light",
+    "name": "客廳燈",
+    "slug": "living-light",
+    "config": { "pin": 17, "active_high": true },
+    "order": 1,
+    "enabled": true
+  }
+]
