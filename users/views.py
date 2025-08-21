@@ -65,7 +65,7 @@ def register_view(request):
             device.save(update_fields=["user", "is_bound"])
             request.session.pop("pending_device_bind", None)
             messages.success(request, f"已將裝置 {device.serial_number} 綁定到你的帳號")
-            redirect("my_devices")
+            return redirect("my_devices")
 
         # GET：顯示綁定確認頁
         return render(request, "pi_devices/device_bind.html", {"device": device})
@@ -237,38 +237,59 @@ def ajax_caps(request):
 
 
 @login_required
+@login_required
 def ajax_cap_form(request, cap_id: int):
     """
     依能力種類載入對應表單卡片（home/forms/_cap_*.html）
-    GET /controls/cap-form/<cap_id>/
+    GET /controls/cap-form/<cap_id>/?group_id=g5   ← 前端會帶這個
     """
-    # ✅ 不 import Capability：透過 Device → capabilities 反查
+    # 找到擁有該能力的裝置
     device = (
-        Device.objects.filter(capabilities__id=cap_id)  # 找到擁有該能力的裝置
+        Device.objects.filter(capabilities__id=cap_id)
         .prefetch_related("groups__memberships", "capabilities")
         .first()
     )
     if not device:
         raise Http404("Capability not found")
 
-    # 取出該能力實例
     cap = device.capabilities.filter(id=cap_id).first()
     if not cap:
         raise Http404("Capability not found on device")
 
-    # 權限：同上
-    groups_qs = device.groups.all()
-    visible = (
-        groups_qs.filter(owner=request.user).exists()
-        or groups_qs.filter(memberships__user=request.user).exists()
-    )
-    if not visible:
-        return HttpResponseForbidden("No permission")
+    # 目前操作的群組（支援 "g5" 或 "5"）
+    gid_raw = request.GET.get("group_id") or request.GET.get("g") or ""
+    gid = None
+    if gid_raw:
+        try:
+            gid = int(gid_raw[1:]) if gid_raw.startswith("g") else int(gid_raw)
+        except (TypeError, ValueError):
+            gid = None
 
-    # 依 kind 選模板（仍可使用 cap.kind / cap.get_kind_display）
+    # 權限檢查
+    if gid:
+        group = get_object_or_404(Group, pk=gid)
+        # 裝置必須在該群組內
+        if not device.groups.filter(pk=group.id).exists():
+            return HttpResponseForbidden("Device not in group")
+        # 使用者必須是該群組 owner 或成員
+        is_visible = (group.owner_id == request.user.id) or group.memberships.filter(
+            user=request.user
+        ).exists()
+        if not is_visible:
+            return HttpResponseForbidden("No permission")
+    else:
+        # 未帶 gid：至少確認此裝置在任何我可見的群組中
+        visible = device.groups.filter(
+            models.Q(owner=request.user) | models.Q(memberships__user=request.user)
+        ).exists()
+        if not visible:
+            return HttpResponseForbidden("No permission")
+
+    # 選模板
     tpl = {
         "light": "home/forms/_cap_light.html",
         "fan": "home/forms/_cap_fan.html",
     }.get(getattr(cap, "kind", None), "home/forms/_cap_generic.html")
 
-    return render(request, tpl, {"cap": cap, "device": device})
+    # ★ 把 group_id 一起傳進模板（partial 裡的 hidden 會用到）
+    return render(request, tpl, {"cap": cap, "device": device, "group_id": gid_raw})

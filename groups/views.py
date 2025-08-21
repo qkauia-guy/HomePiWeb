@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.translation import gettext_lazy as _
 
 from .models import (
     Group,
@@ -21,6 +22,7 @@ from .permissions import (
 )
 from .forms import GroupForm, AddMemberForm, UpdateMemberForm
 from pi_devices.models import Device
+from .forms import GroupCreateForm, AddMemberForm, UpdateMemberForm
 from invites.models import Invitation
 
 from notifications.services import (
@@ -57,23 +59,48 @@ def group_list(request):
 @transaction.atomic
 def group_create(request):
     if request.method == "POST":
-        form = GroupForm(request.POST)
+        form = GroupCreateForm(request.POST, user=request.user)
         if form.is_valid():
             g = form.save(commit=False)
             g.owner = request.user
             g.save()
 
-            # 交易提交成功才送通知
+            selected_devices = list(form.cleaned_data.get("devices") or [])
+            if selected_devices:
+                objs = [
+                    GroupDevice(group=g, device=d, added_by=request.user)
+                    for d in selected_devices
+                ]
+                GroupDevice.objects.bulk_create(objs, ignore_conflicts=True)
+
+                transaction.on_commit(
+                    lambda: [
+                        notify_group_device_added(actor=request.user, group=g, device=d)
+                        for d in selected_devices
+                    ]
+                )
+
             transaction.on_commit(
                 lambda: notify_group_created(group=g, actor=request.user)
             )
-
-            messages.success(request, "群組已建立")
+            messages.success(
+                request,
+                _("群組已建立")
+                + (
+                    f"，並加入 {len(selected_devices)} 台裝置"
+                    if selected_devices
+                    else ""
+                ),
+            )
             return redirect("group_detail", group_id=g.id)
     else:
-        form = GroupForm()
+        form = GroupCreateForm(user=request.user)
+
+    has_devices = Device.objects.filter(user=request.user).exists()
     return render(
-        request, "groups/group_form.html", {"form": form, "title": "新增群組"}
+        request,
+        "groups/group_form.html",
+        {"form": form, "title": _("新增群組"), "has_devices": has_devices},
     )
 
 

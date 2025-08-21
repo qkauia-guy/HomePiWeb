@@ -27,6 +27,8 @@ from notifications.services import (
     notify_group_device_added,
     notify_member_added,
 )
+from django.db import transaction, OperationalError
+import time
 
 
 @login_required
@@ -62,7 +64,6 @@ def invitation_list(request, group_id):
 
 @login_required
 @require_http_methods(["POST"])
-@transaction.atomic
 def revoke_invitation(request, code):
     """撤銷（停用）單一邀請；只允許群組擁有者/群組管理員。"""
     inv = Invitation.objects.select_for_update().select_related("group").get(code=code)
@@ -121,70 +122,67 @@ def create_invitation(request, group_id, device_id):
 
 
 @require_http_methods(["GET", "POST"])
-@transaction.atomic
 def accept_invite(request, code):
-    """
-    受邀者接受邀請：
-      - 已登入：直接接受
-      - 未登入：可先登入或註冊，成功後再接受
-    完成後（交易提交）才發通知：
-      - 若新成員加入 → notify_member_added（本人 + 其他成員廣播）
-      - 若新裝置掛入 → notify_group_device_added
-    """
     inv = get_object_or_404(Invitation, code=code)
     if not inv.is_valid():
         return render(request, "invites/invalid.html")
 
     def _accept_for(user):
-        # 接受前狀態（比對用）
-        pre_is_member = GroupMembership.objects.filter(
-            group=inv.group, user=user
-        ).exists()
-        pre_has_device = GroupDevice.objects.filter(
-            group=inv.group, device=inv.device
-        ).exists()
+        backoffs = (0, 0.05, 0.1, 0.2, 0.4)
+        for i, sleep_s in enumerate(backoffs):
+            if sleep_s:
+                time.sleep(sleep_s)
+            try:
+                with transaction.atomic():
+                    pre_is_member = GroupMembership.objects.filter(
+                        group=inv.group, user=user
+                    ).exists()
+                    pre_has_device = GroupDevice.objects.filter(
+                        group=inv.group, device=inv.device
+                    ).exists()
 
-        # 執行一次性流程（加入成員 / consume / 可能掛入裝置）
-        _join_and_consume(inv, user)
+                    _join_and_consume(inv, user)  # 交易內只做 DB 寫入
 
-        # 交易提交後才發通知
-        def _after_commit():
-            post_is_member = GroupMembership.objects.filter(
-                group=inv.group, user=user
-            ).exists()
-            post_has_device = GroupDevice.objects.filter(
-                group=inv.group, device=inv.device
-            ).exists()
+                    def _after_commit():
+                        post_is_member = GroupMembership.objects.filter(
+                            group=inv.group, user=user
+                        ).exists()
+                        post_has_device = GroupDevice.objects.filter(
+                            group=inv.group, device=inv.device
+                        ).exists()
 
-            # 真的新加入成員 → 發「本人」+「廣播」通知
-            if (not pre_is_member) and post_is_member:
-                notify_member_added(
-                    actor=user, group=inv.group, member=user, role=inv.role
+                        if (not pre_is_member) and post_is_member:
+                            notify_member_added(
+                                actor=user, group=inv.group, member=user, role=inv.role
+                            )
+                        if inv.device_id and (not pre_has_device) and post_has_device:
+                            notify_group_device_added(
+                                actor=user, group=inv.group, device=inv.device
+                            )
+
+                    transaction.on_commit(_after_commit)
+
+                return render(
+                    request,
+                    "invites/success.html",
+                    {"group": inv.group, "device": inv.device},
                 )
+            except OperationalError as e:
+                if "database is locked" in str(e).lower() and i < len(backoffs) - 1:
+                    continue
+                raise
 
-            # 真的新掛入裝置 → 發裝置類/群組類通知
-            if (not pre_has_device) and post_has_device:
-                notify_group_device_added(
-                    actor=user, group=inv.group, device=inv.device
-                )
-
-        transaction.on_commit(_after_commit)
-
-        return render(
-            request, "invites/success.html", {"group": inv.group, "device": inv.device}
-        )
-
-    # 已登入：直接接受
     if request.user.is_authenticated:
         return _accept_for(request.user)
 
-    # 未登入：走登入/註冊流程
     if request.method == "POST":
         if "login" in request.POST:
             form = AuthenticationForm(request, data=request.POST)
             if form.is_valid():
-                login(request, form.get_user())
-                return _accept_for(request.user)
+                user = form.get_user()
+                resp = _accept_for(user)  # 先提交 DB
+                login(request, user)  # 再寫 session
+                return resp
             return render(
                 request,
                 "invites/accept.html",
@@ -199,8 +197,9 @@ def accept_invite(request, code):
             form = InviteRegisterForm(request.POST, fixed_email=inv.email)
             if form.is_valid():
                 user = form.save()
-                login(request, user)
-                return _accept_for(user)
+                resp = _accept_for(user)  # 先提交 DB
+                login(request, user)  # 再寫 session
+                return resp
             return render(
                 request,
                 "invites/accept.html",
@@ -211,7 +210,6 @@ def accept_invite(request, code):
                 },
             )
 
-    # 初次進入頁面
     return render(
         request,
         "invites/accept.html",

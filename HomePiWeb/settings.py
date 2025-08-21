@@ -34,6 +34,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8800",
     "http://192.168.67.42:8800",
     "http://192.168.0.100:8800",
+    "http://172.28.232.36:8800",
 ]
 
 AUTH_USER_MODEL = "users.User"  # 自訂 User 模型是在 users app 內，叫 User 這個 class
@@ -63,6 +64,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "HomePiWeb.middleware.RequireGroupMiddleware",
 ]
 
 ROOT_URLCONF = "HomePiWeb.urls"
@@ -92,6 +94,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "timeout": 20,  # 預設 5 秒，太短了
+        },
     }
 }
 
@@ -165,3 +170,7 @@ DEVICE_COMMAND_MAX_WAIT_SECONDS = 20
 
 # 指令有效期（秒）
 DEVICE_COMMAND_EXPIRES_SECONDS = 30
+
+# 你現在是 HTTP，不要開 Secure cookie
+# SESSION_COOKIE_SECURE = False
+# CSRF_COOKIE_SECURE = False
