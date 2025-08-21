@@ -1,10 +1,12 @@
 /* 限制 Offcanvas 內容最大寬度，避免看起來太寬 */
-#sideBar .offcanvas-body {
+#sideBar .offcanvas-body,
+#sideBarGroups .offcanvas-body {
   max-width: 420px;
 }
 
 /* 清單容器（用 gap 模擬 list-group 的間距） */
-#sideBar .device-list {
+#sideBar .device-list,
+#sideBarGroups .device-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -13,7 +15,8 @@
 }
 
 /* 單一項目卡片化 */
-#sideBar .device-item {
+#sideBar .device-item,
+#sideBarGroups .device-item {
   border: 1px solid var(--bs-border-color);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
@@ -22,12 +25,14 @@
   align-items: center;
   justify-content: space-between;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
-  text-decoration: none; /* 移除預設底線 */
+  text-decoration: none;
 }
 
 /* hover/active 效果 */
 #sideBar .device-item:hover,
-#sideBar .device-item:focus {
+#sideBar .device-item:focus,
+#sideBarGroups .device-item:hover,
+#sideBarGroups .device-item:focus {
   border-color: var(--bs-primary);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
@@ -35,35 +40,41 @@
 }
 
 /* 左側狀態點 */
-#sideBar .status-dot {
+#sideBar .status-dot,
+#sideBarGroups .status-dot {
   width: 0.6rem;
   height: 0.6rem;
   border-radius: 50%;
   background: var(--bs-secondary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-secondary), transparent 75%);
 }
-#sideBar .status-dot.on {
+#sideBar .status-dot.on,
+#sideBarGroups .status-dot.on {
   background: var(--bs-success);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-success), transparent 75%);
 }
 
 /* 次要資訊一點行高 */
-#sideBar .device-sub {
+#sideBar .device-sub,
+#sideBarGroups .device-sub {
   line-height: 1.2;
 }
 
 /* 右側箭頭 */
-#sideBar .chev {
+#sideBar .chev,
+#sideBarGroups .chev {
   font-size: 1.25rem;
   opacity: 0.5;
 }
 
 /* 手機時更緊湊一點 */
 @media (max-width: 576px) {
-  #sideBar .offcanvas-body {
+  #sideBar .offcanvas-body,
+  #sideBarGroups .offcanvas-body {
     max-width: 92vw;
   }
-  #sideBar .device-item {
+  #sideBar .device-item,
+  #sideBarGroups .device-item {
     padding: 0.65rem 0.85rem;
   }
 }

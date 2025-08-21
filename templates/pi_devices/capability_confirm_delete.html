@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4">
+  <h4>刪除能力</h4>
+  <p>確定要刪除 <strong>{{ cap.name }}</strong>（{{ cap.get_kind_display }}）嗎？</p>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">刪除</button>
+    <a class="btn btn-secondary" href="{{ device.get_absolute_url }}">取消</a>
+  </form>
+</div>
+{% endblock %}

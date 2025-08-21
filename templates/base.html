@@ -28,6 +28,22 @@
     </div>
   </div>
 
+  {# ====== 側欄：我的群組（新增：與設備管理相同顯示方式） ====== #}
+  <div class="offcanvas offcanvas-start bg-body" id="sideBarGroups" tabindex="-1"
+       aria-labelledby="sideBarGroupsLabel"
+       style="--bs-offcanvas-width: min(250px, 95vw);">
+    <div class="offcanvas-header">
+      <h5 id="sideBarGroupsLabel" class="mb-0">群組 / 設備 操作</h5>
+      <button class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body"
+      id="offcanvas-groups-body"
+      data-load-url="{% url 'groups_offcanvas' %}"
+      data-loaded="0">
+    <div class="text-muted">載入中…</div>
+</div>
+  </div>
+
   <!-- 導覽列 -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
@@ -47,9 +63,6 @@
         <!-- Left menu -->
         {% if request.user.is_authenticated %}
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a href="{% url 'my_devices' %}" class="nav-link">我的裝置</a>
-          </li>
 
           <!-- 點這個打開 Offcanvas（設備管理） -->
           <li class="nav-item">
@@ -58,12 +71,17 @@
                data-bs-toggle="offcanvas"
                data-bs-target="#sideBar"
                aria-controls="sideBar">
-              設備管理
+              我的設備管理
             </a>
           </li>
 
           <li class="nav-item">
-            <a href="{% url 'group_list' %}" class="nav-link">我的群組</a>
+            <a class="nav-link"
+                href="#sideBarGroups"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#sideBarGroups"
+                aria-controls="sideBarGroups">群組 / 設備
+            </a>
           </li>
         </ul>
         {% endif %}
@@ -174,9 +192,41 @@
 
   <!-- 共用腳本 -->
   <script defer src="{% static 'home_pi_web/js/SweetAlert2.js' %}"></script>
-  <script defer src="{% static 'home_pi_web/js/base.js' %}"></script>
+  
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const oc = document.getElementById('sideBarGroups');
+  if (!oc) return;
 
+  oc.addEventListener('show.bs.offcanvas', async () => {
+    const body = document.getElementById('offcanvas-groups-body');
+    if (!body) return;
+
+    if (body.dataset.loaded === '1') return;
+
+    const url = body.dataset.loadUrl || body.getAttribute('data-load-url');
+    if (!url) { body.innerHTML = '<div class="text-danger">未設定載入位址</div>'; return; }
+
+    body.innerHTML = '<div class="text-muted">載入中…</div>';
+    try {
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      });
+      if (resp.redirected) { body.innerHTML = '<div class="text-danger">請先登入</div>'; return; }
+      if (!resp.ok) { body.innerHTML = `<div class="text-danger">載入失敗（${resp.status}）</div>`; return; }
+
+      body.innerHTML = await resp.text();
+      body.dataset.loaded = '1';
+    } catch (e) {
+      console.error('[groups offcanvas] fetch error:', e);
+      body.innerHTML = '<div class="text-danger">連線失敗，稍後再試</div>';
+    }
+  });
+});
+</script>
   <!-- 頁面額外腳本出口 -->
-  {% block extra_js %}{% endblock %}
+  {% block extra_js %}<script defer src="{% static 'home_pi_web/js/base.js' %}"></script>{% endblock %}
 </body>
 </html>

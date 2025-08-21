@@ -1,5 +1,5 @@
 import socket
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from pi_devices.models import Device
 from .forms import UserRegisterForm
@@ -9,8 +9,29 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_POST, require_http_methods
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Prefetch, Q, Count
+from groups.models import Group
+from django.conf import settings
+from django.http import HttpResponseForbidden, Http404
 
-# from django.utils import timezone
+
+@login_required
+def offcanvas_groups(request):
+    """
+    回傳使用者可見的群組清單（側欄 lazy-load 用的 partial，不是整頁）
+    對應模板：templates/home/partials/_group_items.html
+    """
+    groups = (
+        Group.objects.filter(
+            Q(owner=request.user) | Q(users=request.user)
+        )  # 依你的模型調整：users / memberships
+        .annotate(device_count=Count("devices", distinct=True))
+        .order_by("name", "id")
+        .distinct()
+    )
+    return render(request, "home/partials/_group_items.html", {"groups": groups})
 
 
 @require_http_methods(["GET", "POST"])
@@ -119,12 +140,29 @@ def login_view(request):
 
 @login_required
 def home_view(request):
-    devices = (
-        request.user.devices.all()
-        .prefetch_related("capabilities")
-        .order_by("-created_at")
+    window = getattr(settings, "DEVICE_ONLINE_WINDOW_SECONDS", 60)
+    threshold = timezone.now() - timedelta(seconds=window)
+
+    groups = (
+        Group.objects.filter(Q(owner=request.user) | Q(users=request.user))
+        .distinct()
+        .prefetch_related(
+            Prefetch(
+                "devices",
+                queryset=Device.objects.prefetch_related("capabilities").order_by(
+                    "display_name", "serial_number", "id"
+                ),
+            )
+        )
+        .order_by("name", "id")
     )
-    return render(request, "home.html", {"devices": devices})
+
+    for g in groups:
+        for d in g.devices.all():
+            d.is_online_now = bool(d.last_ping and d.last_ping >= threshold)
+
+    # return render(request, "home.html", {"groups": groups})
+    return render(request, "home/home.html", {"groups": groups})
 
 
 @require_POST
@@ -133,3 +171,104 @@ def logout_view(request):
     logout(request)
     messages.info(request, "你已登出。")
     return redirect("login")
+
+
+def _parse_group_id(val: str) -> int:
+    """支援 'g12' 舊格式；也接受純數字 '12'。"""
+    if not val:
+        raise Http404("Missing group id")
+    if val.startswith("g") and val[1:].isdigit():
+        return int(val[1:])
+    if val.isdigit():
+        return int(val)
+    raise Http404("Invalid group id")
+
+
+@login_required
+def ajax_devices(request):
+    """
+    回傳某群組的裝置 <option>（home/partials/_device_options.html）
+    GET /controls/devices/?group_id=g12
+    """
+    gid_raw = request.GET.get("group_id")
+    gid = _parse_group_id(gid_raw)
+    group = get_object_or_404(Group, pk=gid)
+
+    # 權限：擁有者或成員（依你 home_view 的寫法）
+    is_member = group.users.filter(id=request.user.id).exists()
+    if (group.owner_id != request.user.id) and (not is_member):
+        return HttpResponseForbidden("No permission")
+
+    # ✅ 補：計算在線狀態
+    window = getattr(settings, "DEVICE_ONLINE_WINDOW_SECONDS", 60)
+    threshold = timezone.now() - timedelta(seconds=window)
+
+    devices = list(group.devices.select_related("user").all())
+    for d in devices:
+        d.is_online_now = bool(d.last_ping and d.last_ping >= threshold)
+
+    return render(request, "home/partials/_device_options.html", {"devices": devices})
+
+
+@login_required
+def ajax_caps(request):
+    """
+    回傳某裝置的能力 <option>（home/partials/_cap_options.html）
+    GET /controls/caps/?device_id=34
+    """
+    did = request.GET.get("device_id")
+    if not did:
+        raise Http404("Missing device id")
+
+    device = get_object_or_404(Device, pk=did)
+
+    # 權限：該裝置必須屬於使用者可見的群組（擁有者或成員）
+    groups_qs = device.groups.all()
+    visible = (
+        groups_qs.filter(owner=request.user).exists()
+        or groups_qs.filter(memberships__user=request.user).exists()
+    )
+    if not visible:
+        return HttpResponseForbidden("No permission")
+
+    # ✅ 不需要匯入 Capability，直接用關聯取
+    caps = device.capabilities.all()
+    return render(request, "home/partials/_cap_options.html", {"caps": caps})
+
+
+@login_required
+def ajax_cap_form(request, cap_id: int):
+    """
+    依能力種類載入對應表單卡片（home/forms/_cap_*.html）
+    GET /controls/cap-form/<cap_id>/
+    """
+    # ✅ 不 import Capability：透過 Device → capabilities 反查
+    device = (
+        Device.objects.filter(capabilities__id=cap_id)  # 找到擁有該能力的裝置
+        .prefetch_related("groups__memberships", "capabilities")
+        .first()
+    )
+    if not device:
+        raise Http404("Capability not found")
+
+    # 取出該能力實例
+    cap = device.capabilities.filter(id=cap_id).first()
+    if not cap:
+        raise Http404("Capability not found on device")
+
+    # 權限：同上
+    groups_qs = device.groups.all()
+    visible = (
+        groups_qs.filter(owner=request.user).exists()
+        or groups_qs.filter(memberships__user=request.user).exists()
+    )
+    if not visible:
+        return HttpResponseForbidden("No permission")
+
+    # 依 kind 選模板（仍可使用 cap.kind / cap.get_kind_display）
+    tpl = {
+        "light": "home/forms/_cap_light.html",
+        "fan": "home/forms/_cap_fan.html",
+    }.get(getattr(cap, "kind", None), "home/forms/_cap_generic.html")
+
+    return render(request, tpl, {"cap": cap, "device": device})

@@ -1,0 +1,23 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">{{ device.label }}｜{{ cap.name }}</h5>
+    <div class="d-flex gap-2 flex-wrap">
+      <form method="post" action="{% url 'capability_action' device.id cap.id 'on' %}" class="cap-form">
+        {% csrf_token %}<input type="hidden" name="next" value="">
+        <button class="btn btn-primary btn-sm" type="submit">開</button>
+      </form>
+      <form method="post" action="{% url 'capability_action' device.id cap.id 'off' %}" class="cap-form">
+        {% csrf_token %}<input type="hidden" name="next" value="">
+        <button class="btn btn-outline-secondary btn-sm" type="submit">關</button>
+      </form>
+    </div>
+    <form method="post" action="{% url 'capability_action' device.id cap.id 'set_speed' %}" class="mt-3 cap-form">
+      {% csrf_token %}<input type="hidden" name="next" value="">
+      <label class="form-label">轉速（%）</label>
+      <div class="input-group">
+        <input type="number" name="percent" class="form-control" value="60" min="0" max="100" step="1">
+        <button class="btn btn-outline-primary" type="submit">套用</button>
+      </div>
+    </form>
+  </div>
+</div>

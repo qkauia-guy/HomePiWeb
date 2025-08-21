@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
@@ -110,3 +111,57 @@ def action(request, device_id, cap_id, action):
         return JsonResponse({"ok": True, "req_id": cmd.req_id, "cmd_id": cmd.id})
     messages.success(request, f"已送出 {cmd_name}")
     return redirect(request.META.get("HTTP_REFERER", device.get_absolute_url()))
+
+
+@login_required
+@require_POST
+def capability_action(request, device_id, cap_id, action):
+    device = get_object_or_404(Device, pk=device_id)
+    cap = get_object_or_404(DeviceCapability, pk=cap_id, device=device)
+
+    # 權限（先保守：只有擁有者可控；之後要群組授權再放寬）
+    if device.user_id != request.user.id:
+        from django.http import HttpResponseForbidden
+
+        return HttpResponseForbidden("你沒有權限操作此裝置。")
+
+    # 映射命令
+    cmd = None
+    if cap.kind == "light":
+        map_ = {"on": "light_on", "off": "light_off", "toggle": "light_toggle"}
+        cmd = map_.get(action)
+    elif cap.kind == "fan":
+        map_ = {"on": "fan_on", "off": "fan_off", "set_speed": "fan_set_speed"}
+        cmd = map_.get(action)
+    # 其他 kind 再擴充…
+
+    if not cmd:
+        from django.http import JsonResponse
+
+        return JsonResponse({"error": f"unsupported action: {action}"}, status=400)
+
+    payload = {}
+    if cap.kind == "fan" and action == "set_speed":
+        try:
+            payload["percent"] = max(0, min(100, int(request.POST.get("percent", 0))))
+        except ValueError:
+            payload["percent"] = 0
+
+    expires = timezone.now() + timedelta(
+        seconds=getattr(settings, "DEVICE_COMMAND_EXPIRES_SECONDS", 120)
+    )
+    DeviceCommand.objects.create(
+        device=device,
+        command=cmd,
+        payload=payload,
+        req_id=uuid.uuid4().hex,
+        expires_at=expires,
+        status="pending",
+    )
+
+    next_url = request.POST.get("next") or request.GET.get("next")
+    if not next_url:
+        from django.urls import reverse
+
+        next_url = reverse("home")
+    return redirect(next_url)

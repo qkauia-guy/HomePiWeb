@@ -1,0 +1,29 @@
+<div class="row g-3 align-items-end">
+  <!-- 群組 -->
+  <div class="col-md-4">
+    <label for="groupSelect" class="form-label">選擇群組</label>
+    <select id="groupSelect" class="form-select">
+      <option selected disabled value="">請選擇群組</option>
+      {% for g in groups %}
+        <!-- 保留你原本的 g{id} 風格，方便沿用 PRG 參數 -->
+        <option value="g{{ g.id }}">{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- 裝置（改由 AJAX 載入 options） -->
+  <div class="col-md-4">
+    <label for="deviceSelect" class="form-label">選擇裝置<small> ( 離線裝置無法選取 ) </small></label>
+    <select id="deviceSelect" class="form-select" disabled>
+      <option selected disabled value="">請先選擇群組</option>
+    </select>
+  </div>
+
+  <!-- 功能（改由 AJAX 載入 options） -->
+  <div class="col-md-4">
+    <label for="capSelect" class="form-label">選擇功能</label>
+    <select id="capSelect" class="form-select" disabled>
+      <option selected disabled value="">請先選擇裝置</option>
+    </select>
+  </div>
+</div>
