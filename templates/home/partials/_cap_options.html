@@ -1,0 +1,7 @@
+{% comment %} 需要變數 caps（某裝置的 capabilities） {% endcomment %}
+{% for cap in caps %}
+  <option value="{{ cap.id }}" data-kind="{{ cap.kind }}">
+    {{ cap.name }}（{{ cap.get_kind_display|default:cap.kind }}）
+  </option>
+{% empty %}
+{% endfor %}

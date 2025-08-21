@@ -1,0 +1,12 @@
+{% comment %} 需要變數 devices（已依群組過濾） {% endcomment %}
+{% for d in devices %}
+  <option
+    value="{{ d.id }}"
+    data-online="{{ d.is_online_now|yesno:'1,0' }}"
+    {% if not d.is_online_now %}disabled{% endif %}
+  >
+    {{ d.label }} {% if d.is_online_now %}(在線){% else %}(離線){% endif %}
+  </option>
+{% empty %}
+  {# 可回傳空字串，由前端保留 placeholder #}
+{% endfor %}

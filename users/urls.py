@@ -4,6 +4,7 @@ from .views_password_reset import (
     password_reset_request_view,
     password_reset_confirm_view,
 )
+from . import views
 
 urlpatterns = [
     path("register/", register_view, name="register"),
@@ -17,4 +18,8 @@ urlpatterns = [
         password_reset_confirm_view,
         name="password_reset_confirm_custom",
     ),
+    # 三個 AJAX 端點（lazy load partial）
+    path("controls/devices/", views.ajax_devices, name="ajax_devices"),
+    path("controls/caps/", views.ajax_caps, name="ajax_caps"),
+    path("controls/cap-form/<int:cap_id>/", views.ajax_cap_form, name="ajax_cap_form"),
 ]

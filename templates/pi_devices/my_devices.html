@@ -25,7 +25,7 @@
               {% endif %}
             </div>
             <div class="btn-group">
-              <a href="{% url 'device_edit_name' d.id %}" class="btn btn-sm btn-outline-primary">編輯</a>
+              <a href="{% url 'device_edit' d.id %}" class="btn btn-sm btn-outline-primary">編輯</a>
               <a href="{% url 'device_unbind' d.id %}" class="btn btn-sm btn-outline-danger">解除</a>
             </div>
           </div>

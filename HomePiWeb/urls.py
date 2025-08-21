@@ -3,6 +3,7 @@ from django.contrib import admin
 from pi_devices.views import device as device_views
 from django.urls import path, include
 from django.shortcuts import redirect
+from users import views as user_views
 
 
 urlpatterns = [
@@ -24,4 +25,5 @@ urlpatterns = [
         name="index",
     ),
     path("devices/offcanvas/", device_views.offcanvas_list, name="devices_offcanvas"),
+    path("offcanvas/groups/", user_views.offcanvas_groups, name="groups_offcanvas"),
 ]

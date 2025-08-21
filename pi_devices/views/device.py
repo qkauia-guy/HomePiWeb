@@ -111,7 +111,7 @@ def device_edit(request, pk):
 
                 transaction.on_commit(_after_commit)
             messages.success(request, "已更新裝置名稱。")
-            return redirect("my_devices")
+            return redirect("home")
     else:
         form = DeviceNameForm(instance=device)
     return render(
