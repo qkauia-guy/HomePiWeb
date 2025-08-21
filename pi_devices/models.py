@@ -8,6 +8,18 @@ from django.urls import reverse, NoReverseMatch
 from django.utils.text import slugify
 
 
+def _make_unique_slug(instance, base, max_len=50):
+    slug = slugify(base)[:max_len] or "cap"
+    orig = slug
+    i = 2
+    Model = instance.__class__
+    while Model.objects.filter(device=instance.device, slug=slug).exists():
+        suffix = f"-{i}"
+        slug = orig[: max_len - len(suffix)] + suffix
+        i += 1
+    return slug
+
+
 def gen_serial_number() -> str:
     return f"PI-{uuid.uuid4().hex[:8].upper()}"
 
@@ -162,16 +174,20 @@ class DeviceCapability(models.Model):
     enabled = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = [("device", "slug")]  # 可保留
         ordering = ["order", "id"]
         indexes = [
             models.Index(fields=["device", "kind"]),
             models.Index(fields=["device", "enabled"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["device", "slug"], name="uniq_cap_slug_per_device"
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)[:50] or "cap"
+            self.slug = _make_unique_slug(self, self.name, max_len=50)
         super().save(*args, **kwargs)
 
     def __str__(self):
