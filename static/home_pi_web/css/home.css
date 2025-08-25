@@ -1,30 +1,159 @@
-#p1,
-#p2,
-#p3 {
-  background-position: center;
-  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
-  background-repeat: no-repeat;
-  height: 75vh;
-  border-radius: 10px;
+/* === Groups / Devices Offcanvas: consolidated styles ===
+   作用範圍同時支援 #sideBar 與 #sideBarGroups
+-------------------------------------------------------- */
+
+/* 容器寬度限制（延用你原本的） */
+#sideBar .offcanvas-body,
+#sideBarGroups .offcanvas-body {
+  max-width: 420px;
 }
-#p1 {
-  background-image: url('../images/01.jpg');
-  background-position: center;
-  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
-  height: 75vh;
+
+/* 清單容器（Flex + gap） */
+#sideBar .device-list,
+#sideBarGroups .device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
 }
-#p2 {
-  background: url('../images/02.jpg');
-  background-position: center;
-  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
-  height: 75vh;
+
+/* 若誤留 list-group 在 UL，將其效果中和，避免干擾 */
+#sideBar .device-list.list-group,
+#sideBarGroups .device-list.list-group {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
-#p3 {
-  background: url('../images/03.jpg');
-  background-position: center;
-  background-size: 100% auto; /* 寬度鋪滿，高度自動調整 */
-  height: 75vh;
+
+/* 每筆列的 <li> 重置 */
+#sideBar .device-row,
+#sideBarGroups .device-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.bgColor {
-  background-color: rgba(255, 255, 255, 0.9);
+
+/* 單一卡片（由原 <a> 改為 <div>） */
+#sideBar .device-item,
+#sideBarGroups .device-item {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bs-body-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  text-decoration: none; /* 就算內部放 <a>，整塊也不出現底線 */
+}
+
+/* 點擊手勢與避免選字 */
+#sideBar .device-item.toggleable,
+#sideBarGroups .device-item.toggleable {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* hover/active 效果（延用 + 強化） */
+#sideBar .device-item:hover,
+#sideBar .device-item:focus,
+#sideBarGroups .device-item:hover,
+#sideBarGroups .device-item:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* 更好的鍵盤可及性 */
+#sideBar .device-item:focus-visible,
+#sideBarGroups .device-item:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+
+/* 左側狀態點（延用你原本設計） */
+#sideBar .status-dot,
+#sideBarGroups .status-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--bs-secondary);
+  /* 漸層外暈（使用 color-mix，支援度 OK） */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-secondary), transparent 75%);
+}
+#sideBar .status-dot.on,
+#sideBarGroups .status-dot.on {
+  background: var(--bs-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-success), transparent 75%);
+}
+
+/* 次要資訊行高 */
+#sideBar .device-sub,
+#sideBarGroups .device-sub {
+  line-height: 1.2;
+}
+
+/* 右側箭頭 + 展開旋轉 */
+#sideBar .chev,
+#sideBarGroups .chev {
+  font-size: 1.25rem;
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+}
+#sideBar .device-item.expanded .chev,
+#sideBarGroups .device-item.expanded .chev {
+  transform: rotate(90deg);
+}
+
+/* === 展開區（按鈕列）動畫 ===
+   使用 CSS Grid 的 0fr → 1fr 過渡，不卡高度
+-------------------------------------------------------- */
+#sideBar .device-actions,
+#sideBarGroups .device-actions {
+  display: grid;
+  grid-template-rows: 0fr; /* 收起 */
+  transition: grid-template-rows 0.22s ease;
+  border-top: 1px solid var(--bs-border-color);
+}
+#sideBar .device-item.expanded + .device-actions,
+#sideBarGroups .device-item.expanded + .device-actions {
+  grid-template-rows: 1fr; /* 展開 */
+}
+#sideBar .device-actions .actions-inner,
+#sideBarGroups .device-actions .actions-inner {
+  overflow: hidden; /* 限高時防溢出 */
+}
+
+/* 按鈕群微調（讓小按鈕更緊湊） */
+#sideBar .device-actions .btn-group > .btn,
+#sideBarGroups .device-actions .btn-group > .btn {
+  --bs-btn-padding-y: 0.25rem;
+  --bs-btn-padding-x: 0.6rem;
+  text-decoration: none;
+}
+
+/* 手機時更緊湊（延用你原本設定） */
+@media (max-width: 576px) {
+  #sideBar .offcanvas-body,
+  #sideBarGroups .offcanvas-body {
+    max-width: 92vw;
+  }
+  #sideBar .device-item,
+  #sideBarGroups .device-item {
+    padding: 0.65rem 0.85rem;
+  }
+}
+
+/* 動畫減量（系統偏好） */
+@media (prefers-reduced-motion: reduce) {
+  #sideBar .device-item,
+  #sideBarGroups .device-item,
+  #sideBar .chev,
+  #sideBarGroups .chev,
+  #sideBar .device-actions,
+  #sideBarGroups .device-actions {
+    transition: none;
+  }
 }

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>裝置使用權限：{{ group.name }} / {{ member.user.email }}（{{ member.get_role_display }}）</h3>
+<p class="text-muted">說明：owner / admin 永遠可用；operator 這裡預設全部可用，取消勾選表示「禁止」。viewer 一律不可。</p>
+
+<form method="post" action="{% url 'member_device_acl' group.id member.user_id %}" class="mt-3">
+  {% csrf_token %}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px;">#</th>
+          <th>裝置</th>
+          <th style="width:160px;">可操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>
+            <div>{{ row.device.display_name|default:row.device.serial_number }}</div>
+            <div class="text-muted small">序號：{{ row.device.serial_number }}</div>
+          </td>
+          <td>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="allowed" value="{{ row.device.id }}"
+                     id="dev{{ row.device.id }}" {% if row.allowed %}checked{% endif %}>
+              <label class="form-check-label" for="dev{{ row.device.id }}">可操作</label>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-center text-muted py-4">此群組尚無裝置</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <button class="btn btn-primary">儲存</button>
+  <a class="btn btn-secondary ms-2" href="{% url 'group_members' group.id %}">返回成員列表</a>
+</form>
+{% endblock %}

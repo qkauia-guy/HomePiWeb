@@ -13,6 +13,7 @@ from ..models import Device, DeviceCapability
 from ..forms import DeviceCapabilityForm
 from ..models import Device, DeviceCapability, DeviceCommand
 from groups.models import Group, GroupDevice, GroupMembership
+from groups.models import GroupMembership, GroupDevicePermission
 
 ALLOWED = {
     "light": {"light_on", "light_off", "light_toggle"},
@@ -104,7 +105,7 @@ def _current_group_from_request(request):
         return None
 
 
-def _user_can_control(user, group):
+def _user_can_control(user, group, device):
     if group.owner_id == user.id:
         return True
     role = (
@@ -112,7 +113,13 @@ def _user_can_control(user, group):
         .values_list("role", flat=True)
         .first()
     )
-    return role in {"admin", "operator"}
+    if role == "admin":
+        return True
+    if role == "operator":
+        return GroupDevicePermission.objects.filter(
+            user=user, group=group, device=device, can_control=True
+        ).exists()
+    return False
 
 
 # 你原本的 ALLOWED 常數請保留
@@ -147,7 +154,7 @@ def action(request, device_id, cap_id, action):
             return HttpResponseForbidden("No permission")
 
     # 4) 角色權限：owner/admin/operator 才能操作；viewer 禁止
-    if not _user_can_control(request.user, group):
+    if not _user_can_control(request.user, group, device):
         return HttpResponseForbidden("No permission")
 
     # 5) 動作映射與檢核（保留你的原邏輯）

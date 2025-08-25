@@ -2,6 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from .models import Group, GroupMembership
 from pi_devices.models import Device
+from django.forms import formset_factory
 
 
 class GroupForm(forms.ModelForm):
@@ -91,23 +92,11 @@ class AddMemberForm(forms.Form):
         widget=forms.EmailInput(
             attrs={"placeholder": _("name@example.com"), "class": "form-control"}
         ),
-        error_messages={
-            "required": _("請輸入 Email"),
-            "invalid": _("Email 格式不正確"),
-        },
     )
     role = forms.ChoiceField(
-        label=_("角色"),
+        label=_("群組角色"),
         choices=[("", _("請選擇角色"))] + list(GroupMembership.ROLE_CHOICES),
         widget=forms.Select(attrs={"class": "form-select"}),
-        error_messages={"required": _("請選擇角色")},
-    )
-    device = forms.ModelChoiceField(
-        label=_("裝置"),
-        queryset=Device.objects.none(),  # 由 view 依群組動態帶入：group.devices.all()
-        empty_label=_("請選擇裝置"),
-        widget=forms.Select(attrs={"class": "form-select"}),
-        error_messages={"required": _("請選擇裝置")},
     )
 
 
@@ -118,3 +107,22 @@ class UpdateMemberForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"}),
         error_messages={"required": _("請選擇角色")},
     )
+
+
+class InviteDeviceItemForm(forms.Form):
+    include = forms.BooleanField(label="包含此裝置", required=False)
+    device_id = forms.IntegerField(widget=forms.HiddenInput)
+    perm = forms.ChoiceField(
+        label="權限",
+        choices=(("none", "不授權"), ("control", "可控制")),
+        initial="control",
+        widget=forms.Select(attrs={"class": "form-select form-select-sm"}),
+    )
+
+
+InviteDeviceFormSet = formset_factory(InviteDeviceItemForm, extra=0)
+
+
+def make_invite_device_formset(devices, data=None, prefix="dev"):
+    initial = [{"device_id": d.id} for d in devices]
+    return InviteDeviceFormSet(data=data, initial=initial, prefix=prefix)

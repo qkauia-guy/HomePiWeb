@@ -1,6 +1,7 @@
 # invites/views.py
 from __future__ import annotations
 
+import time
 from datetime import timedelta
 
 from django.contrib import messages
@@ -8,27 +9,30 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from django.db import transaction, OperationalError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from groups.models import Group, GroupDevice, GroupMembership
-from groups.permissions import is_group_admin  # 權限檢查
+from groups.models import (
+    Group,
+    GroupDevice,
+    GroupMembership,
+    GroupDevicePermission,  # 新增：多裝置 ACL 需要
+)
+from groups.permissions import is_group_admin
 from pi_devices.models import Device
-from users.forms import InviteRegisterForm, UserRegisterForm  # 若未使用可移除
+from users.forms import InviteRegisterForm  # 未登入時的註冊表單
 from .models import Invitation
 
-# 🔔 通知：這三個是本檔會用到的
+# 🔔 通知：本檔會用到這三個
 from notifications.services import (
     notify_invite_created,
     notify_group_device_added,
     notify_member_added,
 )
-from django.db import transaction, OperationalError
-import time
 
 
 @login_required
@@ -123,45 +127,98 @@ def create_invitation(request, group_id, device_id):
 
 @require_http_methods(["GET", "POST"])
 def accept_invite(request, code):
+    """
+    受邀者接受邀請：
+      - 已登入：直接接受
+      - 未登入：可先登入或註冊，成功後再接受
+    完成後（交易提交）才發通知／建 ACL。
+    兼容舊(單裝置 inv.device)與新(多裝置 inv.device_items)。
+    """
     inv = get_object_or_404(Invitation, code=code)
     if not inv.is_valid():
         return render(request, "invites/invalid.html")
 
     def _accept_for(user):
+        # 指數退避，處理 sqlite "database is locked"
         backoffs = (0, 0.05, 0.1, 0.2, 0.4)
         for i, sleep_s in enumerate(backoffs):
             if sleep_s:
                 time.sleep(sleep_s)
             try:
                 with transaction.atomic():
+                    # 接受前的狀態（用於比較與通知）
                     pre_is_member = GroupMembership.objects.filter(
                         group=inv.group, user=user
                     ).exists()
-                    pre_has_device = GroupDevice.objects.filter(
-                        group=inv.group, device=inv.device
-                    ).exists()
+                    pre_has_device = False
+                    if inv.device_id:
+                        pre_has_device = GroupDevice.objects.filter(
+                            group=inv.group, device=inv.device
+                        ).exists()
 
-                    _join_and_consume(inv, user)  # 交易內只做 DB 寫入
+                    # 真正寫入：加成員 / consume / 可能裝置加入（由 _join_and_consume 處理）
+                    _join_and_consume(inv, user)
 
+                    # 交易提交後：查後狀態 → 發通知 / 建 ACL
                     def _after_commit():
                         post_is_member = GroupMembership.objects.filter(
                             group=inv.group, user=user
                         ).exists()
-                        post_has_device = GroupDevice.objects.filter(
-                            group=inv.group, device=inv.device
-                        ).exists()
 
+                        # === 單裝置（舊資料） ===
+                        if inv.device_id:
+                            post_has_device = GroupDevice.objects.filter(
+                                group=inv.group, device=inv.device
+                            ).exists()
+
+                            # 建立/補齊 ACL（舊邀請沒有 can_control 欄位時，預設 True）
+                            if post_is_member:
+                                GroupDevicePermission.objects.get_or_create(
+                                    user=user,
+                                    group=inv.group,
+                                    device=inv.device,
+                                    defaults={
+                                        "can_control": getattr(inv, "can_control", True)
+                                    },
+                                )
+
+                            if (not pre_is_member) and post_is_member:
+                                notify_member_added(
+                                    actor=user,
+                                    group=inv.group,
+                                    member=user,
+                                    role=inv.role,
+                                )
+                            if (not pre_has_device) and post_has_device:
+                                notify_group_device_added(
+                                    actor=user, group=inv.group, device=inv.device
+                                )
+                            return  # 單裝置流程結束
+
+                        # === 多裝置（新流程：一張卡多台） ===
                         if (not pre_is_member) and post_is_member:
                             notify_member_added(
                                 actor=user, group=inv.group, member=user, role=inv.role
                             )
-                        if inv.device_id and (not pre_has_device) and post_has_device:
-                            notify_group_device_added(
-                                actor=user, group=inv.group, device=inv.device
+
+                        # 逐台建立/更新 ACL
+                        # 需在 Invitation 上有 related name，例如 device_items → InvitationDevice
+                        for it in inv.device_items.select_related("device").all():
+                            GroupDevicePermission.objects.update_or_create(
+                                user=user,
+                                group=inv.group,
+                                device=it.device,
+                                defaults={
+                                    "can_control": bool(
+                                        getattr(it, "can_control", True)
+                                    )
+                                },
                             )
+                        # 多裝置不送「裝置加入」通知（裝置原本已在群組）
 
                     transaction.on_commit(_after_commit)
 
+                # 能走到這裡代表交易提交成功
                 return render(
                     request,
                     "invites/success.html",
@@ -172,16 +229,19 @@ def accept_invite(request, code):
                     continue
                 raise
 
+    # 已登入：直接接受（不需要先 login）
     if request.user.is_authenticated:
         return _accept_for(request.user)
 
+    # 未登入：處理登入或註冊，但「不要在交易內 login」
     if request.method == "POST":
         if "login" in request.POST:
             form = AuthenticationForm(request, data=request.POST)
             if form.is_valid():
                 user = form.get_user()
-                resp = _accept_for(user)  # 先提交 DB
-                login(request, user)  # 再寫 session
+                # 先完成接受（提交 DB 交易），再寫 session
+                resp = _accept_for(user)
+                login(request, user)
                 return resp
             return render(
                 request,
@@ -210,6 +270,7 @@ def accept_invite(request, code):
                 },
             )
 
+    # 初次進入頁面
     return render(
         request,
         "invites/accept.html",
@@ -246,9 +307,9 @@ def _join_and_consume(inv: Invitation, user):
     if not inv.email:
         inv.email = user.email
 
-    # 這裡假設 Invitation.consume() 內會：
+    # consume() 內部需自行處理：
     # - 檢查 is_valid()
     # - 增加 used_count
-    # - 視 max_uses 及 expires_at 決定 is_active
+    # - 視 max_uses/expires_at 決定 is_active
     inv.consume()
     inv.save(update_fields=["email", "used_count", "is_active"])

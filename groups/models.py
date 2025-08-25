@@ -162,3 +162,29 @@ class GroupShareGrant(models.Model):
     def __str__(self):
         state = "active" if self.is_valid() else "inactive"
         return f"Grant {self.user} @ {self.group} ({state})"
+
+
+class GroupDevicePermission(models.Model):
+    """
+    僅記錄例外：
+    - 若沒有這筆紀錄 => operator 預設「可控制」
+    - 有紀錄且 can_control=False => 這台裝置被禁止
+    - 有紀錄且 can_control=True => 也視為可（通常不需要特地存 True）
+    """
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    device = models.ForeignKey("pi_devices.Device", on_delete=models.CASCADE)
+    can_control = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("user", "group", "device")]
+        indexes = [
+            models.Index(fields=["group", "user"]),
+            models.Index(fields=["group", "device"]),
+        ]
+
+    def __str__(self):
+        state = "allow" if self.can_control else "deny"
+        return f"ACL {self.user} @ {self.group} / {self.device} ({state})"

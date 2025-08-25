@@ -8,14 +8,14 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction
 from django.conf import settings
 from django.db.models.functions import Coalesce, NullIf
-from django.db.models import Value, IntegerField, Case, When
-
+from django.db.models import Value, IntegerField, Case, When, Q
+from groups.permissions import can_control_device as _can_control_device
 import uuid, time
 from datetime import timedelta
 
 from ..models import Device, DeviceCommand
-from groups.models import GroupDevice
 from ..forms import DeviceNameForm, BindDeviceForm
+from groups.models import Group, GroupMembership, GroupDevicePermission, GroupDevice
 
 # 🔔 通知服務
 from notifications.services import (
@@ -26,6 +26,65 @@ from notifications.services import (
     notify_group_device_removed,
     notify_user_online,  # 這個只有 api 會用；留著也無妨
 )
+
+
+# =========================
+# ✅ 新增：工具與權限判斷
+# =========================
+def _parse_group_id(val: str | None) -> int | None:
+    if not val:
+        return None
+    s = val.strip()
+    if s.startswith("g") and s[1:].isdigit():
+        return int(s[1:])
+    if s.isdigit():
+        return int(s)
+    return None
+
+
+def _user_can_control(user, device: Device, group: Group | None) -> bool:
+    """
+    權限規則：
+      - 裝置擁有者：可控
+      - 群組擁有者 / 群組 admin：可控
+      - operator：需要在 GroupDevicePermission 有 can_control=True
+      - viewer：不可控
+    若 group 為 None，會嘗試使用者可見的任一包含該裝置的群組來判斷。
+    """
+    # 裝置擁有者
+    if device.user_id == user.id:
+        return True
+
+    def _check_one_group(g: Group) -> bool:
+        if g.owner_id == user.id:
+            return True
+        ms = GroupMembership.objects.filter(group=g, user=user).only("role").first()
+        if not ms:
+            return False
+        if ms.role == "admin":
+            return True
+        if ms.role == "operator":
+            return GroupDevicePermission.objects.filter(
+                user=user, group=g, device=device, can_control=True
+            ).exists()
+        return False  # viewer
+
+    if group:
+        # 要求裝置確實存在該群組
+        if not GroupDevice.objects.filter(group=group, device=device).exists():
+            return False
+        return _check_one_group(group)
+
+    # 未指定群組：用使用者可見的群組（且群組包含該裝置）嘗試判斷
+    gs = (
+        Group.objects.filter(devices=device)
+        .filter(Q(owner=user) | Q(memberships__user=user))
+        .distinct()
+    )
+    for g in gs:
+        if _check_one_group(g):
+            return True
+    return False
 
 
 @login_required
@@ -201,11 +260,25 @@ def device_unbind(request, pk):
 def device_light_action(request, device_id, action):
     if action not in ("on", "off", "toggle"):
         return JsonResponse({"error": "invalid action"}, status=400)
+
     device = get_object_or_404(Device, pk=device_id)
-    if device.user_id != request.user.id:
+
+    # 解析群組：POST hidden group_id > GET ?g
+    gid = (
+        _parse_group_id(request.POST.get("group_id"))
+        or _parse_group_id(request.GET.get("g"))
+        or _parse_group_id(request.GET.get("group_id"))
+    )
+    group = get_object_or_404(Group, pk=gid) if gid else None
+
+    if not _can_control_device(request.user, device, group):
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"error": "forbidden"}, status=403)
         return HttpResponseForbidden("你沒有權限操作此裝置。")
+
     cmd_map = {"on": "light_on", "off": "light_off", "toggle": "light_toggle"}
     cmd_name = cmd_map[action]
+
     cmd = DeviceCommand.objects.create(
         device=device,
         command=cmd_name,
@@ -214,12 +287,17 @@ def device_light_action(request, device_id, action):
         expires_at=timezone.now() + timedelta(minutes=2),
         status="pending",
     )
+
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse(
             {"ok": True, "req_id": cmd.req_id, "cmd_id": cmd.id}, status=200
         )
+
+    next_url = request.POST.get("next") or request.META.get(
+        "HTTP_REFERER", "my_devices"
+    )
     messages.success(request, f"已送出 {action} 指令")
-    return redirect(request.META.get("HTTP_REFERER", "my_devices"))
+    return redirect(next_url)
 
 
 # === 範例：解鎖（若你還要保留） ===

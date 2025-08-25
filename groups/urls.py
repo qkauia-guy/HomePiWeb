@@ -54,4 +54,20 @@ urlpatterns = [
         views.revoke_share_permission,
         name="revoke_share_permission",
     ),
+    path(
+        "<int:group_id>/members/<int:user_id>/acl/",
+        views.member_acl_edit,
+        name="member_acl_edit",
+    ),
+    path(
+        "<int:group_id>/members/<int:user_id>/acl/",
+        views.member_device_acl,
+        name="member_device_acl",
+    ),
+    path(
+        "groups/<int:group_id>/members/<int:user_id>/acl/",
+        views.member_device_acl,
+        name="member_device_acl",
+    ),
+    path("groups/<int:group_id>/leave/", views.group_leave, name="group_leave"),
 ]

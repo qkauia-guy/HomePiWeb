@@ -45,3 +45,16 @@ class DeviceCapabilityForm(forms.ModelForm):
     class Meta:
         model = DeviceCapability
         fields = ("name", "kind", "slug", "config", "order", "enabled")
+
+
+class MemberDeviceACLForm(forms.Form):
+    devices = forms.ModelMultipleChoiceField(
+        label="可控制的裝置",
+        queryset=Device.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def __init__(self, *args, group=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["devices"].queryset = group.devices.order_by("display_name", "id")
