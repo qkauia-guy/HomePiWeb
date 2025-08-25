@@ -10,7 +10,6 @@ class InvitationAdmin(admin.ModelAdmin):
         "device",
         "invited_by",
         "role",
-        "used_count",
         "max_uses",
         "expires_at",
         "is_active",

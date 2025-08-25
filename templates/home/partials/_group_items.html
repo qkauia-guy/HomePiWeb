@@ -1,34 +1,52 @@
 {# templates/home/partials/_group_items.html #}
-{% comment %} 需要變數 groups（建議在 view 註解 device_count；否則可用 g.devices.count） {% endcomment %}
-
+{% load static %}
 {% url 'home' as home_url %}
 {% url 'group_list' as group_list_url %}
+<link rel="stylesheet" href="{% static 'home_pi_web/css/groups/group_items.css' %}">
 
-{% if groups and groups|length > 0 %}
-  <div class="device-list list-group">
-    <a href="{% url 'group_create' %}" class="btn btn-success mb-2 w-100">+ 建立群組</a>
-    <a href="{{ group_list_url }}" class="btn btn-primary mb-2 w-100">前往群組管理</a>
+<div class="groups-scope">
 
-    {% for g in groups %}
-      {% with count=g.device_count|default:g.devices.count %}
-      <a href="{{ home_url }}?g=g{{ g.id }}"
-         class="device-item list-group-item list-group-item-action d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center gap-3">
-          {# 狀態點：有裝置就亮綠；無裝置維持灰點 #}
-          <span class="status-dot {% if count %}on{% endif %}" aria-hidden="true"></span>
-          <div>
-            <div class="fw-semibold">{{ g.name }}</div>
-            <div class="device-sub small text-body-secondary">
-              共 {{ count|default:0 }} 台裝置
+  {% if groups and groups|length > 0 %}
+
+    <div class="mb-2 d-grid gap-2">
+      <a href="{% url 'group_create' %}" class="btn btn-success w-100">+ 建立群組</a>
+      <!-- <a href="{{ group_list_url }}" class="btn btn-primary w-100">前往群組管理</a> -->
+    </div>
+
+    <ul class="device-list list-unstyled">
+      {% for g in groups %}
+        {% with count=g.device_count|default:g.devices.count %}
+        <li class="device-row">
+          <!-- 可點卡片 -->
+          <div class="device-item d-flex align-items-center justify-content-between toggleable"
+               role="button" tabindex="0" aria-expanded="false" aria-controls="act-{{ g.id }}">
+            <div class="d-flex align-items-center gap-3">
+              <span class="status-dot {% if count %}on{% endif %}" aria-hidden="true"></span>
+              <div>
+                <div class="fw-semibold">{{ g.name }}</div>
+                <div class="device-sub small text-body-secondary">共 {{ count|default:0 }} 台裝置</div>
+              </div>
+            </div>
+            <span class="chev" aria-hidden="true">›</span>
+          </div>
+
+          <!-- 展開區：兩顆按鈕 -->
+          <div class="device-actions" id="act-{{ g.id }}">
+            <div class="actions-inner px-3 mt-2">
+              <div class="actions-buttons">
+                <a class="btn btn-sm btn-primary" href="{{ home_url }}?g=g{{ g.id }}">前往控制</a>
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'group_detail' group_id=g.id %}">群組詳細</a>
+              </div>
             </div>
           </div>
-        </div>
-        <span class="chev" aria-hidden="true">›</span>
-      </a>
-      {% endwith %}
-    {% endfor %}
-  </div>
-{% else %}
-  <p class="text-muted mb-2">尚無群組</p>
-  <a href="{{ group_list_url }}" class="btn btn-success w-100">建立群組</a>
-{% endif %}
+        </li>
+        {% endwith %}
+      {% endfor %}
+    </ul>
+
+  {% else %}
+    <p class="text-muted mb-2">尚無群組</p>
+    <a href="{{ group_list_url }}" class="btn btn-success w-100">建立群組</a>
+  {% endif %}
+
+</div>

@@ -14,4 +14,5 @@ urlpatterns = [
         name="invite_create",
     ),
     path("accept/<str:code>/", views.accept_invite, name="invite_accept"),
+    path("revoke/<str:code>/", views.revoke_invitation, name="invite_revoke"),
 ]

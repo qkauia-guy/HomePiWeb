@@ -3,98 +3,61 @@
 
 {% block content %}
 <div class="container my-4">
-  <h2 class="mb-3">「{{ group.name }}」成員管理</h2>
+  <h2 class="mb-3"> {{ group.name }}</h2>
+  {% if ms.user and ms.user.id %}
+    <a class="btn btn-sm btn-outline-secondary"
+      href="{% url 'member_device_acl' group.id ms.user.id %}">
+      裝置使用權
+    </a>
+  {% endif %}
 
   <!-- 新增成員表單 -->
-  <div class="card mb-4">
-    <div class="card-header">建立邀請</div>
-    <div class="card-body">
-      <form method="post" action="{% url 'group_members' group.id %}">
-        {% csrf_token %}
-        <div class="row g-3 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label" for="id_email">Email</label>
-            {{ form.email }}
-          </div>
-          <div class="col-md-3">
-            <label class="form-label" for="id_role">角色</label>
-            {{ form.role }}
-          </div>
-          <div class="col-md-3">
-            <label class="form-label" for="id_device">裝置</label>
-            {{ form.device }}
-          </div>
-          <div class="col-md-2">
-            <button class="btn btn-primary w-100" type="submit">加入</button>
-          </div>
-        </div>
-      </form>
-    </div>
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>建立邀請（單一連結，含多台裝置權限）</span>
+    <small class="text-muted">受邀者接受後，會依下表逐台建立控制權限。</small>
   </div>
+  <div class="card-body">
+    <form method="post" action="{% url 'group_members' group.id %}">
+      {% csrf_token %}
 
-  <!-- 成員列表 -->
-  <div class="card">
-    <div class="card-header">成員列表</div>
-    <div class="card-body p-0">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Email</label>
+          {{ form.email }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">群組角色</label>
+          {{ form.role }}
+          <div class="form-text">建議 operator；admin 可控全部、viewer 不可控制。</div>
+        </div>
+      </div>
+
+      <hr class="my-3">
+      {{ dev_formset.management_form }}
+
       <div class="table-responsive">
-        <table class="table table-hover mb-0 align-middle">
-          <thead class="table-light">
-            <tr>
-              <th style="width:60px;">#</th>
-              <th>Email</th>
-              <th>角色</th>
-              <th>加入時間</th>
-              <th style="width:300px;">操作</th>
-            </tr>
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr><th style="width:140px;">包含</th><th>裝置</th><th style="width:180px;">權限</th></tr>
           </thead>
           <tbody>
-            {% for ms in memberships %}
-            <tr>
-              <td>{{ forloop.counter }}</td>
-              <td>{{ ms.user.email }}</td>
-              <td>
-                <!-- 以模型顯示名稱呈現（Admin / Operator / Viewer） -->
-                <span class="badge bg-secondary text-uppercase">{{ ms.get_role_display }}</span>
-              </td>
-              <td>{{ ms.joined_at|date:"Y-m-d H:i" }}</td>
-              <td>
-                <div class="d-flex gap-2">
-                  {% if ms.user_id != request.user.id %}
-                    <!-- 更新角色：用模型 choices 迭代，避免手動寫錯 -->
-                    <form method="post" action="{% url 'member_set_role' group.id ms.id %}" class="d-flex gap-2">
-                      {% csrf_token %}
-                      <select name="role" class="form-select form-select-sm" style="width:160px;">
-                        {% for value,label in role_choices %}
-                          <option value="{{ value }}" {% if ms.role == value %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                      </select>
-                      <button class="btn btn-sm btn-outline-primary" type="submit">更新角色</button>
-                    </form>
-
-                    <!-- 移除成員 -->
-                    <form method="post" action="{% url 'member_remove' group.id ms.id %}" onsubmit="return confirm('確定要移除此成員嗎？');">
-                      {% csrf_token %}
-                      <button class="btn btn-sm btn-outline-danger" type="submit">移除</button>
-                    </form>
-                  {% else %}
-                    <span class="text-muted">（無法變更/移除自己）</span>
-                  {% endif %}
-                </div>
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="5" class="text-center text-muted py-4">目前無成員</td>
-            </tr>
+            {% for d, f in dev_pairs %}
+              <tr>
+                <td>{{ f.include }} {{ f.device_id }}</td>
+                <td>{{ d.display_name|default:d.serial_number }} <small class="text-muted">#{{ d.id }}</small></td>
+                <td>{{ f.perm }}</td>
+              </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-    </div>
-  </div>
 
-  <div class="mt-3">
-    <a class="btn btn-outline-secondary" href="{% url 'group_detail' group.id %}">回群組</a>
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">建立邀請</button>
+        <a class="btn btn-secondary" href="{% url 'group_detail' group.id %}">回群組</a>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

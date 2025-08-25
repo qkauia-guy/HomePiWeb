@@ -13,12 +13,8 @@
   {% include "home/_carousel.html" %}
 
   <div class="container my-5">
-    {% include "home/_status_cards.html" %}
-  </div>
-
-  <div class="container my-5">
     <h4 class="mb-3">我的裝置控制</h4>
-
+    <div id="formPlaceholder" class="text-muted mb-3">請先選擇群組 → 裝置 → 功能。</div>
     {% if groups %}
       {% include "home/_selectors.html" %}
 
@@ -26,12 +22,18 @@
 
       <!-- 能力表單載入容器（選到能力才載入） -->
       <div class="mt-4" id="capForms"></div>
-      <div id="formPlaceholder" class="text-muted">請先選擇群組 → 裝置 → 功能。</div>
+      
 
       <script src="{% static 'home_pi_web/js/home.js' %}"></script>
     {% else %}
       <div class="alert alert-info">目前沒有包含你的群組。</div>
     {% endif %}
   </div>
+
+  <div class="container my-5">
+    {% include "home/_status_cards.html" %}
+  </div>
+
+  
 
 {% endblock %}

@@ -3,10 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.translation import gettext_lazy as _
+from invites.models import Invitation, InvitationDevice
+from django.http import HttpResponseForbidden
 
 from .models import (
     Group,
@@ -14,16 +16,24 @@ from .models import (
     GroupDevice,
     DeviceShareRequest,
     GroupShareGrant,
+    GroupDevicePermission,
 )
 from .permissions import can_attach_device_to_group, is_group_admin
 from .permissions import (
     has_active_share_grant,
     can_detach_device_from_group,
 )
-from .forms import GroupForm, AddMemberForm, UpdateMemberForm
+from .forms import (
+    GroupForm,
+    AddMemberForm,
+    UpdateMemberForm,
+    make_invite_device_formset,
+)
 from pi_devices.models import Device
 from .forms import GroupCreateForm, AddMemberForm, UpdateMemberForm
+from pi_devices.forms import MemberDeviceACLForm
 from invites.models import Invitation
+from collections import defaultdict
 
 from notifications.services import (
     notify_invite_created,  # 邀請建立
@@ -191,12 +201,21 @@ def group_detail(request, group_id):
         messages.error(request, "沒有權限檢視此群組")
         return redirect("group_list")
 
-    devices = group.devices.select_related("user").all()
+    # 群組內裝置（含 owner、加入者）
+    group_devices = (
+        GroupDevice.objects.filter(group=group)
+        .select_related("device", "device__user", "added_by")
+        .all()
+    )
+    device_ids_in_group = [gd.device_id for gd in group_devices]
+
+    # 我可掛入的裝置
     attachable_devices = (
         Device.objects.filter(user=request.user)
         .exclude(groups=group)
         .select_related("user")
     )
+
     memberships = group.memberships.select_related("user").all()
 
     is_admin = is_group_admin(request.user, group)
@@ -212,25 +231,49 @@ def group_detail(request, group_id):
     active_grants = group.share_grants.filter(is_active=True).select_related("user")
     granted_user_ids = list(active_grants.values_list("user_id", flat=True))
 
-    group_devices = (
-        GroupDevice.objects.filter(group=group)
-        .select_related("device", "device__user", "added_by")
-        .all()
-    )
-
-    # ✅ 新增：我（當前使用者）對此群組已送出且尚未審核的裝置申請清單（用 device_id）
+    # 我送出的、尚未審核的裝置申請（用 device_id）
     my_pending_device_ids = list(
         DeviceShareRequest.objects.filter(
             requester=request.user, group=group, status="pending"
         ).values_list("device_id", flat=True)
     )
 
+    # ====== ACL：一次算好 ======
+    # 取出所有成員在本群組的 ACL 記錄（can_control=True）
+    acl_rows = GroupDevicePermission.objects.filter(
+        group=group,
+        user_id__in=[m.user_id for m in memberships],
+        device_id__in=device_ids_in_group,
+        can_control=True,
+    ).values("user_id", "device_id")
+
+    acl_map = defaultdict(set)
+    for r in acl_rows:
+        acl_map[r["user_id"]].add(r["device_id"])
+
+    # 對每位成員計算 allowed_ids（給模板顯示/勾選）
+    for m in memberships:
+        if m.user_id == group.owner_id or m.role == "admin":
+            # 群長/管理員 → 全可控
+            m.allowed_ids = device_ids_in_group[:]
+        elif m.role == "viewer":
+            # 觀察者 → 全不可控
+            m.allowed_ids = []
+        else:
+            # operator：
+            if acl_map.get(m.user_id):
+                # 有 ACL → 依 ACL
+                m.allowed_ids = list(acl_map[m.user_id])
+            else:
+                # 沒任何 ACL → 預設全可控（符合你「預設通通都選」的需求）
+                m.allowed_ids = device_ids_in_group[:]
+
     return render(
         request,
         "groups/group_detail.html",
         {
             "group": group,
-            "devices": devices,
+            "devices": [gd.device for gd in group_devices],  # 若模板有用到
             "memberships": memberships,
             "attachable_devices": attachable_devices,
             "pending_requests": pending_requests,
@@ -239,8 +282,9 @@ def group_detail(request, group_id):
             "user_has_grant": user_has_grant,
             "granted_user_ids": granted_user_ids,
             "group_devices": group_devices,
-            "my_pending_device_ids": my_pending_device_ids,  # ← 給模板用
-            "user": request.user,  # ← 保險：若沒啟用 auth context processor
+            "my_pending_device_ids": my_pending_device_ids,
+            "user": request.user,
+            "role_choices": GroupMembership.ROLE_CHOICES,
         },
     )
 
@@ -312,42 +356,113 @@ def group_members(request, group_id):
         return redirect("group_detail", group_id=group.id)
 
     memberships = group.memberships.select_related("user").all()
-
-    if not group.devices.exists():
-        messages.info(request, "此群組尚無裝置，請先將裝置加入群組後再建立邀請。")
+    devices_qs = group.devices.order_by("display_name", "serial_number", "id")
 
     if request.method == "POST":
         form = AddMemberForm(request.POST)
-        form.fields["device"].queryset = group.devices.all()
-        if form.is_valid():
-            email = form.cleaned_data["email"].lower()
+        dev_fs = make_invite_device_formset(devices_qs, data=request.POST)
+
+        if form.is_valid() and dev_fs.is_valid():
+            email = form.cleaned_data["email"].lower().strip()
             role = form.cleaned_data["role"]
-            device = form.cleaned_data["device"]
 
             if group.owner.email.lower() == email:
                 messages.info(request, "此 Email 為群組擁有者，無需邀請。")
                 return redirect("group_members", group_id=group.id)
 
-            inv = Invitation.objects.create(
-                group=group,
-                device=device,
-                invited_by=request.user,
-                email=email,
-                role=role,
-                max_uses=1,
-                expires_at=timezone.now() + timedelta(days=7),
-            )
+            # 收集勾選的設備與權限
+            selected = []
+            for f in dev_fs:
+                if f.cleaned_data.get("include"):
+                    did = f.cleaned_data["device_id"]
+                    perm = f.cleaned_data["perm"]  # "control" or "view"
+                    selected.append((did, perm))
 
+            if not selected:
+                messages.error(request, "請至少勾選一台裝置或設定權限。")
+                return render(
+                    request,
+                    "groups/group_members.html",
+                    {
+                        "group": group,
+                        "memberships": memberships,
+                        "form": form,
+                        "dev_formset": dev_fs,
+                        "role_choices": GroupMembership.ROLE_CHOICES,
+                        "dev_pairs": list(zip(devices_qs, dev_fs.forms)),
+                    },
+                )
+
+            # === 一張邀請卡（不綁單一 device；多台用 InvitationDevice 表）===
+            inv = None
+            for _ in range(5):
+                try:
+                    inv = Invitation.objects.create(
+                        group=group,
+                        device=None,  # ★ 關鍵：一張卡對應多設備，這裡不要塞單一裝置
+                        invited_by=request.user,
+                        email=email or None,
+                        role=role,
+                        max_uses=1,
+                        expires_at=timezone.now() + timedelta(days=7),
+                    )
+                    break
+                except IntegrityError as e:
+                    # 邀請碼 code 撞到就重試，其他錯拋出
+                    if "invites_invitation.code" in str(e):
+                        continue
+                    raise
+
+            if not inv:
+                messages.error(request, "產生邀請碼失敗，請再試一次")
+                return redirect("group_members", group_id=group.id)
+
+            # 寫入每台設備的 ACL（InvitationDevice）
+            items = []
+            for did, perm in selected:
+                device = get_object_or_404(Device, pk=did)
+                if not group.devices.filter(pk=device.pk).exists():
+                    # 避免被竄改 device_id（不在群組內就跳過）
+                    continue
+                item = InvitationDevice.objects.create(
+                    invitation=inv,
+                    device=device,
+                    can_control=(perm == "control"),
+                )
+                items.append(item)
+
+            # 提交後再發通知
             transaction.on_commit(lambda: notify_invite_created(invitation=inv))
 
             invite_url = request.build_absolute_uri(f"/invites/accept/{inv.code}/")
             return render(
-                request, "invites/created.html", {"invite_url": invite_url, "inv": inv}
+                request,
+                "invites/created.html",
+                {
+                    "invite_url": invite_url,
+                    "inv": inv,
+                    "group": group,
+                    "items": items,  # 或 inv.device_items.select_related("device").all()
+                },
             )
-    else:
-        form = AddMemberForm()
-        form.fields["device"].queryset = group.devices.all()
 
+        # 表單驗證失敗 → 回填
+        return render(
+            request,
+            "groups/group_members.html",
+            {
+                "group": group,
+                "memberships": memberships,
+                "form": form,
+                "dev_formset": dev_fs,
+                "role_choices": GroupMembership.ROLE_CHOICES,
+                "dev_pairs": list(zip(devices_qs, dev_fs.forms)),
+            },
+        )
+
+    # GET
+    form = AddMemberForm()
+    dev_fs = make_invite_device_formset(devices_qs)
     return render(
         request,
         "groups/group_members.html",
@@ -355,7 +470,9 @@ def group_members(request, group_id):
             "group": group,
             "memberships": memberships,
             "form": form,
+            "dev_formset": dev_fs,
             "role_choices": GroupMembership.ROLE_CHOICES,
+            "dev_pairs": list(zip(devices_qs, dev_fs.forms)),
         },
     )
 
@@ -619,3 +736,172 @@ def revoke_share_permission(request, group_id, user_id):
         messages.info(request, "未找到需關閉的有效授權")
 
     return redirect("group_detail", group_id=group_id)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def member_acl_edit(request, group_id, user_id):
+    group = get_object_or_404(Group, pk=group_id)
+    if not is_group_admin(request.user, group):
+        messages.error(request, "沒有權限")
+        return redirect("group_members", group_id=group.id)
+
+    member = get_object_or_404(GroupMembership, group=group, user_id=user_id)
+    current_qs = GroupDevicePermission.objects.filter(group=group, user_id=user_id)
+
+    if request.method == "POST":
+        form = MemberDeviceACLForm(request.POST, group=group)
+        if form.is_valid():
+            wanted = set(form.cleaned_data["devices"].values_list("id", flat=True))
+            has = set(current_qs.values_list("device_id", flat=True))
+            add_ids = wanted - has
+            del_ids = has - wanted
+            if add_ids:
+                GroupDevicePermission.objects.bulk_create(
+                    [
+                        GroupDevicePermission(
+                            user_id=user_id,
+                            group=group,
+                            device_id=did,
+                            can_control=True,
+                        )
+                        for did in add_ids
+                    ]
+                )
+            if del_ids:
+                GroupDevicePermission.objects.filter(
+                    group=group, user_id=user_id, device_id__in=del_ids
+                ).delete()
+            messages.success(request, "已更新裝置權限")
+            return redirect("group_members", group_id=group.id)
+    else:
+        preset = current_qs.values_list("device_id", flat=True)
+        form = MemberDeviceACLForm(group=group, initial={"devices": list(preset)})
+
+    return render(
+        request,
+        "groups/member_acl_edit.html",
+        {"group": group, "member": member, "form": form},
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+def member_device_acl(request, group_id, user_id):
+    group = get_object_or_404(Group, pk=group_id)
+    if not is_group_admin(request.user, group):
+        return HttpResponseForbidden("沒有權限")
+
+    member = get_object_or_404(GroupMembership, group=group, user_id=user_id)
+
+    # 群組所有裝置
+    devices = group.devices.select_related("user").order_by(
+        "display_name", "serial_number", "id"
+    )
+
+    # 讀出該 member 現有 ACL
+    perms = {
+        p.device_id: p.can_control
+        for p in GroupDevicePermission.objects.filter(
+            group=group, user_id=user_id, device__in=devices
+        )
+    }
+
+    # 預設允許：若沒有 perm => True
+    rows = []
+    for d in devices:
+        allowed = perms.get(d.id, True)
+        rows.append({"device": d, "allowed": allowed})
+
+    return render(
+        request,
+        "groups/member_device_acl.html",
+        {"group": group, "member": member, "rows": rows},
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+@transaction.atomic
+def member_device_acl(request, group_id, user_id):
+    """
+    調整某位成員在本群組內，對各裝置的可操作權限（只對 operator 有效）。
+    表單欄位：dev[] = 多個 device_id（勾選者視為 can_control=True）
+    """
+    group = get_object_or_404(Group, pk=group_id)
+    if not is_group_admin(request.user, group):
+        return HttpResponseForbidden("沒有權限")
+
+    ms = get_object_or_404(GroupMembership, group=group, user_id=user_id)
+
+    # 保護：群長/管理員不需要 ACL；viewer 一律不可控
+    if ms.user_id == group.owner_id:
+        messages.error(request, "群長的權限不可更改。")
+        return redirect("group_detail", group_id=group.id)
+
+    if ms.role == "admin":
+        # Admin 對所有裝置皆可控，清掉多餘 ACL
+        GroupDevicePermission.objects.filter(group=group, user_id=user_id).delete()
+        messages.info(request, "Admin 對所有裝置皆可控，無需設定。")
+        return redirect("group_detail", group_id=group.id)
+
+    if ms.role == "viewer":
+        # Viewer 全不可控，清掉 ACL
+        GroupDevicePermission.objects.filter(group=group, user_id=user_id).delete()
+        messages.success(request, "已套用 viewer（全部不可控）。")
+        return redirect("group_detail", group_id=group.id)
+
+    # operator：把勾選的 device 視為可控
+    posted_ids = set()
+    for v in request.POST.getlist("dev[]"):
+        try:
+            posted_ids.add(int(v))
+        except ValueError:
+            pass
+
+    # 僅允許本群組內的裝置
+    valid_ids = set(
+        GroupDevice.objects.filter(group=group, device_id__in=posted_ids).values_list(
+            "device_id", flat=True
+        )
+    )
+
+    # 先清掉舊的 ACL，再重建
+    GroupDevicePermission.objects.filter(group=group, user_id=user_id).delete()
+    objs = [
+        GroupDevicePermission(
+            group=group, user_id=user_id, device_id=did, can_control=True
+        )
+        for did in valid_ids
+    ]
+    if objs:
+        GroupDevicePermission.objects.bulk_create(objs)
+
+    messages.success(request, "已更新裝置權限。")
+    return redirect("group_detail", group_id=group.id)
+
+
+@login_required
+@require_POST
+def group_leave(request, group_id):
+    group = get_object_or_404(Group, pk=group_id)
+
+    # 群長不可退出
+    if request.user.id == group.owner_id:
+        messages.error(request, "群長不能退出群組。")
+        return redirect("group_detail", group_id=group.id)
+
+    # 必須原本就是成員
+    membership = GroupMembership.objects.filter(group=group, user=request.user).first()
+    if not membership:
+        messages.info(request, "你不是此群組成員。")
+        return redirect("group_list")
+
+    with transaction.atomic():
+        # 清掉在此群組的裝置操控 ACL（若你有此模型）
+        GroupDevicePermission.objects.filter(group=group, user=request.user).delete()
+        membership.delete()
+
+    messages.success(request, f"已退出「{group.name}」。")
+    # 退出後回群組列表；若這是你的唯一群組，你的 middleware 會導去建立群組頁，正好。
+    return redirect("group_list")
