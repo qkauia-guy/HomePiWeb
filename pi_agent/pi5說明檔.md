@@ -81,9 +81,17 @@ journalctl -u homepi-agent -f
 
 > 輸入初始化警告指令,如果看到類似：`[WARN] gpiozero LED init failed: ...` 就確定是 systemd 環境下的 GPIO 初始化失敗。
 
-7. 安裝 gpiozero 套件( 目前 IOT 有使用到 )
+7. 安裝套件( 目前 IOT 有使用到 )
 
-` sudo apt-get install -y python3-gpiozero python3-lgpio`
+```bash
+sudo apt-get install -y python3-gpiozero python3-lgpio`
+# 安裝 Python 3 的 smbus 函式庫
+sudo apt-get install python3-smbus
+# 安裝 I2C 偵測工具
+sudo apt-get install i2c-tools
+# 使用 pip 安裝 smbus2 模組
+pip3 install smbus2
+```
 
 ##### 權限設定
 
@@ -178,3 +186,5 @@ rsync -avz ~/<自己本地的路徑>/HomePiWeb/pi_agent/ <Hostname>:/home/<pi5Us
 ```bash
 rsync -avz ~/Desktop/HomePiWeb/pi_agent/ qkauia.pie:/home/qkauia/pi_agent/
 ```
+
+修改 `http.py`

@@ -8,14 +8,17 @@ http_agent.py
 
 import time
 from devices import led
+from devices import camera
 from utils import http
-from detect.registry import discover_all  # ✅ 加上偵測匯入
+from detect.registry import discover_all
 
 # 命令分發表（指令名 -> 處理函式）
 COMMANDS = {
     "light_on": led.light_on,
     "light_off": led.light_off,
     "light_toggle": led.light_toggle,
+    "camera_start": camera.start_hls,
+    "camera_stop": camera.stop_hls,
     # 之後可加更多：
     # "unlock": lock.unlock_hw,
     # "read_temp": sensor.read_temp,
