@@ -6,5 +6,22 @@
     "config": { "pin": 17, "active_high": true },
     "order": 1,
     "enabled": true
+  },
+  {
+    "kind": "camera",
+    "name": "門口直播",
+    "slug": "front-cam",
+    "config": {
+      "service": "homepi-hls",
+      "hls_host": "",
+      "hls_port": 8088,
+      "hls_path": "/index.m3u8",
+      "autoload": false,
+      "resolution": [1280, 720],
+      "fps": 30,
+      "segment_sec": 2
+    },
+    "order": 2,
+    "enabled": true
   }
 ]
