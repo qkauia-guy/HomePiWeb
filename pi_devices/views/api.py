@@ -1,22 +1,144 @@
 # pi_devices/views/api.py
+# -*- coding: utf-8 -*-
+import os
 import json, time
 from datetime import timedelta
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_POST, require_GET, require_http_methods
+from django.utils.cache import patch_cache_control
+from django.http import (
+    JsonResponse,
+    HttpResponse,
+    Http404,
+    StreamingHttpResponse,
+    HttpResponseNotFound,
+)
 from django.utils import timezone
 from django.db import transaction
 from django.conf import settings
-
-from ..models import Device, DeviceCommand
-from notifications.services import notify_device_ip_changed, notify_user_online
 from django.utils.text import slugify
-from ..models import DeviceCapability
+import requests
+from django.http import Http404
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from ..models import Device, DeviceCommand, DeviceCapability
+from notifications.services import notify_device_ip_changed, notify_user_online
+from django.utils.encoding import iri_to_uri
+import re
+import secrets
+from django.db import IntegrityError
 
 
-csrf_exempt
+# ---------- Helpers ----------
 
 
+def _gen_req_id() -> str:
+    # 16 字元十六進位，高熵且短，適配大多數 CharField 長度
+    return secrets.token_hex(8)
+
+
+def _queue_command(device: Device, command: str, payload: dict | None = None) -> str:
+    """建一筆 pending 指令，回傳 req_id（保證在同一 device 下唯一）"""
+    ttl_sec = int(
+        getattr(
+            settings,
+            "DEVICE_COMMAND_EXPIRES_SECONDS",
+            getattr(settings, "DEVICE_COMMAND_TTL_SECONDS", 30),
+        )
+    )
+    now = timezone.now()
+    expires_at = now + timedelta(seconds=ttl_sec)
+
+    # 撞 UNIQUE(device, req_id) 就重試幾次
+    for _ in range(6):
+        req_id = _gen_req_id()
+        try:
+            cmd = DeviceCommand.objects.create(
+                device=device,
+                req_id=req_id,  # ← 明確指定，不依賴模型 default
+                command=command,
+                payload=payload or {},
+                status="pending",
+                created_at=now,
+                expires_at=expires_at,
+            )
+            return cmd.req_id
+        except IntegrityError:
+            continue  # 罕見碰撞，換一個 req_id 再試
+
+    # 理論上不會到這：連續多次碰撞
+    raise IntegrityError("Failed to allocate unique req_id for DeviceCommand")
+
+
+def sync_caps(device, caps: list[dict], auto_disable_unseen: bool = False) -> int:
+    """
+    依據裝置回報的 capabilities（list of dict）做 upsert：
+      key = (slug)（你模型 unique_together 已是 (device, slug)）
+      欄位：kind/name/config/order/enabled
+    回傳：此次處理的項目數（含 create/update）
+    """
+    current = {c.slug: c for c in device.capabilities.all()}
+    seen = set()
+    changed = 0
+
+    for item in caps:
+        if not isinstance(item, dict):
+            continue
+        kind = (item.get("kind") or "").strip() or "light"
+        name = (item.get("name") or "").strip() or kind
+        slug = (item.get("slug") or slugify(name))[:50] or "cap"
+        config = item.get("config") or {}
+        order = int(item.get("order") or 0)
+        enabled = bool(item.get("enabled", True))
+
+        seen.add(slug)
+
+        if slug in current:
+            obj = current[slug]
+            dirty = False
+            if obj.kind != kind:
+                obj.kind = kind
+                dirty = True
+            if obj.name != name:
+                obj.name = name
+                dirty = True
+            if obj.config != config:
+                obj.config = config
+                dirty = True
+            if obj.order != order:
+                obj.order = order
+                dirty = True
+            if obj.enabled != enabled:
+                obj.enabled = enabled
+                dirty = True
+            if dirty:
+                obj.save()
+                changed += 1
+        else:
+            DeviceCapability.objects.create(
+                device=device,
+                kind=kind,
+                name=name,
+                slug=slug,
+                config=config,
+                order=order,
+                enabled=enabled,
+            )
+            changed += 1
+
+    if auto_disable_unseen:
+        for slug, obj in current.items():
+            if slug not in seen and obj.enabled:
+                obj.enabled = False
+                obj.save(update_fields=["enabled"])
+                changed += 1
+
+    return changed
+
+
+# ---------- APIs ----------
+@csrf_exempt
 @require_POST
 def device_ping(request):
     body = request.body.decode("utf-8") if request.body else ""
@@ -69,19 +191,17 @@ def device_ping(request):
             old_ip = device.ip_address or None
             ip_changed = old_ip != client_ip
 
-            # ✅ 更新心跳/IP
+            # 更新心跳/IP
             device.last_ping = now
             device.ip_address = client_ip
             device.save(update_fields=["last_ping", "ip_address"])
 
-            # ✅ 如果這次帶了 capabilities，就做 upsert（第一次開機/手動重新偵測會用到）
+            # 如果這次帶了 capabilities，就做 upsert
             caps = data.get("caps")
-            caps_changed = 0
             if isinstance(caps, list) and caps:
-                # 若要把「沒出現在本次回報的舊能力」自動停用，傳 True
-                caps_changed = sync_caps(device, caps, auto_disable_unseen=False)
+                sync_caps(device, caps, auto_disable_unseen=False)
 
-            # 上線/變更 IP 通知照舊
+            # 上線/變更 IP 通知
             if owner_id and not was_online:
                 from django.contrib.auth import get_user_model
 
@@ -103,11 +223,8 @@ def device_ping(request):
     except Device.DoesNotExist:
         return JsonResponse({"error": "Device not found"}, status=404)
 
-    # 可選把變更數量回傳，前端要用可讀
-    resp = {"status": "pong", "ip": client_ip}
-    if isinstance(data.get("caps"), list):
-        resp["caps_processed"] = True
-    return JsonResponse(resp)
+    # 回傳 pong 與目前 IP
+    return JsonResponse({"status": "pong", "ip": client_ip})
 
 
 @csrf_exempt
@@ -206,69 +323,194 @@ def device_ack(request):
     return JsonResponse({"ok": True})
 
 
-def sync_caps(device, caps: list[dict], auto_disable_unseen: bool = False) -> int:
+# ---------- Camera control (live stream) ----------
+@csrf_exempt
+@require_POST
+def camera_action(request, serial: str, action: str):
+    """後端按鈕用：排入 camera_start / camera_stop 指令，允許帶 camera slug。"""
+    try:
+        device = Device.objects.get(serial_number=serial)
+    except Device.DoesNotExist:
+        return JsonResponse({"error": "Device not found"}, status=404)
+
+    if action not in ("start", "stop"):
+        return JsonResponse({"error": "bad action"}, status=400)
+
+    # 嘗試解析 JSON 以取得 slug（可選）
+    slug = None
+    if request.body:
+        try:
+            payload_in = json.loads(request.body.decode("utf-8"))
+            slug = (payload_in or {}).get("slug")
+        except Exception:
+            pass
+
+    cmd_name = "camera_start" if action == "start" else "camera_stop"
+    req_id = _queue_command(device, cmd_name, payload={"slug": slug} if slug else {})
+    return JsonResponse({"ok": True, "req_id": req_id, "cmd": cmd_name})
+
+
+@require_GET
+def camera_status(request, serial: str):
     """
-    依據裝置回報的 capabilities（list of dict）做 upsert：
-      key = (slug)（你模型 unique_together 已是 (device, slug)）
-      欄位：kind/name/config/order/enabled
-    回傳：此次處理的項目數（含 create/update）
+    提供前端播放網址（以該裝置最近 ping 的 IP 推算 HLS 來源）。
     """
-    # 預先取既有資料，避免 N+1
-    current = {c.slug: c for c in device.capabilities.all()}
-    seen = set()
-    changed = 0
+    try:
+        device = Device.objects.only("ip_address").get(serial_number=serial)
+    except Device.DoesNotExist:
+        return JsonResponse({"error": "Device not found"}, status=404)
 
-    for item in caps:
-        if not isinstance(item, dict):
-            continue
-        kind = (item.get("kind") or "").strip() or "light"
-        name = (item.get("name") or "").strip() or kind
-        slug = (item.get("slug") or slugify(name))[:50] or "cap"
-        config = item.get("config") or {}
-        order = int(item.get("order") or 0)
-        enabled = bool(item.get("enabled", True))
+    ip = device.ip_address or ""
+    hls_url = f"http://{ip}:8088/index.m3u8" if ip else ""
+    return JsonResponse({"ok": True, "ip": ip, "hls_url": hls_url})
 
-        seen.add(slug)
 
-        if slug in current:
-            obj = current[slug]
-            dirty = False
-            if obj.kind != kind:
-                obj.kind = kind
-                dirty = True
-            if obj.name != name:
-                obj.name = name
-                dirty = True
-            if obj.config != config:
-                obj.config = config
-                dirty = True
-            if obj.order != order:
-                obj.order = order
-                dirty = True
-            if obj.enabled != enabled:
-                obj.enabled = enabled
-                dirty = True
-            if dirty:
-                obj.save()
-                changed += 1
-        else:
-            DeviceCapability.objects.create(
-                device=device,
-                kind=kind,
-                name=name,
-                slug=slug,
-                config=config,
-                order=order,
-                enabled=enabled,
+# 代理 /hls/<serial>/<path> 到樹莓派 8088
+SESSION = requests.Session()
+TIMEOUT = (3, 15)  # connect, read
+
+
+def _device_hls_base(device: Device, cap: DeviceCapability):
+    cfg = cap.config or {}
+    host = (cfg.get("hls_host") or "").strip() or (device.ip_address or "127.0.0.1")
+    port = int(cfg.get("hls_port") or 8088)
+    # 樹梅派 http_hls.py chdir 到 stream 目錄，索引與片段都在根目錄
+    base = f"http://{host}:{port}"
+    return base
+
+
+def _rewrite_m3u8(body: str, serial: str) -> str:
+    # 把相對路徑的 .ts 片段改成 /hls/<serial>/seg_xxx.ts
+    def repl(line: str) -> str:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            return line
+        if line.startswith("http://") or line.startswith("https://"):
+            return line  # 已是絕對路徑就不動
+        if line.startswith("/hls/"):
+            return line  # 已被改寫過
+        if line.endswith(".ts"):
+            return f"/hls/{serial}/{line}"
+        return line
+
+    return "\n".join(repl(l) for l in body.splitlines())
+
+
+@csrf_exempt
+@require_http_methods(["GET", "HEAD"])
+def hls_proxy(request, serial: str, subpath: str):
+    device = (
+        Device.objects.filter(serial_number__iexact=serial).only("ip_address").first()
+    )
+    if not device or not device.ip_address:
+        return HttpResponseNotFound("device ip not found")
+
+    base = f"http://{device.ip_address}:8088"
+
+    # ---- Playlist (.m3u8) ----
+    if subpath.endswith(".m3u8"):
+        upstream = f"{base}/{iri_to_uri(os.path.basename(subpath))}"
+        try:
+            r = requests.get(
+                upstream,
+                timeout=(3, 10),
+                allow_redirects=False,
+                headers={"Accept-Encoding": "identity"},
             )
-            changed += 1
+        except requests.RequestException:
+            resp = HttpResponse("m3u8 upstream error", status=502)
+            resp["X-HLS-Proxy"] = "1"
+            resp["X-Upstream-Status"] = "CONN_ERR"
+            return resp
 
-    # （可選）把這次沒回報到的舊能力標為 disabled
-    if auto_disable_unseen:
-        for slug, obj in current.items():
-            if slug not in seen and obj.enabled:
-                obj.enabled = False
-                obj.save(update_fields=["enabled"])
-                changed += 1
+        body_bytes = r.content or b""
+        try:
+            body_text = body_bytes.decode(r.encoding or "utf-8", "replace")
+        except Exception:
+            body_text = body_bytes.decode("utf-8", "replace")
 
-    return changed
+        if r.status_code != 200 or not body_text.strip():
+            resp = HttpResponse("m3u8 upstream error", status=502)
+            resp["X-HLS-Proxy"] = "1"
+            resp["X-Upstream-Status"] = str(r.status_code)
+            resp["X-Upstream-Len"] = str(len(body_bytes))
+            return resp
+
+        def rewrite(line: str) -> str:
+            t = line.strip()
+            if not t or t.startswith("#"):
+                return line
+            if t.endswith(".ts"):
+                name = os.path.basename(t)
+                return f"/hls/{serial}/{name}"
+            return line
+
+        out = "\n".join(rewrite(ln) for ln in body_text.splitlines()) + "\n"
+        resp = HttpResponse(out, content_type="application/vnd.apple.mpegurl")
+        resp["Cache-Control"] = "no-store"
+        resp["X-Accel-Buffering"] = "no"
+        resp["X-HLS-Proxy"] = "1"
+        resp["X-Upstream-Status"] = str(r.status_code)
+        resp["X-Upstream-Len"] = str(len(body_bytes))
+        resp["Content-Length"] = str(len(out.encode("utf-8")))
+        return resp
+
+    # ---- Segment (.ts)：保持你原來的處理，另外加上 X-HLS-Proxy ----
+    name = os.path.basename(subpath)
+    if not name.endswith(".ts"):
+        return HttpResponseNotFound("only ts allowed")
+
+    upstream = f"{base}/{iri_to_uri(name)}"
+    fwd_headers = {}
+    rng = request.headers.get("Range")
+    if rng:
+        fwd_headers["Range"] = rng
+    fwd_headers["Accept-Encoding"] = "identity"
+
+    try:
+        r = requests.request(
+            request.method,
+            upstream,
+            headers=fwd_headers,
+            stream=True,
+            timeout=(3, 20),
+            allow_redirects=False,
+        )
+    except requests.RequestException:
+        return HttpResponseNotFound("upstream error")
+
+    if r.status_code in (200, 206):
+        ct = r.headers.get("Content-Type", "video/mp2t")
+        if request.method == "HEAD":
+            resp = HttpResponse(status=r.status_code, content_type=ct)
+        else:
+            resp = StreamingHttpResponse(
+                r.iter_content(64 * 1024), status=r.status_code, content_type=ct
+            )
+        for h in (
+            "Content-Length",
+            "Content-Range",
+            "Accept-Ranges",
+            "Last-Modified",
+            "ETag",
+        ):
+            if h in r.headers:
+                resp[h] = r.headers[h]
+        resp["Cache-Control"] = "no-store"
+        resp["X-Accel-Buffering"] = "no"
+        resp["X-HLS-Proxy"] = "1"
+        return resp
+
+    if r.status_code == 416:
+        resp = HttpResponse(status=416)
+        if "Content-Range" in r.headers:
+            resp["Content-Range"] = r.headers["Content-Range"]
+        return resp
+
+    if r.status_code == 404:
+        return HttpResponseNotFound("ts not found")
+
+    resp = HttpResponse("upstream error", status=502)
+    resp["X-Upstream-Status"] = str(r.status_code)
+    resp["X-HLS-Proxy"] = "1"
+    return resp

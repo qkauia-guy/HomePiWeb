@@ -139,6 +139,9 @@ STATIC_URL = "static/"
 
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+MEDIA_ROOT = BASE_DIR / "media"
+
+MEDIA_URL = "media/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -174,3 +177,12 @@ DEVICE_COMMAND_EXPIRES_SECONDS = 30
 # 你現在是 HTTP，不要開 Secure cookie
 # SESSION_COOKIE_SECURE = False
 # CSRF_COOKIE_SECURE = False
+
+LOGIN_EXEMPT_URLS = [
+    r"^hls/.*$",  # ← HLS 代理整條放行
+    r"^device_ping/?$",  # ← Pi 心跳
+    r"^device_pull/?$",  # ← Pi 拉指令
+    r"^device_ack/?$",  # ← Pi 回報執行結果
+]
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
