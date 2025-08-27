@@ -15,6 +15,8 @@ from django.db.models import Prefetch, Q, Count
 from groups.models import Group
 from django.conf import settings
 from django.http import HttpResponseForbidden, Http404
+from django.db import models
+from django.urls import reverse
 
 
 @login_required
@@ -237,13 +239,7 @@ def ajax_caps(request):
 
 
 @login_required
-@login_required
 def ajax_cap_form(request, cap_id: int):
-    """
-    依能力種類載入對應表單卡片（home/forms/_cap_*.html）
-    GET /controls/cap-form/<cap_id>/?group_id=g5   ← 前端會帶這個
-    """
-    # 找到擁有該能力的裝置
     device = (
         Device.objects.filter(capabilities__id=cap_id)
         .prefetch_related("groups__memberships", "capabilities")
@@ -256,7 +252,6 @@ def ajax_cap_form(request, cap_id: int):
     if not cap:
         raise Http404("Capability not found on device")
 
-    # 目前操作的群組（支援 "g5" 或 "5"）
     gid_raw = request.GET.get("group_id") or request.GET.get("g") or ""
     gid = None
     if gid_raw:
@@ -265,31 +260,41 @@ def ajax_cap_form(request, cap_id: int):
         except (TypeError, ValueError):
             gid = None
 
-    # 權限檢查
     if gid:
         group = get_object_or_404(Group, pk=gid)
-        # 裝置必須在該群組內
         if not device.groups.filter(pk=group.id).exists():
             return HttpResponseForbidden("Device not in group")
-        # 使用者必須是該群組 owner 或成員
         is_visible = (group.owner_id == request.user.id) or group.memberships.filter(
             user=request.user
         ).exists()
         if not is_visible:
             return HttpResponseForbidden("No permission")
     else:
-        # 未帶 gid：至少確認此裝置在任何我可見的群組中
         visible = device.groups.filter(
             models.Q(owner=request.user) | models.Q(memberships__user=request.user)
         ).exists()
         if not visible:
             return HttpResponseForbidden("No permission")
 
-    # 選模板
+    # ▼▼ 這裡改成用 proxy URL，避免跨網域/不同 port 問題 ▼▼
+    cam_hls_url = request.build_absolute_uri(
+        reverse("hls_proxy", args=[device.serial_number, "index.m3u8"])
+    )
+    # ▲▲
+
     tpl = {
         "light": "home/forms/_cap_light.html",
         "fan": "home/forms/_cap_fan.html",
-    }.get(getattr(cap, "kind", None), "home/forms/_cap_generic.html")
+        "camera": "home/forms/_cap_camera.html",
+    }.get((cap.kind or "").lower(), "home/forms/_cap_generic.html")
 
-    # ★ 把 group_id 一起傳進模板（partial 裡的 hidden 會用到）
-    return render(request, tpl, {"cap": cap, "device": device, "group_id": gid_raw})
+    return render(
+        request,
+        tpl,
+        {
+            "cap": cap,
+            "device": device,
+            "group_id": gid_raw,
+            "cam_hls_url": cam_hls_url,
+        },
+    )

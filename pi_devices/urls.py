@@ -2,11 +2,7 @@
 from django.urls import path
 from .views import device as device_views
 from .views import api as api_views
-from .views import (
-    capability as cap_views,
-)  # 若尚未啟用 Capability，可先註解掉這行與下方4條路由
-from django.views.decorators.csrf import csrf_exempt
-
+from .views import capability as capability_views
 
 urlpatterns = [
     # 使用者側（Device）
@@ -24,13 +20,41 @@ urlpatterns = [
         device_views.device_light_action,
         name="device_light_action",
     ),
+    # Capability actions —— 統一指向 capability_views.capability_action
+    # Canonical（新）
     path(
-        "devices/<int:device_id>/cap/<int:cap_id>/action/<slug:action>/",
-        cap_views.action,
+        "devices/<int:device_id>/caps/<int:cap_id>/<str:action>/",
+        capability_views.capability_action,
         name="capability_action",
     ),
-    # Pi Agent API（給樹莓派）
-    path("api/device/ping/", csrf_exempt(api_views.device_ping), name="device_ping"),
-    path("device_pull", csrf_exempt(api_views.device_pull), name="device_pull"),
-    path("device_ack", csrf_exempt(api_views.device_ack), name="device_ack"),
+    # Legacy（舊樣式也一起導到同一支，避免混用造成行為差異）
+    path(
+        "devices/<int:device_id>/cap/<int:cap_id>/action/<str:action>/",
+        capability_views.capability_action,
+        name="capability_action_legacy",
+    ),
+    # Pi Agent API（給樹莓派）—— 你的 api.py 已 @csrf_exempt，這裡不用再包一層
+    path("api/device/ping/", api_views.device_ping, name="device_ping"),
+    path("api/device/pull/", api_views.device_pull, name="device_pull_api"),
+    path("api/device/ack/", api_views.device_ack, name="device_ack_api"),
+    # 若你有既有 agent 用到無斜線版本，保留兼容
+    path("device_pull", api_views.device_pull, name="device_pull"),
+    path("device_ack", api_views.device_ack, name="device_ack"),
+    # Camera 控制/查詢
+    path(
+        "devices/<str:serial>/camera/<str:action>/",
+        api_views.camera_action,
+        name="camera_action",
+    ),
+    path(
+        "devices/<str:serial>/camera/status/",
+        api_views.camera_status,
+        name="camera_status",
+    ),
+    # 直播新視窗頁
+    path(
+        "live/<int:device_id>/<int:cap_id>/",
+        capability_views.live_player,
+        name="cap_live_player",
+    ),
 ]

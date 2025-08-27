@@ -5,8 +5,8 @@ from django.contrib import messages
 from groups.models import Group, GroupMembership
 from django.http import JsonResponse
 
-
 EXEMPT_URL_NAMES = {
+    "hls_proxy",
     "login",
     "logout",
     "users:login",
@@ -20,8 +20,23 @@ EXEMPT_URL_NAMES = {
     "group_create",
     "groups:group_create",
     "admin:index",
+    "device_ping",
+    "device_pull",
+    "device_ack",
 }
-EXEMPT_PATH_PREFIXES = ("/admin/", "/static/", "/media/", "/favicon.ico", "/invites/")
+
+EXEMPT_PATH_PREFIXES = (
+    "/hls/",
+    "/admin/",
+    "/static/",
+    "/media/",
+    "/favicon.ico",
+    "/invites/",
+    "/api/device/",
+    "/device_ping",
+    "/device_pull",
+    "/device_ack",
+)
 
 
 def user_has_any_group(user) -> bool:
@@ -43,11 +58,23 @@ class RequireGroupMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if not request.user.is_authenticated:
+        path = request.path
+
+        # ✅ 無條件放行：HLS 代理 & Pi Agent API & 靜態檔
+        if (
+            path.startswith("/hls/")
+            or path.startswith("/api/device/")
+            or path.startswith("/device_pull")
+            or path.startswith("/device_ack")
+            or path.startswith("/static/")
+            or path.startswith("/media/")
+            or path.startswith("/favicon.ico")
+            or path.startswith("/admin/")
+        ):
             return self.get_response(request)
 
-        path = request.path
-        if any(path.startswith(p) for p in EXEMPT_PATH_PREFIXES):
+        # 其餘才走原本流程
+        if not request.user.is_authenticated:
             return self.get_response(request)
 
         try:
@@ -60,11 +87,12 @@ class RequireGroupMiddleware:
         except Resolver404:
             return self.get_response(request)
 
+        # ✅ 放行白名單的 view 名稱
         if view_name in EXEMPT_URL_NAMES:
             return self.get_response(request)
 
+        # 沒加入任何群組 → 擋住
         if not user_has_any_group(request.user):
-            # ✅ XHR 回 403 JSON
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                 return JsonResponse(
                     {"error": "group_required", "redirect": _group_create_url()},
@@ -73,5 +101,4 @@ class RequireGroupMiddleware:
             messages.warning(request, "你尚未加入任何群組，請先建立群組才能繼續操作。")
             return redirect(_group_create_url())
 
-        # ✅ 別忘了：有群組時要放行
         return self.get_response(request)
