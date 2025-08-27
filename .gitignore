@@ -9,3 +9,5 @@ db.sqlite3
 static/qrcodes/
 #  待整理文件目錄
 /待整理文件/
+# vscode設定檔
+.vscode/settings.json

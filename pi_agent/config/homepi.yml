@@ -1,0 +1,19 @@
+gpio_factory: lgpio
+
+devices:
+  - name: led_1
+    kind: led
+    pin: 17
+    active_high: true
+
+  - name: btn_1
+    kind: button
+    pin: 27
+    pull_up: true
+    bounce: 0.05
+
+  # 之後你要加裝置就一直加，不用動 service
+  # - name: relay_1
+  #   kind: relay
+  #   pin: 23
+  #   active_high: false
