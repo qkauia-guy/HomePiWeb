@@ -79,6 +79,9 @@ class Device(models.Model):
         max_length=100, blank=True, help_text="自訂裝置顯示名稱；若留空則顯示序號"
     )
 
+    is_streaming = models.BooleanField(default=False)
+    last_hls_url = models.URLField(blank=True, default="")
+
     def is_online(self, window_seconds: int = 60) -> bool:
         if not self.last_ping:
             return False
