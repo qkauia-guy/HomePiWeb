@@ -1,0 +1,19 @@
+[Unit]
+Description=HomePi HTTP Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=qkauia
+WorkingDirectory=/home/qkauia/pi_agent
+
+Environment=PYTHONUNBUFFERED=1
+Environment=HOMEPI_CONFIG=/home/qkauia/pi_agent/config/homepi.yml
+ExecStart=/usr/bin/python3 /home/qkauia/pi_agent/http_agent.py
+
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
