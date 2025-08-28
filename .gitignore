@@ -11,3 +11,6 @@ static/qrcodes/
 /待整理文件/
 # vscode設定檔
 .vscode/settings.json
+# 影片片段生成忽略
+stream/*.ts
+stream/*.m3u8

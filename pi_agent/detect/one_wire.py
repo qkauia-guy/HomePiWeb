@@ -1,3 +1,4 @@
+# 偵測並讀取連接到樹莓派上的 DS18B20 溫度感測器
 import glob, os
 
 BASE = "/sys/bus/w1/devices"

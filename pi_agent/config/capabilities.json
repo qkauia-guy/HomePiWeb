@@ -1,7 +1,7 @@
 [
   {
     "kind": "light",
-    "name": "客廳燈",
+    "name": "電燈",
     "slug": "living-light",
     "config": { "pin": 17, "active_high": true },
     "order": 1,
@@ -9,7 +9,7 @@
   },
   {
     "kind": "camera",
-    "name": "門口直播",
+    "name": "監視錄影",
     "slug": "front-cam",
     "config": {
       "service": "homepi-hls",
