@@ -1,0 +1,14 @@
+[Unit]
+Description=HomePi HLS static web server (CORS) on :8088
+After=network-online.target homepi-hls.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=qkauia
+ExecStart=/usr/bin/python3 /home/qkauia/pi_agent/serve_hls.py
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

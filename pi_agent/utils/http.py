@@ -7,15 +7,25 @@ utils/http.py
 import os
 import requests
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
+# === 環境設定 ===
+# # === 掛上自己裝置的 裝置序號 ===
+# SERIAL = os.getenv("SERIAL", "PI-E2390730")
+# # === 掛上自己裝置的 token ===
+# TOKEN = os.getenv("TOKEN", "3de6279eae104e0b858b648dc659e9ba")
+# # === 固定勿修改 ===
+# API_BASE = os.getenv("API_BASE", "http://172.28.232.36:8800")
 
 # === 環境設定 ===
-
 # === 掛上自己裝置的 裝置序號 ===
-SERIAL = os.getenv("SERIAL", "PI-E2390730")
+SERIAL = os.getenv("SERIAL", "default-serial")
 # === 掛上自己裝置的 token ===
-TOKEN = os.getenv("TOKEN", "3de6279eae104e0b858b648dc659e9ba")
+TOKEN = os.getenv("TOKEN", "default-token")
 # === 固定勿修改 ===
 API_BASE = os.getenv("API_BASE", "http://172.28.232.36:8800")
+
 PING_PATH = "/api/device/ping/"
 PULL_PATH = "/device_pull"
 ACK_PATH = "/device_ack"
