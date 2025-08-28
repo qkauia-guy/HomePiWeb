@@ -29,7 +29,7 @@
     > sudo nano /etc/systemd/system/homepi-hls.service # 重建並一次性貼上
     > ```
 
-3.  複製 [homepi-hls.service](homepi-hls.service) 中的乾淨程式碼，進行編輯。
+3.  複製 [homepi-hls.service](./systemd檔案/homepi-hls.service) 中的乾淨程式碼，進行編輯。
 
 4.  **重要：務必替換自己樹梅派的使用者名稱！**
     將檔案中所有 `qkauia` 替換成您在樹莓派上的使用者名稱。

@@ -31,7 +31,7 @@
 
 2.  **替換使用者名稱**：
 
-    1. 複製完整程式碼。
+    1. 複製完整程式碼。[homepi-hls-www.service](./systemd檔案/homepi-hls-www.service)
     2. 將檔案中的 `qkauia` 替換成您在樹莓派上的使用者名稱。
 
     > `[Service]` 區塊更改一個部分：
