@@ -38,8 +38,8 @@ urlpatterns = [
     path("api/device/pull/", api_views.device_pull, name="device_pull_api"),
     path("api/device/ack/", api_views.device_ack, name="device_ack_api"),
     # 若你有既有 agent 用到無斜線版本，保留兼容
-    path("device_pull", api_views.device_pull, name="device_pull"),
-    path("device_ack", api_views.device_ack, name="device_ack"),
+    path("device_pull/", api_views.device_pull, name="device_pull"),
+    path("device_ack/", api_views.device_ack, name="device_ack"),
     # Camera 控制/查詢
     path(
         "devices/<str:serial>/camera/<str:action>/",

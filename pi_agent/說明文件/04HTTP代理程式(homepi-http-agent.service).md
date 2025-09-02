@@ -20,14 +20,14 @@
 1.  **創建服務檔**：在終端機中，使用 `sudo nano` 指令來建立並編輯服務檔。
 
     ```bash
-    sudo nano /etc/systemd/system/homepi-http-agent.service
+    sudo nano /etc/systemd/system/homepi-agent.service
     ```
 
     由於 `nano` 在處理多行程式碼時較難編輯，通常都建議在 `vscode` 中編輯好完整檔案後，再貼到 `nano`。若要刪除舊檔並重建，可使用：
 
     ```bash
-    sudo rm -rf /etc/systemd/system/homepi-http-agent.service # 強制刪除舊檔
-    sudo nano /etc/systemd/system/homepi-http-agent.service # 重建並一次性貼上
+    sudo rm -rf /etc/systemd/system/homepi-agent.service # 強制刪除舊檔
+    sudo nano /etc/systemd/system/homepi-agent.service # 重建並一次性貼上
     ```
 
 2.  **替換使用者名稱**：
@@ -45,20 +45,20 @@
 
     ```bash
     sudo systemctl daemon-reload
-    sudo systemctl enable homepi-http-agent.service
-    sudo systemctl start homepi-http-agent.service
+    sudo systemctl enable homepi-agent.service
+    sudo systemctl start homepi-agent.service
     ```
 
     **若只是修改服務檔**，則執行：
 
     ```bash
     sudo systemctl daemon-reload
-    sudo systemctl restart homepi-http-agent.service
+    sudo systemctl restart homepi-agent.service
     ```
 
 4.  **檢查服務狀態**：
     ```bash
-    sudo systemctl status homepi-http-agent.service
+    sudo systemctl status homepi-agent.service
     ```
     確認服務狀態為綠色的 `active (running)`，且沒有任何錯誤訊息。
 

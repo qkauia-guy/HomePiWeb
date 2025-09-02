@@ -7,13 +7,15 @@ Wants=network-online.target
 Type=simple
 User=qkauia
 WorkingDirectory=/home/qkauia/pi_agent
-
+EnvironmentFile=/home/qkauia/pi_agent/.env
 Environment=PYTHONUNBUFFERED=1
-Environment=HOMEPI_CONFIG=/home/qkauia/pi_agent/config/homepi.yml
 ExecStart=/usr/bin/python3 /home/qkauia/pi_agent/http_agent.py
 
 Restart=always
 RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
 
 [Install]
 WantedBy=multi-user.target

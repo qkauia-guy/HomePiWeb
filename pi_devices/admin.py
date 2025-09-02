@@ -12,7 +12,7 @@ from django.utils.html import format_html
 from .models import Device, DeviceCapability
 
 # # 線上判斷視窗（可在 settings.py 設 DEVICE_ONLINE_WINDOW_SECONDS 覆寫）
-# ONLINE_WINDOW_SECONDS = getattr(settings, "DEVICE_ONLINE_WINDOW_SECONDS", 60)
+ONLINE_WINDOW_SECONDS = getattr(settings, "DEVICE_ONLINE_WINDOW_SECONDS", 60)
 
 
 # ========== 自訂篩選 ==========
