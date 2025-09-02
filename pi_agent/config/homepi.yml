@@ -12,6 +12,23 @@ devices:
     pull_up: true
     bounce: 0.05
 
+  # 新增：BH1750（GY-302），常見 I2C：bus=1, addr=0x23
+  - name: bh1750-1-23
+    kind: sensor_bh1750
+    bus: 1
+    addr: 0x23
+
+# 新增：自動感光控制預設（預設關閉；用按鈕開）
+auto_light:
+  sensor: bh1750-1-23
+  led: led_1
+  on_below: 40 # 暗到 <40 lx 才開燈（你環境剛剛暗是 0～20lx）
+  off_above: 250 # 亮到 >250 lx 才關燈（你剛剛亮可到 200+）
+  require_n_samples: 3
+  sample_every_ms: 1000
+  debug: false
+  log_every: 0
+
   # 之後你要加裝置就一直加，不用動 service
   # - name: relay_1
   #   kind: relay
