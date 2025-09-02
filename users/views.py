@@ -234,7 +234,7 @@ def ajax_caps(request):
         return HttpResponseForbidden("No permission")
 
     # ✅ 不需要匯入 Capability，直接用關聯取
-    caps = device.capabilities.all()
+    caps = device.capabilities.filter(enabled=True)
     return render(request, "home/partials/_cap_options.html", {"caps": caps})
 
 
@@ -288,6 +288,10 @@ def ajax_cap_form(request, cap_id: int):
         "camera": "home/forms/_cap_camera.html",
     }.get((cap.kind or "").lower(), "home/forms/_cap_generic.html")
 
+    caps_for_select = device.capabilities.filter(enabled=True).exclude(
+        kind__startswith="sensor"
+    )
+
     return render(
         request,
         tpl,
@@ -296,5 +300,6 @@ def ajax_cap_form(request, cap_id: int):
             "device": device,
             "group_id": gid_raw,
             "cam_hls_url": cam_hls_url,
+            "caps_for_select": caps_for_select,
         },
     )

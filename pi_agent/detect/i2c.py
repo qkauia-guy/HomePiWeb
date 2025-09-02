@@ -1,3 +1,27 @@
+# detect/i2c.py
+import os
+
+
+def _to_bool(val, default=False):
+    if isinstance(val, bool):
+        return val
+    if val is None:
+        return default
+    return str(val).strip().lower() in ("1", "true", "yes", "y", "on")
+
+
+# 兩個開關擇一：YAML 的 expose_sensors 或環境變數 HOMEPI_EXPOSE_SENSORS
+try:
+    from config.loader import load as load_config
+
+    _CFG = load_config() or {}
+except Exception:
+    _CFG = {}
+_EXPOSE_SENSORS = _to_bool(
+    _CFG.get("expose_sensors"), _to_bool(os.environ.get("HOMEPI_EXPOSE_SENSORS"), False)
+)
+
+
 def scan_i2c_bus(bus_nums=(1,)):
     found = []
     try:
@@ -32,7 +56,9 @@ def detect():
                     "enabled": True,
                 }
             )
-        if dev["addr"] in (0x76, 0x77):  # BME280
+
+        # ↓ Sensor 類預設不曝光（避免佔 UI）；開關由 _EXPOSE_SENSORS 控制
+        if _EXPOSE_SENSORS and dev["addr"] in (0x76, 0x77):  # BME280
             caps.append(
                 {
                     "kind": "sensor_bme280",
@@ -40,6 +66,18 @@ def detect():
                     "slug": f"bme280-{dev['bus']}-{dev['addr']:02x}",
                     "config": {"bus": dev["bus"], "addr": dev["addr"]},
                     "order": 80,
+                    "enabled": True,
+                }
+            )
+
+        if _EXPOSE_SENSORS and dev["addr"] in (0x23, 0x5C):  # BH1750
+            caps.append(
+                {
+                    "kind": "sensor_bh1750",
+                    "name": f"BH1750（bus{dev['bus']}@0x{dev['addr']:02x}）",
+                    "slug": f"bh1750-{dev['bus']}-{dev['addr']:02x}",
+                    "config": {"bus": dev["bus"], "addr": dev["addr"]},
+                    "order": 70,
                     "enabled": True,
                 }
             )
