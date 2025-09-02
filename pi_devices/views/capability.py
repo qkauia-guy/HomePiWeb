@@ -1,6 +1,7 @@
 from urllib.parse import urlparse, parse_qs
 
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
@@ -14,7 +15,6 @@ from groups.models import Group, GroupDevice, GroupMembership
 
 # 佇列工具：沿用 api.py 的一致行為（TTL、欄位）
 from .api import _queue_command
-
 from django.middleware.csrf import get_token
 
 
@@ -205,17 +205,20 @@ def action(request, device_id: int, cap_id: int, action: str):
 @require_POST
 def capability_action(request, device_id: int, cap_id: int, action: str):
     """
-    你的模板正在使用的入口：
-    /devices/<device_id>/caps/<int:cap_id>/<str:action>/
+    /devices/<device_id>/caps/<cap_id>/<action>/
 
-    修正點：
-    - camera 類型會佇列 camera_start / camera_stop，payload 帶 cap.slug（若有）
-    - 其餘能力照舊（light 映射 on/off/toggle；未支援的安全導回）
+    既有：
+    - light: on/off/toggle -> 佇列 light_on / light_off / light_toggle
+    - camera: start/stop/status -> 佇列 camera_start / camera_stop / camera_status
+
+    新增：
+    - auto_on / auto_off -> 佇列 auto_light_on / auto_light_off
+      （payload 可選帶門檻與去抖動參數）
     """
     device = get_object_or_404(Device, pk=device_id)
     cap = get_object_or_404(DeviceCapability, pk=cap_id, device=device)
 
-    # ===== 權限檢查（維持你原本邏輯）=====
+    # ===== 權限檢查 =====
     gid_raw = request.POST.get("group_id") or request.GET.get("group_id") or ""
     gid = _parse_gid(gid_raw)
 
@@ -235,30 +238,101 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
         if not visible:
             return HttpResponseForbidden("No permission")
 
+    # 判斷是否 AJAX/HTMX
+    is_ajax = (
+        request.headers.get("x-requested-with") == "XMLHttpRequest"
+        or request.headers.get("HX-Request") == "true"
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
+
     # ===== 動作對映 =====
     kind = (cap.kind or "").strip().lower()
     act = (action or "").strip().lower()
-
     cmd_name = None
+    payload: dict = {}
+
     if kind == "light":
         cmd_name = {"on": "light_on", "off": "light_off", "toggle": "light_toggle"}.get(
             act
         )
     elif "camera" in kind or kind == "cam":
-        base = {
+        cmd_name = {
             "start": "camera_start",
             "stop": "camera_stop",
             "status": "camera_status",
-        }
-        cmd_name = base.get(act)
+        }.get(act)
 
-    if cmd_name:
-        payload = {"slug": cap.slug} if getattr(cap, "slug", None) else {}
-        _queue_command(device, cmd_name, payload=payload)
-        # 可選：messages.success(request, f"已送出 {cap.name}：{cmd_name}")
-    # 未支援 → 安全導回（不噴 400）
+    # 自動感光模式開關（不強制綁 kind）
+    if cmd_name is None and act in ("auto_on", "auto_off"):
+        cmd_name = "auto_light_on" if act == "auto_on" else "auto_light_off"
+        # 可選參數：覆蓋 YAML
+        for k in (
+            "sensor",
+            "led",
+            "on_below",
+            "off_above",
+            "sample_every_ms",
+            "require_n_samples",
+        ):
+            v = request.POST.get(k)
+            if v not in (None, ""):
+                if k in ("on_below", "off_above"):
+                    try:
+                        v = float(v)
+                    except:
+                        pass
+                if k in ("sample_every_ms", "require_n_samples"):
+                    try:
+                        v = int(v)
+                    except:
+                        pass
+                payload[k] = v
 
-    # ===== 導回原頁（維持 g/d/cap）=====
+    if not cmd_name:
+        # 不支援的動作
+        err = f"Unsupported action: {action}"
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": err}, status=400)
+        messages.error(request, err)
+        return redirect(request.META.get("HTTP_REFERER", reverse("home")))
+
+    # 附上 slug（慣例）
+    if getattr(cap, "slug", None):
+        payload.setdefault("slug", cap.slug)
+
+    # 送指令
+    req_id = _queue_command(device, cmd_name, payload=payload)
+
+    # 訊息字串（同時支援 AJAX 與 redirect）
+    msg = {
+        "on": "已送出：開燈",
+        "off": "已送出：關燈",
+        "toggle": "已送出：切換",
+        "auto_on": "已啟用自動",
+        "auto_off": "已停用自動",
+        "start": "已送出：錄影開始",
+        "stop": "已送出：錄影停止",
+        "status": "已查詢狀態",
+    }.get(act, "已送出")
+
+    messages.success(request, msg)
+
+    if is_ajax:
+        # 把這次 messages 取出回傳前端（前端用 toast 顯示）
+        storage = get_messages(request)
+        data = [{"level": m.level_tag, "message": m.message} for m in storage]
+        return JsonResponse(
+            {
+                "ok": True,
+                "req_id": req_id,
+                "cap_id": cap.id,
+                "action": act,
+                "messages": data,
+            },
+            status=200,
+        )
+
+    # 非 AJAX：照舊導回
     next_url = request.POST.get("next") or request.GET.get("next")
     if not next_url:
         params = []

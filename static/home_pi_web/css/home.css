@@ -134,6 +134,13 @@
   text-decoration: none;
 }
 
+.form-check-input[disabled] {
+  cursor: not-allowed;
+}
+.form-check-input[disabled] + .form-check-label {
+  opacity: 0.6;
+}
+
 /* 手機時更緊湊（延用你原本設定） */
 @media (max-width: 576px) {
   #sideBar .offcanvas-body,

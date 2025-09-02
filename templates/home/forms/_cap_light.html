@@ -1,35 +1,136 @@
 <div class="card mb-3">
   <div class="card-body">
     <h5 class="card-title">{{ device.label }}｜{{ cap.name }}</h5>
-    <div class="d-flex gap-2 flex-wrap">
 
-      <form method="post"
-            action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='on' %}"
-            class="cap-form">
-        {% csrf_token %}
-        <input type="hidden" name="group_id" value="{{ group_id }}">
-        <input type="hidden" name="next" value="">
-        <button class="btn btn-success btn-sm" type="submit">開燈</button>
-      </form>
+    <div class="d-flex align-items-center gap-4 flex-wrap">
 
-      <form method="post"
-            action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='off' %}"
-            class="cap-form">
-        {% csrf_token %}
-        <input type="hidden" name="group_id" value="{{ group_id }}">
-        <input type="hidden" name="next" value="">
-        <button class="btn btn-secondary btn-sm" type="submit">關燈</button>
-      </form>
+      {# 開關：電燈 #}
+      <div class="form-check form-switch m-0">
+        <input
+          class="form-check-input cap-toggle"
+          type="checkbox"
+          role="switch"
+          id="lightSwitch-{{ cap.id }}"
+          data-auto="#autoSwitch-{{ cap.id }}"
+          data-on-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='on' %}"
+          data-off-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='off' %}"
+          data-group="{{ group_id }}"
+          data-next=""
+          {% if cap.meta.light_is_on %}checked{% endif %}
+          {% if cap.meta.auto_light_running %}disabled aria-disabled="true"{% endif %}
+        >
+        <label class="form-check-label" for="lightSwitch-{{ cap.id }}">電燈</label>
+      </div>
 
-      <form method="post"
-            action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='toggle' %}"
-            class="cap-form">
-        {% csrf_token %}
-        <input type="hidden" name="group_id" value="{{ group_id }}">
-        <input type="hidden" name="next" value="">
-        <button class="btn btn-warning btn-sm" type="submit">切換</button>
-      </form>
+      {# 開關：自動感光 #}
+      <div class="form-check form-switch m-0">
+        <input
+          class="form-check-input cap-toggle"
+          type="checkbox"
+          role="switch"
+          id="autoSwitch-{{ cap.id }}"
+          data-lock-target="#lightSwitch-{{ cap.id }}"
+          data-on-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_on' %}"
+          data-off-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_off' %}"
+          data-group="{{ group_id }}"
+          data-next=""
+          {% if cap.meta.auto_light_running %}checked{% endif %}
+          data-sensor="bh1750-1-23"
+          data-led="led_1"
+        >
+        <label class="form-check-label" for="autoSwitch-{{ cap.id }}">自動</label>
+      </div>
+
+      <noscript>
+        <div class="d-flex gap-2 flex-wrap mt-2">
+          {# 保留你原本的四個按鈕做備援（無 JS 才會顯示） #}
+          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='on' %}" class="cap-form">
+            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-success btn-sm" type="submit">開燈</button>
+          </form>
+          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='off' %}" class="cap-form">
+            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-secondary btn-sm" type="submit">關燈</button>
+          </form>
+          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_on' %}" class="cap-form">
+            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-info btn-sm" type="submit">啟用自動</button>
+          </form>
+          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_off' %}" class="cap-form">
+            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-dark btn-sm" type="submit">停用自動</button>
+          </form>
+        </div>
+      </noscript>
 
     </div>
   </div>
 </div>
+<script>
+(function() {
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  async function post(url, body) {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+      body
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    return resp;
+  }
+
+  // 小工具：依 auto 開關狀態鎖/解鎖手動燈
+  function setManualLockedByAuto(autoEl, locked) {
+    const sel = autoEl.dataset.lockTarget;
+    if (!sel) return;
+    const lightEl = document.querySelector(sel);
+    if (!lightEl) return;
+    lightEl.disabled = !!locked;
+    lightEl.setAttribute('aria-disabled', locked ? 'true' : 'false');
+  }
+
+  document.addEventListener('change', async function(evt) {
+    const el = evt.target;
+    if (!el.matches('.cap-toggle')) return;
+
+    // ❶ 若是手動燈且對應的自動已開，直接阻擋並復原
+    if (el.dataset.auto) {
+      const autoEl = document.querySelector(el.dataset.auto);
+      if (autoEl && autoEl.checked) {
+        el.checked = !el.checked; // 還原使用者剛剛的點擊
+        alert('已啟用自動模式，請先停用自動再手動操作燈。');
+        return;
+      }
+    }
+
+    // 送出請求
+    el.disabled = true; // 防止連點
+    const url = el.checked ? el.dataset.onUrl : el.dataset.offUrl;
+    const fd  = new FormData();
+    if (el.dataset.group) fd.append('group_id', el.dataset.group);
+    if (el.dataset.next !== undefined) fd.append('next', el.dataset.next);
+    if (el.dataset.sensor) fd.append('sensor', el.dataset.sensor);
+    if (el.dataset.led)    fd.append('led', el.dataset.led);
+
+    try {
+      await post(url, fd);
+
+      // ❷ 若是「自動」開關成功，依其狀態鎖/解鎖手動燈
+      if (el.dataset.lockTarget) {
+        setManualLockedByAuto(el, el.checked);
+      }
+    } catch (e) {
+      // 失敗：復原 UI；若是自動開關也恢復鎖定狀態
+      const was = !el.checked;
+      el.checked = was;
+      if (el.dataset.lockTarget) {
+        setManualLockedByAuto(el, was);
+      }
+      alert('操作失敗，請再試一次：' + e.message);
+    } finally {
+      el.disabled = false;
+    }
+  });
+})();
+</script>
