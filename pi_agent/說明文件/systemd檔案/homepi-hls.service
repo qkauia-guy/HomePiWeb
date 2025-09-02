@@ -7,9 +7,8 @@ Wants=network-online.target
 Type=simple
 User=qkauia
 WorkingDirectory=/home/qkauia/pi_agent/stream
-
-ExecStartPre=/usr/bin/bash -lc 'mkdir -p /home/qkauia/pi_agent/stream && rm -f /home/qkauia/pi_agent/stream/ind>
-
+EnvironmentFile=/home/qkauia/pi_agent/.env
+ExecStartPre=/usr/bin/bash -lc 'mkdir -p /home/qkauia/pi_agent/stream && rm -f /home/qkauia/pi_agent/stream/index.m3u8.tmp /home/qkauia/pi_agent/stream/index.m3u8 /home/qkauia/pi>
 ExecStart=/usr/bin/bash -lc '\
 /usr/bin/rpicam-vid -t 0 \
   --width 1280 --height 720 --framerate 30 \
@@ -24,9 +23,13 @@ ExecStart=/usr/bin/bash -lc '\
   -hls_segment_filename /home/qkauia/pi_agent/stream/seg_%%05d.ts \
   /home/qkauia/pi_agent/stream/index.m3u8 \
 '
-
 Restart=always
 RestartSec=2
+KillSignal=SIGINT
+TimeoutStopSec=10
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
 
 [Install]
 WantedBy=multi-user.target

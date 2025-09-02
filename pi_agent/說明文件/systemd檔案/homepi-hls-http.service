@@ -1,0 +1,15 @@
+[Unit]
+Description=HomePi HLS HTTP (with CORS)
+After=network-online.target homepi-hls.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=qkauia
+WorkingDirectory=/home/qkauia/pi_agent/stream
+ExecStart=/usr/bin/python3 /home/qkauia/pi_agent/stream/serve_hls.py
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

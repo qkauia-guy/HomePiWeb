@@ -27,8 +27,8 @@ TOKEN = os.getenv("TOKEN", "default-token")
 API_BASE = os.getenv("API_BASE", "http://172.28.232.36:8800")
 
 PING_PATH = "/api/device/ping/"
-PULL_PATH = "/device_pull"
-ACK_PATH = "/device_ack"
+PULL_PATH = "/api/device/pull/"
+ACK_PATH = "/api/device/ack/"
 
 
 def ping(extra: dict | None = None) -> bool:
