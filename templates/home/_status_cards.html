@@ -7,11 +7,19 @@
       </div>
     </div>
   </div>
+  {# home.html 中：燈光卡片 #}
   <div class="col-md-4">
-    <div class="card h-100">
+    <div class="card h-100"
+        id="lightCard"
+        data-cap-id=""                   {# 先空著，等選了 cap 再填 #}
+        data-group-id="{{ group_id|default:'' }}">  {# 可空，JS 會處理 #}
       <div class="card-body pb-4">
-        <h5 class="card-title">燈光 <span class="spinner-border spinner-border-sm text-warning"></span></h5>
-        <p class="card-text mb-0">目前狀態:開啟中</p>
+        <h5 class="card-title">
+          燈光
+          <span id="lightBadge" class="badge h6 bg-secondary">未綁定</span>
+          <span id="lightSpinner" class="spinner-border spinner-border-sm text-warning d-none"></span>
+        </h5>
+        <p id="lightText" class="card-text mb-0">請先從上方選擇「燈光」能力</p>
       </div>
     </div>
   </div>

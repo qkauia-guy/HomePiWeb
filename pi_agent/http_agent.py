@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 http_agent.py
-- 主程式：專心處理「指令分發」與「心跳上報」
+- 主程式：處理「指令分發」與「心跳上報」
 - 硬體控制：devices/
 - HTTP API：utils/http.py
-- YAML 載入：config/loader.py
-- 自動感光：utils/auto_light.py（支援 auto_light_on / auto_light_off 指令）
+- YAML：config/loader.py
+- 自動感光：utils/auto_light.py（支援 auto_light_on / auto_light_off，且在狀態變化時立即回推 state）
 """
 
 import os
@@ -31,43 +31,91 @@ os.environ["GPIOZERO_PIN_FACTORY"] = CFG.get(
 from devices import led
 from devices import camera
 
-# 自動感光背景執行緒（BH1750 -> LED）
-from utils.auto_light import start_auto_light, stop_auto_light
+# 自動感光 + 即時回推 callback
+from utils.auto_light import (
+    start_auto_light,
+    stop_auto_light,
+    set_state_push,
+    get_state as auto_state,
+)
 
-
-# 命令分發表（指令名 -> 處理函式）
-# 備註：為相容舊的「不帶目標」用法，_call_handler 會嘗試把 target/name 傳入，失敗則呼叫無參數版。
+# === 命令分發表 ===
 COMMANDS = {
     "light_on": led.light_on,
     "light_off": led.light_off,
     "light_toggle": led.light_toggle,
     "camera_start": camera.start_hls,
     "camera_stop": camera.stop_hls,
-    # 之後可加更多：
-    # "unlock": lock.unlock_hw,
-    # "read_temp": sensor.read_temp,
 }
+
+# === 全域暫存（給 callback 用）===
+_LAST_LIGHT_SLUG: str | None = None
+_CAPS_SNAPSHOT = None
 
 
 def _call_handler(handler, cmd: dict):
-    """
-    嘗試把 command 裡的 target/name 交給 handler，如果不支援參數就退回無參數呼叫。
-    讓 {"cmd": "light_on", "target": "led_2"} 可以控制指定裝置，
-    同時相容舊版（不帶 target/name）。
-    """
     target = cmd.get("target") or cmd.get("name")
     try:
         if target is not None:
             return handler(target)
     except TypeError:
-        # handler 不吃參數 → 走舊版無參數呼叫
         pass
     return handler()
 
 
+# === 狀態回報小工具 ===
+def _first_light_slug(caps):
+    if not caps:
+        return None
+    for c in caps:
+        try:
+            if str(c.get("kind", "")).lower() == "light" and c.get("slug"):
+                return c["slug"]
+        except Exception:
+            continue
+    return None
+
+
+def _state_for_slug(slug: str | None) -> dict:
+    if not slug:
+        return {}
+    try:
+        st = auto_state() or {}
+    except Exception:
+        st = {}
+    try:
+        led_on = bool(led.is_on())
+    except Exception:
+        led_on = False
+    return {
+        slug: {
+            "auto_light_running": bool(st.get("running")),
+            "light_is_on": led_on,
+            "last_lux": st.get("last_lux"),
+        }
+    }
+
+
+def _build_state_blob(caps):
+    slug = _first_light_slug(caps)
+    return _state_for_slug(slug)
+
+
+def _push_state_from_auto():
+    """給 auto_light 註冊的回呼：燈狀態真的切換時立刻回推 state。"""
+    slug = _LAST_LIGHT_SLUG or _first_light_slug(_CAPS_SNAPSHOT)
+    if not slug:
+        return
+    try:
+        http.ping(extra={"state": _state_for_slug(slug)})
+    except Exception as e:
+        print("[auto_light] push state ping err:", e)
+
+
 def main():
+    global _CAPS_SNAPSHOT, _LAST_LIGHT_SLUG
+
     # === 硬體初始化 ===
-    # LED 會依 YAML 初始化（若無 YAML 定義則 fallback 環境變數/預設 pin）
     try:
         led.setup_led(CFG)
     except Exception as e:
@@ -77,21 +125,24 @@ def main():
     caps = None
     first_caps_sent = False
 
-    # === 開機做一次能力偵測（模板 + 自動偵測）===
+    # === 開機做一次能力偵測 ===
     try:
         caps = discover_all()
+        _CAPS_SNAPSHOT = caps
         print("discovered caps:", caps)
     except Exception as e:
         print("[WARN] discover_all 失敗：", e)
 
     # === 主迴圈 ===
     while True:
-        # 週期性心跳；第一次夾帶 caps 讓後端 upsert 能力清單
+        # 週期性心跳（附帶目前 state；首次也帶 caps）
         if time.time() - last_ping > 30:
-            extra = {"caps": caps} if (caps and not first_caps_sent) else None
             try:
+                extra = {"state": _build_state_blob(caps)}
+                if caps and not first_caps_sent:
+                    extra["caps"] = caps
                 if http.ping(extra=extra):
-                    if extra:
+                    if "caps" in extra:
                         first_caps_sent = True
             except Exception as e:
                 print("[WARN] ping 失敗：", e)
@@ -102,12 +153,10 @@ def main():
             cmd = http.pull(max_wait=20)
         except Exception as e:
             print("[WARN] pull 失敗：", e)
-            # 稍等一下避免過度打擾伺服器
             time.sleep(1.0)
             continue
 
         if not cmd:
-            # 超時（204）或目前無指令
             continue
 
         name = (cmd.get("cmd") or "").strip()
@@ -115,24 +164,25 @@ def main():
         payload = cmd.get("payload") or {}
 
         try:
-            # === 重新偵測能力 ===
+            # 重新偵測能力
             if name == "rescan_caps":
                 try:
                     caps = discover_all()
-                    # 立刻回報一次最新能力
-                    http.ping(extra={"caps": caps})
-                    http.ack(req_id, ok=True)
+                    _CAPS_SNAPSHOT = caps
+                    http.ping(extra={"caps": caps, "state": _build_state_blob(caps)})
+                    slug = payload.get("slug") or _first_light_slug(caps)
+                    # 更新我們的預設 slug
+                    _LAST_LIGHT_SLUG = slug or _LAST_LIGHT_SLUG
+                    http.ack(req_id, ok=True, state=_state_for_slug(slug))
                 except Exception as e:
                     http.ack(req_id, ok=False, error=str(e))
                 continue
 
-            # === 自動感光：啟動 ===
+            # 自動感光：啟動
             if name == "auto_light_on":
                 merged = deepcopy(CFG)
                 merged.setdefault("auto_light", {})
                 merged["auto_light"]["enabled"] = True
-
-                # 允許覆蓋 YAML 預設（前端不傳就用 YAML）
                 for k in (
                     "sensor",
                     "led",
@@ -144,20 +194,28 @@ def main():
                     if k in payload:
                         merged["auto_light"][k] = payload[k]
 
-                # 確保 LED 已初始化（通常 main 開頭已做，這裡再保險檢查）
+                # 確保 LED
                 try:
                     if not led.list_leds():
                         led.setup_led(merged)
                 except Exception:
                     led.setup_led(merged)
 
+                # 設定 slug 與即時回推 callback
+                _LAST_LIGHT_SLUG = payload.get("slug") or _first_light_slug(caps)
+                set_state_push(_push_state_from_auto)
+
                 start_auto_light(merged)
-                http.ack(req_id, ok=True)
+                # 立即 ack 一次目前狀態（啟動/warm-up 讀值）
+                http.ack(req_id, ok=True, state=_state_for_slug(_LAST_LIGHT_SLUG))
                 continue
 
-            # === 自動感光：停用 ===
+            # 自動感光：停用
             if name == "auto_light_off":
-                stop_auto_light()
+                # 取消 callback（避免之後誤觸發）
+                set_state_push(None)
+                stop_auto_light(wait=True)
+
                 led_name = payload.get("led") or (CFG.get("auto_light", {}) or {}).get(
                     "led"
                 )
@@ -171,24 +229,33 @@ def main():
                         print("[auto_light] 已停用，未指定 LED，已嘗試關閉所有 LED")
                 except Exception as e:
                     print("[auto_light] 停用時關燈失敗：", e)
-                http.ack(req_id, ok=True)
+
+                slug = (
+                    payload.get("slug") or _LAST_LIGHT_SLUG or _first_light_slug(caps)
+                )
+                http.ack(req_id, ok=True, state=_state_for_slug(slug))
                 continue
 
-            # === 其餘交給分發表 ===
+            # 其餘指令（含手動燈控）
             handler = COMMANDS.get(name)
             if handler is None:
                 http.ack(req_id, ok=False, error=f"unknown command: {name}")
                 continue
 
             _call_handler(handler, cmd)
-            http.ack(req_id, ok=True)
+
+            if name in ("light_on", "light_off", "light_toggle"):
+                slug = (
+                    payload.get("slug") or _LAST_LIGHT_SLUG or _first_light_slug(caps)
+                )
+                http.ack(req_id, ok=True, state=_state_for_slug(slug))
+            else:
+                http.ack(req_id, ok=True)
 
         except Exception as e:
-            # 任一指令處理錯誤都要 ack 失敗，避免重複消費
             try:
                 http.ack(req_id, ok=False, error=str(e))
-            except Exception as _:
-                # 若 ack 也失敗，就寫 log 但仍持續迴圈
+            except Exception:
                 print("[ERROR] ack 失敗：", e)
 
 

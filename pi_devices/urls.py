@@ -37,6 +37,10 @@ urlpatterns = [
     path("api/device/ping/", api_views.device_ping, name="device_ping"),
     path("api/device/pull/", api_views.device_pull, name="device_pull_api"),
     path("api/device/ack/", api_views.device_ack, name="device_ack_api"),
+    # 面板狀態連動
+    path(
+        "api/cap/<int:cap_id>/status/", api_views.api_cap_status, name="api_cap_status"
+    ),
     # 若你有既有 agent 用到無斜線版本，保留兼容
     path("device_pull/", api_views.device_pull, name="device_pull"),
     path("device_ack/", api_views.device_ack, name="device_ack"),

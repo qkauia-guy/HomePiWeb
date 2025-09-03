@@ -66,21 +66,20 @@ def pull(max_wait: int = 20) -> Optional[dict]:
         return None
 
 
-def ack(req_id: str, ok: bool = True, error: str = ""):
-    """回報指令執行結果"""
+def ack(req_id: str, ok: bool = True, error: str = "", state: dict | None = None):
+    """回報指令執行結果（可選附帶即時 state 給伺服器快取）"""
     url = f"{API_BASE}{ACK_PATH}"
     try:
-        r = requests.post(
-            url,
-            json={
-                "serial_number": SERIAL,
-                "token": TOKEN,
-                "req_id": req_id,
-                "ok": ok,
-                "error": error,
-            },
-            timeout=5,
-        )
+        payload = {
+            "serial_number": SERIAL,
+            "token": TOKEN,
+            "req_id": req_id,
+            "ok": ok,
+            "error": error,
+        }
+        if state is not None:
+            payload["state"] = state
+        r = requests.post(url, json=payload, timeout=5)
         r.raise_for_status()
         print("ack sent")
     except Exception as e:

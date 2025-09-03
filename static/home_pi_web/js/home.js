@@ -296,3 +296,240 @@
     }
   });
 })();
+
+// home 燈光面板狀態同步（快取輪詢 + 動作後爆發）
+(() => {
+  'use strict';
+
+  const groupSelect = document.getElementById('groupSelect');
+  const deviceSelect = document.getElementById('deviceSelect');
+  const capSelect = document.getElementById('capSelect');
+
+  // 速度參數
+  const FAST_BURST_MS = 300; // 動作後爆發輪詢間隔
+  const FAST_BURST_TICKS = 8; // 動作後快速輪詢次數（~2.4s）
+  const AUTO_MS = 900; // 自動模式輪詢
+  const IDLE_MS = 5000; // 閒置輪詢
+
+  // 依卡片渲染狀態
+  function renderLight(card, state) {
+    const badge = card.querySelector('#lightBadge');
+    const text = card.querySelector('#lightText');
+    const spin = card.querySelector('#lightSpinner');
+
+    const isAuto = !!state.auto_light_running;
+    const isOn = !!state.light_is_on;
+    const lux = state.last_lux;
+
+    // 標章
+    badge.classList.remove('bg-success', 'bg-secondary', 'bg-info');
+    if (isAuto) {
+      badge.classList.add('bg-info');
+      badge.textContent = '自動偵測中';
+    } else if (isOn) {
+      badge.classList.add('bg-success');
+      badge.textContent = '啟動';
+    } else {
+      badge.classList.add('bg-secondary');
+      badge.textContent = '關閉';
+    }
+
+    // 文案
+    if (isAuto) {
+      const luxStr =
+        lux === null || lux === undefined
+          ? ''
+          : `，${Math.round(Number(lux))} lx`;
+      text.textContent = `目前狀態：${isOn ? '開燈中💡' : '關燈中'}`;
+    } else {
+      text.textContent = `目前狀態：${isOn ? '開啟中' : '已關閉'}`;
+    }
+
+    // spinner：自動或 pending 顯示
+    if (spin) {
+      const pending = Boolean(state.pending);
+      spin.classList.toggle('d-none', !(isAuto || pending));
+    }
+
+    // 記錄 isAuto 給輪詢節奏用
+    card.dataset.isAuto = isAuto ? '1' : '0';
+
+    // 同步面板內的兩個 switch（自動時禁用手動）
+    const capId = card.dataset.capId;
+    if (capId) {
+      const autoSwitch = document.getElementById(`autoSwitch-${capId}`);
+      const lightSwitch = document.getElementById(`lightSwitch-${capId}`);
+      if (autoSwitch && autoSwitch.checked !== isAuto)
+        autoSwitch.checked = isAuto;
+      if (lightSwitch) {
+        lightSwitch.disabled = isAuto;
+        if (lightSwitch.checked !== isOn) lightSwitch.checked = isOn;
+      }
+    }
+  }
+
+  // 帶競態保護的拉狀態
+  async function fetchLightState(card) {
+    const url = card.dataset.statusUrl;
+    if (!url) return;
+
+    const current = (parseInt(card.dataset.reqToken || '0', 10) || 0) + 1;
+    card.dataset.reqToken = String(current);
+
+    let data = null;
+    try {
+      const resp = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+      });
+      if (!resp.ok) throw new Error('HTTP_' + resp.status);
+      data = await resp.json();
+    } catch {
+      card.querySelector('#lightSpinner')?.classList.add('d-none');
+      return;
+    }
+
+    if (card.dataset.reqToken !== String(current)) return;
+    if (data && data.ok) renderLight(card, data);
+    else card.querySelector('#lightSpinner')?.classList.add('d-none');
+  }
+
+  function resetLightCard(card, msg = '請先從上方選擇「燈光」能力') {
+    const badge = card.querySelector('#lightBadge');
+    const text = card.querySelector('#lightText');
+    const spin = card.querySelector('#lightSpinner');
+    badge.classList.remove('bg-success', 'bg-info');
+    badge.classList.add('bg-secondary');
+    badge.textContent = '未綁定';
+    text.textContent = msg;
+    spin?.classList.add('d-none');
+    card.dataset.capId = '';
+    card.dataset.statusUrl = '';
+    card.dataset.reqToken = '0';
+    card.dataset.burst = '0';
+    card.dataset.isAuto = '0';
+  }
+
+  function startLightPolling(card) {
+    let timer = null;
+
+    async function tick() {
+      try {
+        await fetchLightState(card);
+      } finally {
+        clearTimeout(timer);
+
+        const spinOn = !card
+          .querySelector('#lightSpinner')
+          ?.classList.contains('d-none');
+        const burst = Math.max(0, parseInt(card.dataset.burst || '0', 10) || 0);
+        const isAuto = card.dataset.isAuto === '1';
+
+        let next;
+        if (burst > 0) {
+          next = FAST_BURST_MS;
+          card.dataset.burst = String(burst - 1);
+        } else if (isAuto || spinOn) {
+          next = AUTO_MS;
+        } else {
+          next = IDLE_MS;
+        }
+        timer = setTimeout(tick, next);
+      }
+    }
+
+    tick();
+    return () => clearTimeout(timer);
+  }
+
+  let stopLightPoll = null;
+
+  function initLightCardFromSelection() {
+    const card = document.getElementById('lightCard');
+    if (!card) return;
+
+    const sel = capSelect?.selectedOptions?.[0];
+    const capId = sel?.value || '';
+    const kind = (sel?.dataset?.kind || '').toLowerCase();
+
+    if (!capId || kind !== 'light') {
+      if (stopLightPoll) {
+        stopLightPoll();
+        stopLightPoll = null;
+      }
+      resetLightCard(card);
+      return;
+    }
+
+    const g = groupSelect?.value || '';
+    const statusUrl =
+      `/api/cap/${encodeURIComponent(capId)}/status/` +
+      (g ? `?group_id=${encodeURIComponent(g)}` : '');
+
+    card.dataset.capId = capId;
+    card.dataset.statusUrl = statusUrl;
+    card.dataset.reqToken = '0';
+    card.dataset.burst = '0';
+    card.dataset.isAuto = '0';
+
+    if (stopLightPoll) {
+      stopLightPoll();
+      stopLightPoll = null;
+    }
+    stopLightPoll = startLightPolling(card);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 切換群組 / 裝置 → 停輪詢 & 重置
+    groupSelect?.addEventListener('change', () => {
+      if (stopLightPoll) {
+        stopLightPoll();
+        stopLightPoll = null;
+      }
+      const card = document.getElementById('lightCard');
+      if (card) resetLightCard(card, '請先選擇裝置與功能');
+    });
+    deviceSelect?.addEventListener('change', () => {
+      if (stopLightPoll) {
+        stopLightPoll();
+        stopLightPoll = null;
+      }
+      const card = document.getElementById('lightCard');
+      if (card) resetLightCard(card, '請先選擇功能');
+    });
+
+    // 選到 light → 啟動輪詢
+    capSelect?.addEventListener('change', () => {
+      initLightCardFromSelection();
+    });
+
+    // URL 還原選擇後，補一次
+    setTimeout(() => initLightCardFromSelection(), 0);
+
+    // 用 switch 操作時：開 spinner + 啟動爆發輪詢
+    document.addEventListener('change', (evt) => {
+      const el = evt.target;
+      if (!el.matches('.cap-toggle')) return;
+      const card = document.getElementById('lightCard');
+      if (!card || !card.dataset.statusUrl) return;
+      card.querySelector('#lightSpinner')?.classList.remove('d-none');
+      card.dataset.burst = String(FAST_BURST_TICKS);
+      // 立即補抓一次
+      setTimeout(() => fetchLightState(card).catch(() => {}), 200);
+    });
+
+    // 隱藏分頁時暫停、回到分頁時重新啟動，避免延遲堆積
+    document.addEventListener('visibilitychange', () => {
+      const card = document.getElementById('lightCard');
+      if (!card) return;
+      if (document.hidden) {
+        if (stopLightPoll) {
+          stopLightPoll();
+          stopLightPoll = null;
+        }
+      } else {
+        initLightCardFromSelection();
+      }
+    });
+  });
+})();
