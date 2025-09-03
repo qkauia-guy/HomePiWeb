@@ -28,7 +28,8 @@ from django.utils.encoding import iri_to_uri
 import re
 import secrets
 from django.db import IntegrityError
-
+from django.utils import timezone as djtz
+from groups.models import Group
 
 # ---------- Helpers ----------
 
@@ -156,6 +157,12 @@ def device_ping(request):
     if not token:
         return JsonResponse({"error": "No token"}, status=401)
 
+    # 允許 agent 以 extra 帶更多資訊（與 http_agent 對齊）
+    extra = data.get("extra") or {}
+    # ★ caps/state 同時支援頂層與 extra 內的寫法
+    caps = data.get("caps") or extra.get("caps")
+    state_map = data.get("state") or extra.get("state")
+
     xff = request.META.get("HTTP_X_FORWARDED_FOR")
     client_ip = xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
 
@@ -196,12 +203,29 @@ def device_ping(request):
             device.ip_address = client_ip
             device.save(update_fields=["last_ping", "ip_address"])
 
-            # 如果這次帶了 capabilities，就做 upsert
-            caps = data.get("caps")
+            # (1) upsert capabilities（若有帶）
             if isinstance(caps, list) and caps:
                 sync_caps(device, caps, auto_disable_unseen=False)
 
-            # 上線/變更 IP 通知
+            # (2) merge 即時狀態到 cached_state（若有帶）
+            if isinstance(state_map, dict) and state_map:
+                # 只處理屬於本 device 的 cap，未知 slug 就跳過
+                slugs = list(state_map.keys())
+                if slugs:
+                    cap_qs = DeviceCapability.objects.filter(
+                        device=device, slug__in=slugs
+                    )
+                    cap_by_slug = {c.slug: c for c in cap_qs}
+                    for slug, st in state_map.items():
+                        cap = cap_by_slug.get(slug)
+                        if not cap or not isinstance(st, dict):
+                            continue
+                        merged = (cap.cached_state or {}).copy()
+                        merged.update(st)  # 直接覆蓋同名 key
+                        cap.cached_state = merged
+                        cap.save(update_fields=["cached_state"])
+
+            # 上線/變更 IP 通知（維持你原先邏輯）
             if owner_id and not was_online:
                 from django.contrib.auth import get_user_model
 
@@ -290,13 +314,15 @@ def device_ack(request):
     req_id = data.get("req_id")
     ok = bool(data.get("ok"))
     error = data.get("error") or ""
+    state_map = data.get("state")  # ★ agent 可帶回即時 state
+
     if not serial or not token or not req_id:
         return JsonResponse(
             {"error": "serial_number/token/req_id required"}, status=400
         )
 
     try:
-        device = Device.objects.only("id", "serial_number", "token", "user_id").get(
+        device = Device.objects.only("id", "serial_number", "token").get(
             serial_number=serial
         )
     except Device.DoesNotExist:
@@ -307,19 +333,32 @@ def device_ack(request):
     from django.utils import timezone as djtz
 
     with transaction.atomic():
+        # 更新指令狀態
         cmd = (
             DeviceCommand.objects.select_for_update()
             .filter(device=device, req_id=req_id)
             .first()
         )
-        if not cmd:
-            return JsonResponse({"error": "Command not found"}, status=404)
-        if cmd.status in ("done", "failed", "expired"):
-            return JsonResponse({"ok": True})
-        cmd.status = "done" if ok else "failed"
-        cmd.error = "" if ok else (error or "unknown")
-        cmd.done_at = djtz.now()
-        cmd.save(update_fields=["status", "error", "done_at"])
+        if cmd and cmd.status not in ("done", "failed", "expired"):
+            cmd.status = "done" if ok else "failed"
+            cmd.error = "" if ok else (error or "unknown")
+            cmd.done_at = djtz.now()
+            cmd.save(update_fields=["status", "error", "done_at"])
+
+        # ★ 立刻 merge 回報的狀態：{ '<slug>': {...} }
+        if isinstance(state_map, dict) and state_map:
+            slugs = list(state_map.keys())
+            caps = DeviceCapability.objects.filter(device=device, slug__in=slugs)
+            by_slug = {c.slug: c for c in caps}
+            for slug, st in state_map.items():
+                cap = by_slug.get(slug)
+                if not cap or not isinstance(st, dict):
+                    continue
+                merged = (cap.cached_state or {}).copy()
+                merged.update(st)  # 直接覆蓋同名 key
+                cap.cached_state = merged
+                cap.save(update_fields=["cached_state"])
+
     return JsonResponse({"ok": True})
 
 
@@ -514,3 +553,66 @@ def hls_proxy(request, serial: str, subpath: str):
     resp["X-Upstream-Status"] = str(r.status_code)
     resp["X-HLS-Proxy"] = "1"
     return resp
+
+
+# 狀態連動
+
+
+def _parse_gid(raw: str | None) -> int | None:
+    if not raw:
+        return None
+    s = raw.strip()
+    if s.startswith("g") and s[1:].isdigit():
+        return int(s[1:])
+    if s.isdigit():
+        return int(s)
+    return None
+
+
+@login_required
+def api_cap_status(request, cap_id: int):
+    cap = get_object_or_404(
+        DeviceCapability.objects.select_related("device"), pk=cap_id
+    )
+
+    gid_raw = request.GET.get("group_id") or request.GET.get("g") or ""
+    gid = _parse_gid(gid_raw)
+    if gid:
+        group = get_object_or_404(Group, pk=gid)
+        if not cap.device.groups.filter(pk=group.id).exists():
+            return HttpResponseForbidden("Device not in group")
+        is_visible = (group.owner_id == request.user.id) or group.memberships.filter(
+            user=request.user
+        ).exists()
+        if not is_visible:
+            return HttpResponseForbidden("No permission")
+    else:
+        visible = cap.device.groups.filter(
+            Q(owner=request.user) | Q(memberships__user=request.user)
+        ).exists()
+        if not visible:
+            return HttpResponseForbidden("No permission")
+
+    st = cap.cached_state or {}
+    light_is_on = bool(st.get("light_is_on", False))
+    auto_running = bool(st.get("auto_light_running", False))
+    last_lux = st.get("last_lux", None)
+
+    # 是否有相關指令尚未完成（用 slug 過濾）
+    now = timezone.now()
+    pending = DeviceCommand.objects.filter(
+        device=cap.device,
+        status__in=["pending", "taken"],
+        expires_at__gt=now,
+        payload__slug=cap.slug,
+    ).exists()
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "light_is_on": light_is_on,
+            "auto_light_running": auto_running,
+            "last_lux": last_lux,
+            "pending": pending,
+        }
+    )
