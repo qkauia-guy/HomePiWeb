@@ -24,7 +24,12 @@
       <div class="mt-4" id="capForms"></div>
       
 
-      <script src="{% static 'home_pi_web/js/home.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.init.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.controls.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.schedule.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.polling.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.toggles.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.light-card.js' %}"></script>
     {% else %}
       <div class="alert alert-info">目前沒有包含你的群組。</div>
     {% endif %}
