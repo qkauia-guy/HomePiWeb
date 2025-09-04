@@ -199,3 +199,36 @@ class DeviceCapability(models.Model):
 
     def get_absolute_url(self):
         return reverse("device_detail", kwargs={"pk": self.device_id})
+
+
+class DeviceSchedule(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "pending"),
+        ("done", "done"),
+        ("canceled", "canceled"),
+        ("failed", "failed"),
+    ]
+    device = models.ForeignKey(
+        Device, related_name="schedules", on_delete=models.CASCADE
+    )
+    action = models.CharField(
+        max_length=50
+    )  # light_on / light_off / auto_light_on / auto_light_off
+    payload = models.JSONField(
+        default=dict, blank=True
+    )  # 可放 target/slug/sensor/led 等
+    run_at = models.DateTimeField(db_index=True)  # 存 UTC
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending", db_index=True
+    )
+    error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    done_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["device", "status", "run_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.device_id} {self.action} @{self.run_at} [{self.status}]"
