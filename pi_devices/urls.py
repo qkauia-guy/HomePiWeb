@@ -61,4 +61,16 @@ urlpatterns = [
         capability_views.live_player,
         name="cap_live_player",
     ),
+    path("api/device/schedules/", api_views.device_schedules, name="device_schedules"),
+    path(
+        "api/device/schedule_ack/",
+        api_views.device_schedule_ack,
+        name="device_schedule_ack",
+    ),
+    path("schedules/create/", device_views.create_schedule, name="create_schedule"),
+    path(
+        "api/device/<int:device_id>/schedules/",
+        device_views.upcoming_schedules,
+        name="upcoming_schedules",
+    ),
 ]
