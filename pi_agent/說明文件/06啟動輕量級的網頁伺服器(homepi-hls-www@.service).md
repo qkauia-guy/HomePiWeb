@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-## 3. homepi-hls-www@.service：HLS 靜態網頁伺服器
+## homepi-hls-www@.service：HLS 靜態網頁伺服器
 
 這是一個 `systemd` **模板服務**，用於啟動一個簡易的 Python 靜態網頁伺服器，專門提供 HLS 串流所需的 `.m3u8` 和 `.ts` 檔案。
 
