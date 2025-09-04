@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-## homepi-camera-hls@.service：攝影機低延遲 HLS 串流服務
+## homepi-hls@.service：攝影機低延遲 HLS 串流服務
 
 這是一個 `systemd` **模板服務檔**，專為樹莓派設計，用於啟動一個低延遲的 **HLS (HTTP Live Streaming)** 攝影機串流。
 
