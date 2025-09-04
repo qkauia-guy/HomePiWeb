@@ -120,6 +120,6 @@ StandardError=inherit
 WantedBy=multi-user.target
 ```
 
-#### [上一步:05 HLS 影片串流服務(homepi-hls.service)](<05HLS影片串流服務(homepi-hls.service).md>)
+#### [上一步:05 HLS 影片串流服務(homepi-hls@.service)](<05HLS影片串流服務(homepi-hls@.service).md>)
 
 #### [下一步:07 排程服務(homepi-scheduler@.service)](<07排程服務(homepi-scheduler@.service).md>)
