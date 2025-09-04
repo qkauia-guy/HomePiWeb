@@ -22,7 +22,7 @@ from django.http import Http404
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from ..models import Device, DeviceCommand, DeviceCapability
+from ..models import Device, DeviceCommand, DeviceCapability, DeviceSchedule
 from notifications.services import notify_device_ip_changed, notify_user_online
 from django.utils.encoding import iri_to_uri
 import re
@@ -30,6 +30,7 @@ import secrets
 from django.db import IntegrityError
 from django.utils import timezone as djtz
 from groups.models import Group
+from django.views.decorators.cache import never_cache
 
 # ---------- Helpers ----------
 
@@ -157,14 +158,16 @@ def device_ping(request):
     if not token:
         return JsonResponse({"error": "No token"}, status=401)
 
-    # 允許 agent 以 extra 帶更多資訊（與 http_agent 對齊）
+    # 允許 agent 以頂層或 extra 帶更多資訊
     extra = data.get("extra") or {}
-    # ★ caps/state 同時支援頂層與 extra 內的寫法
     caps = data.get("caps") or extra.get("caps")
     state_map = data.get("state") or extra.get("state")
 
     xff = request.META.get("HTTP_X_FORWARDED_FOR")
-    client_ip = xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
+    # client_ip = xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
+    client_ip = (
+        xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
+    ) or ""
 
     try:
         with transaction.atomic():
@@ -209,23 +212,47 @@ def device_ping(request):
 
             # (2) merge 即時狀態到 cached_state（若有帶）
             if isinstance(state_map, dict) and state_map:
-                # 只處理屬於本 device 的 cap，未知 slug 就跳過
-                slugs = list(state_map.keys())
-                if slugs:
-                    cap_qs = DeviceCapability.objects.filter(
-                        device=device, slug__in=slugs
+                # 先檢查模型是否真的有 cached_state 欄位；沒有就整段跳過（避免 500）
+                try:
+                    has_cached_state = any(
+                        f.name == "cached_state"
+                        for f in DeviceCapability._meta.get_fields()
                     )
-                    cap_by_slug = {c.slug: c for c in cap_qs}
-                    for slug, st in state_map.items():
-                        cap = cap_by_slug.get(slug)
-                        if not cap or not isinstance(st, dict):
-                            continue
-                        merged = (cap.cached_state or {}).copy()
-                        merged.update(st)  # 直接覆蓋同名 key
-                        cap.cached_state = merged
-                        cap.save(update_fields=["cached_state"])
+                except Exception:
+                    has_cached_state = False
 
-            # 上線/變更 IP 通知（維持你原先邏輯）
+                if has_cached_state:
+                    slugs = list(state_map.keys())
+                    if slugs:
+                        cap_qs = DeviceCapability.objects.filter(
+                            device=device, slug__in=slugs
+                        )
+                        cap_by_slug = {c.slug: c for c in cap_qs}
+
+                        def _as_dict(v):
+                            return v if isinstance(v, dict) else {}
+
+                        for slug, st in state_map.items():
+                            cap = cap_by_slug.get(slug)
+                            if not cap or not isinstance(st, dict):
+                                continue
+                            merged = _as_dict(getattr(cap, "cached_state", {}))
+                            # 嘗試淺合併；不可序列化或型別錯誤則略過該 slug
+                            try:
+                                merged.update({k: v for k, v in st.items()})
+                            except Exception:
+                                continue
+                            try:
+                                cap.cached_state = merged
+                                cap.save(update_fields=["cached_state"])
+                            except Exception:
+                                # 欄位存在但 DB 層出錯（例如 migration 未套用），也不要讓整個 ping 失敗
+                                pass
+                else:
+                    # 欄位不存在：什麼都不做（避免 500）
+                    pass
+
+            # 上線/變更 IP 通知（照原邏輯）
             if owner_id and not was_online:
                 from django.contrib.auth import get_user_model
 
@@ -238,7 +265,7 @@ def device_ping(request):
                 transaction.on_commit(
                     lambda: notify_device_ip_changed(
                         device=device,
-                        owner=device.user,
+                        owner=device.user,  # 允許 lazy load
                         old_ip=old_ip,
                         new_ip=client_ip,
                     )
@@ -246,6 +273,10 @@ def device_ping(request):
 
     except Device.DoesNotExist:
         return JsonResponse({"error": "Device not found"}, status=404)
+    except Exception as e:
+        return JsonResponse(
+            {"error": f"server error: {type(e).__name__}: {e}"}, status=500
+        )
 
     # 回傳 pong 與目前 IP
     return JsonResponse({"status": "pong", "ip": client_ip})
@@ -569,6 +600,7 @@ def _parse_gid(raw: str | None) -> int | None:
     return None
 
 
+@never_cache
 @login_required
 def api_cap_status(request, cap_id: int):
     cap = get_object_or_404(
@@ -597,6 +629,18 @@ def api_cap_status(request, cap_id: int):
     light_is_on = bool(st.get("light_is_on", False))
     auto_running = bool(st.get("auto_light_running", False))
     last_lux = st.get("last_lux", None)
+    last_change_ts = st.get("last_change_ts", None)
+
+    # last_change_ts 可能是 float/datetime/None，把它標準化成 epoch 秒（int）
+    if hasattr(last_change_ts, "timestamp"):  # datetime-like
+        try:
+            last_change_ts = int(last_change_ts.timestamp())
+        except Exception:
+            last_change_ts = None
+    elif isinstance(last_change_ts, (int, float)):
+        last_change_ts = int(last_change_ts)
+    else:
+        last_change_ts = None
 
     # 是否有相關指令尚未完成（用 slug 過濾）
     now = timezone.now()
@@ -607,12 +651,117 @@ def api_cap_status(request, cap_id: int):
         payload__slug=cap.slug,
     ).exists()
 
-    return JsonResponse(
+    resp = JsonResponse(
         {
             "ok": True,
             "light_is_on": light_is_on,
             "auto_light_running": auto_running,
             "last_lux": last_lux,
             "pending": pending,
+            "last_change_ts": last_change_ts,
+            "server_ts": int(timezone.now().timestamp()),
         }
     )
+    resp["Cache-Control"] = "no-store"
+    return resp
+
+
+def _auth_device(data):
+    serial = data.get("serial_number")
+    token = data.get("token")
+    if not serial or not token:
+        return None, JsonResponse({"error": "serial_number/token required"}, status=400)
+    try:
+        dev = Device.objects.only("id", "token").get(serial_number=serial)
+    except Device.DoesNotExist:
+        return None, JsonResponse({"error": "Device not found"}, status=404)
+    if dev.token != token:
+        return None, JsonResponse({"error": "Unauthorized"}, status=401)
+    return dev, None
+
+
+@csrf_exempt
+@require_POST
+def device_schedules(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    device, err = _auth_device(data)
+    if err:
+        return err
+
+    now = timezone.now()
+    # 只給未執行的未來排程（容忍 2 分鐘的時鐘漂移：>= now-120s）
+    qs = DeviceSchedule.objects.filter(
+        device=device, status="pending", run_at__gte=now - timedelta(seconds=120)
+    ).order_by("run_at")[:100]
+
+    items = []
+    for s in qs:
+        items.append(
+            {
+                "id": s.id,
+                "action": s.action,
+                "payload": s.payload or {},
+                # 用 epoch 秒，樹梅派好處理
+                "ts": int(s.run_at.timestamp()),
+            }
+        )
+
+    return JsonResponse({"ok": True, "items": items})
+
+
+@csrf_exempt
+@require_POST
+def device_schedule_ack(request):
+    # 解析 JSON
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    # 驗證裝置身分
+    device, err = _auth_device(data)
+    if err:
+        return err
+
+    try:
+        sid = data.get("schedule_id")
+        if sid is None:
+            return JsonResponse({"error": "schedule_id required"}, status=400)
+        try:
+            sid = int(sid)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "bad schedule_id"}, status=400)
+
+        ok = bool(data.get("ok"))
+        error = data.get("error") or ""
+
+        # 交易內鎖 row → 更新狀態
+        with transaction.atomic():
+            s = (
+                DeviceSchedule.objects.select_for_update()
+                .filter(id=sid, device=device)
+                .first()
+            )
+            if not s:
+                return JsonResponse({"error": "Schedule not found"}, status=404)
+
+            if s.status != "pending":
+                # 已處理過就當作成功
+                return JsonResponse({"ok": True})
+
+            s.status = "done" if ok else "failed"
+            s.error = "" if ok else (error[:500])  # 避免過長
+            s.done_at = timezone.now()
+            s.save(update_fields=["status", "error", "done_at"])
+
+        return JsonResponse({"ok": True})
+
+    except Exception as e:
+        # 暫時把錯誤丟回前端，方便你在 Network 面板直接看到原因
+        return JsonResponse(
+            {"error": f"server error: {type(e).__name__}: {e}"}, status=500
+        )
