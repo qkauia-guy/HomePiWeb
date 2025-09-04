@@ -1,64 +1,83 @@
 <div class="card mb-3">
   <div class="card-body">
-    <h5 class="card-title">{{ device.label }}｜{{ cap.name }}</h5>
+    <h5 class="card-title mb-3">{{ device.label }}｜{{ cap.name }}</h5>
 
-    <div class="d-flex align-items-center gap-4 flex-wrap">
-
-      {# 開關：電燈 #}
-      <div class="form-check form-switch m-0">
-        <input
-          class="form-check-input cap-toggle"
-          type="checkbox"
-          role="switch"
-          id="lightSwitch-{{ cap.id }}"
-          data-auto="#autoSwitch-{{ cap.id }}"
-          data-on-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='on' %}"
-          data-off-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='off' %}"
-          data-group="{{ group_id }}"
-          data-next=""
-          {% if cap.meta.light_is_on %}checked{% endif %}
-          {% if cap.meta.auto_light_running %}disabled aria-disabled="true"{% endif %}
-        >
-        <label class="form-check-label" for="lightSwitch-{{ cap.id }}">手動</label>
-      </div>
-
-      {# 開關：自動感光 #}
-      <div class="form-check form-switch m-0">
-        <input
-          class="form-check-input cap-toggle"
-          type="checkbox"
-          role="switch"
-          id="autoSwitch-{{ cap.id }}"
-          data-lock-target="#lightSwitch-{{ cap.id }}"
-          data-on-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_on' %}"
-          data-off-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_off' %}"
-          data-group="{{ group_id }}"
-          data-next=""
-          {% if cap.meta.auto_light_running %}checked{% endif %}
-          data-sensor="bh1750-1-23"
-          data-led="led_1"
-        >
-        <label class="form-check-label" for="autoSwitch-{{ cap.id }}">自動</label>
-      </div>
-
-      <noscript>
-        <div class="d-flex gap-2 flex-wrap mt-2">
-          {# 保留你原本的四個按鈕做備援（無 JS 才會顯示） #}
-          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='on' %}" class="cap-form">
-            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-success btn-sm" type="submit">開燈</button>
-          </form>
-          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='off' %}" class="cap-form">
-            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-secondary btn-sm" type="submit">關燈</button>
-          </form>
-          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_on' %}" class="cap-form">
-            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-info btn-sm" type="submit">啟用自動</button>
-          </form>
-          <form method="post" action="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_off' %}" class="cap-form">
-            {% csrf_token %}<input type="hidden" name="group_id" value="{{ group_id }}"><button class="btn btn-dark btn-sm" type="submit">停用自動</button>
-          </form>
+    <div class="row align-items-start">
+      
+      <!-- 左邊：手動/自動開關 -->
+      <div class="col-md-5 d-flex flex-wrap gap-4">
+        {# 手動開關 #}
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input cap-toggle"
+            type="checkbox"
+            role="switch"
+            id="lightSwitch-{{ cap.id }}"
+            data-auto="#autoSwitch-{{ cap.id }}"
+            data-on-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='on' %}"
+            data-off-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='off' %}"
+            data-group="{{ group_id }}"
+            {% if cap.meta.light_is_on %}checked{% endif %}
+            {% if cap.meta.auto_light_running %}disabled aria-disabled="true"{% endif %}
+          >
+          <label class="form-check-label" for="lightSwitch-{{ cap.id }}">手動</label>
         </div>
-      </noscript>
 
+        {# 自動感光開關 #}
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input cap-toggle"
+            type="checkbox"
+            role="switch"
+            id="autoSwitch-{{ cap.id }}"
+            data-lock-target="#lightSwitch-{{ cap.id }}"
+            data-on-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_on' %}"
+            data-off-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='auto_off' %}"
+            data-group="{{ group_id }}"
+            {% if cap.meta.auto_light_running %}checked{% endif %}
+            data-sensor="bh1750-1-23"
+            data-led="led_1"
+          >
+          <label class="form-check-label" for="autoSwitch-{{ cap.id }}">自動</label>
+        </div>
+      </div>
+
+      <!-- 右邊：排程表單 -->
+      <div class="col-md-7">
+        <form
+          id="schedForm-{{ cap.id }}"
+          class="row gy-2 gx-2 align-items-end"
+          data-create-url="{% url 'create_schedule' %}"
+          data-upcoming-url="{% url 'upcoming_schedules' device_id=device.id %}"
+          data-slug="{{ cap.slug }}"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="device_id" value="{{ device.id }}">
+          <input type="hidden" name="slug" value="{{ cap.slug }}">
+          <input type="hidden" name="sensor" value="bh1750-1-23">
+          <input type="hidden" name="led" value="led_1">
+
+          <div class="col-auto">
+            <label class="form-label mb-1">開燈時間</label>
+            <input type="datetime-local" name="on_at_local" class="form-control form-control-sm">
+          </div>
+
+          <div class="col-auto">
+            <label class="form-label mb-1">關燈時間</label>
+            <input type="datetime-local" name="off_at_local" class="form-control form-control-sm">
+          </div>
+
+          <div class="col-auto d-flex gap-2">
+            <button type="button" class="btn btn-success btn-sm" data-submit-both="#schedForm-{{ cap.id }}">排程時間</button>
+          </div>
+
+          <div class="col-12">
+            <small class="text-muted">時間使用你的瀏覽器時區（後端自動轉 UTC 存）。</small>
+            <div class="text-success small d-none mt-1" id="schedMsg-{{ cap.id }}"></div>
+            <div class="text-danger small d-none mt-1" id="schedErr-{{ cap.id }}"></div>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
