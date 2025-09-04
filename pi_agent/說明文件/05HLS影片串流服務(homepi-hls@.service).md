@@ -20,7 +20,7 @@
     [homepi-hls@.service 檔案位置：](./systemd檔案/homepi-hls@.service)
 
     ```
-    sudo nano /etc/systemd/system/homepi-camera-hls@.service
+    sudo nano /etc/systemd/system/homepi-hls@.service
     ```
 
 2.  **啟用與啟動**
@@ -32,17 +32,17 @@
     sudo systemctl daemon-reload
 
     # 設定開機自動啟動（將 <username> 替換為樹梅派 User Name）
-    sudo systemctl enable homepi-camera-hls@<username>.service
+    sudo systemctl enable homepi-hls@<username>.service
 
     # 立即啟動服務
-    sudo systemctl start homepi-camera-hls@<username>.service
+    sudo systemctl start homepi-hls@<username>.service
     ```
 
     **修改服務檔後：**
 
     ```
     sudo systemctl daemon-reload
-    sudo systemctl restart homepi-camera-hls@<username>.service
+    sudo systemctl restart homepi-hls@<username>.service
     ```
 
 3.  **檢查服務狀態**
@@ -50,7 +50,7 @@
     確認服務狀態與日誌。
 
     ```
-    sudo systemctl status homepi-camera-hls@<username>.service
+    sudo systemctl status homepi-hls@<username>.service
     ```
 
 ### 服務檔設定內容
