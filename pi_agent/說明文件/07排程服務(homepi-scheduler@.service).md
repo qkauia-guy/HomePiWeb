@@ -26,7 +26,7 @@
     # 設定開機自動啟動（將 <username> 替換為樹梅派 User Name）
     sudo systemctl enable homepi-scheduler@<username>.service
 
-
+    # 立即啟動服務
     sudo systemctl start homepi-scheduler@<username>.service
     ```
 
