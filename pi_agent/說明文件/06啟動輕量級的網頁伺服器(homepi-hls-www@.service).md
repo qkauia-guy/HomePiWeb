@@ -1,122 +1,80 @@
 <!-- markdownlint-disable -->
 
-# HomePi 系統服務 (systemd) 完整設定
+## 3. homepi-hls-www@.service：HLS 靜態網頁伺服器
 
-這份文件整合了 HomePi 專案所需的三個核心 `systemd` 服務，讓您可以在樹莓派上實現代理程式、低延遲攝影機串流，以及網頁伺服器等功能。
+這是一個 `systemd` **模板服務**，用於啟動一個簡易的 Python 靜態網頁伺服器，專門提供 HLS 串流所需的 `.m3u8` 和 `.ts` 檔案。
 
----
-
-## 1. homepi-agent@.service：樹莓派代理程式模板服務
-
-這是一個 `systemd` **模板服務檔**，它的主要功能是在樹莓派開機後，自動以背景程式的方式啟動您的 **HomePi HTTP 代理程式**。
-
-這個服務檔會告訴樹莓派的系統：
-
-- **當網路就緒後**，啟動此服務。
-- 服務會以**指定使用者**（如 `qkauia`）的身份運行，並執行 `pi_agent` 資料夾中的 `http_agent.py` 腳本。
-- 自動載入 `.env` 環境變數檔，確保日誌即時輸出，並在程式停止時自動重新啟動。
-
-這個服務檔是一個**模板**，只需在啟用服務時指定使用者名稱，即可為不同使用者重複使用此設定。
+- **依賴管理**：此服務會等待攝影機串流服務 (`homepi-camera-hls@.service`) 啟動後才執行。
+- **CORS 支援**：執行的 Python 腳本應內建 CORS (跨來源資源共用) 支援，允許網頁從不同網域存取串流。
+- **自動重啟**：服務會持續運行，並在意外停止時自動重啟。
 
 ### 建立與使用服務
 
 1.  **建立服務檔**
-
-    在終端機中建立並編輯服務檔，建議在其他編輯器中完成編輯後再貼上。
     [homepi-hls-www@.service 檔案位置：](./systemd檔案/homepi-hls-www@.service)
 
     ```
-    sudo nano /etc/systemd/system/homepi-agent@.service
+    sudo nano /etc/systemd/system/homepi-hls-www@.service
     ```
 
 2.  **啟用與啟動**
 
-    **初次建立服務時：**
-
     ```
-    # 重新載入 systemd 設定
+    # 重新載入、啟用並啟動服務
     sudo systemctl daemon-reload
 
-    # 設定開機自動啟動（將 <username> 替換為樹梅派 User Name）
-    sudo systemctl enable homepi-agent@<username>.service
+     # 設定開機自動啟動（將 <username> 替換為樹梅派 User Name）
+    sudo systemctl enable homepi-hls-www@<username>.service
 
     # 立即啟動服務
-    sudo systemctl start homepi-agent@<username>.service
-    ```
-
-    **修改服務檔後：**
-
-    ```
-    sudo systemctl daemon-reload
-    sudo systemctl restart homepi-agent@<username>.service
+    sudo systemctl start homepi-hls-www@<username>.service
     ```
 
 3.  **檢查服務狀態**
 
-    確認服務狀態為綠色的 `active (running)`，且無錯誤。
-
     ```
-    sudo systemctl status homepi-agent@<username>.service
+    sudo systemctl status homepi-hls-www@<username>.service
     ```
 
-### 服務檔設定內容 (含註解)
+### 服務檔設定內容
 
 ```int
 [Unit]
 
-服務的描述名稱，%i 會被替換為使用者名稱。
-Description=HomePi HTTP Agent for user %i
+服務的描述，清楚說明其功能。
+Description=HomePi HLS static web server (CORS) on :8088
 
-指定服務在網路就緒後啟動。
-After=network-online.target
+--- 服務依賴設定 ---
+指定此服務必須在網路就緒、且攝影機串流服務啟動之後，才能啟動。
+注意：這裡的 homepi-hls.service 應為 homepi-camera-hls@%i.service 才能正確對應模板
+After=network-online.target homepi-camera-hls@%i.service
+
 Wants=network-online.target
 
 [Service]
 
-服務型態：simple 表示 ExecStart 的程序就是主程序。
+服務類型：simple。
 Type=simple
 
-使用者與群組設定，%i 代表模板變數。
+使用者與群組設定。
 User=%i
 Group=%i
 
-啟動時的工作目錄。
-WorkingDirectory=/home/%i/pi_agent
+載入環境變數檔案。
+EnvironmentFile=/home/%i/pi_agent/.env
 
-從 .env 載入環境變數，路徑前的 '-' 表示即使檔案不存在也不會報錯。
-EnvironmentFile=-/home/%i/pi_agent/.env
+--- 主要執行指令 ---
+執行 serve_hls.py 腳本，啟動網頁伺服器。
+ExecStart=/usr/bin/python3 /home/%i/pi_agent/serve_hls.py
 
-額外環境變數設定。
-Environment=PYTHONUNBUFFERED=1
-Environment=HOME=/home/%i
-
-啟動的主程式。
-ExecStart=/usr/bin/python3 -u /home/%i/pi_agent/http_agent.py
-
-服務重啟策略：無論如何都自動重啟。
+--- 服務重啟策略 ---
+無論如何都自動重啟。
 Restart=always
 
-重啟間隔 3 秒。
-RestartSec=3
-
-停止服務的超時時間。
-TimeoutStopSec=15
-
-停止服務時只終止主程序。
-KillMode=process
-
-安全性設定。
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=full
-
-日誌輸出：標準輸出到 journald，標準錯誤繼承。
-StandardOutput=journal
-StandardError=inherit
+重啟間隔 1 秒。
+RestartSec=1
 
 [Install]
-
-指定開機時自動啟動的目標。
 WantedBy=multi-user.target
 ```
 
