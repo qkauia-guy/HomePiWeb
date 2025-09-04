@@ -1,0 +1,46 @@
+[Unit]
+Description=HomePi Camera HLS Stream (Low-Latency TS) for user %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%i
+Group=%i
+SupplementaryGroups=video
+WorkingDirectory=/home/%i/pi_agent/stream
+
+EnvironmentFile=/home/%i/pi_agent/.env
+Environment=PYTHONUNBUFFERED=1
+
+ExecStartPre=/usr/bin/mkdir -p /home/%i/pi_agent/stream
+ExecStartPre=/usr/bin/rm -f /home/%i/pi_agent/stream/index.m3u8.tmp
+ExecStartPre=/usr/bin/rm -f /home/%i/pi_agent/stream/index.m3u8
+ExecStartPre=/usr/bin/rm -f /home/%i/pi_agent/stream/seg_*.ts
+
+ExecStart=/usr/bin/bash -lc 'set -o pipefail; \
+/usr/bin/rpicam-vid -t 0 \
+  --width 1280 --height 720 --framerate 30 \
+  --codec h264 --profile baseline --level 4.0 \
+  --intra 15 --inline --nopreview \
+  --libav-format h264 -o - \
+| \
+/usr/bin/ffmpeg -loglevel warning -fflags +genpts -use_wallclock_as_timestamps 1 \
+  -f h264 -i - -c:v copy -an \
+  -f hls -hls_time 0.5 -hls_list_size 3 -start_number 1 \
+  -hls_flags delete_segments+append_list+program_date_time+independent_segments+temp_file \
+  -hls_segment_filename /home/%i/pi_agent/stream/seg_%%05d.ts \
+  /home/%i/pi_agent/stream/index.m3u8'
+
+Restart=on-failure
+RestartSec=2s
+KillSignal=SIGINT
+TimeoutStopSec=10
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ReadWritePaths=/home/%i/pi_agent/stream
+
+[Install]
+WantedBy=multi-user.target

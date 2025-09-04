@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-utils/auto_light.py  (optimized)
+utils/auto_light.py  (reconfigure-safe)
 - 背景執行緒：讀 BH1750 → 依門檻 + 去抖動控制 LED
-- 立即回推狀態：燈真正切換時呼叫外部 callback（通常是 http.ping(extra={"state": ...})）
+- 燈真正切換時會呼叫外部 callback（通常 http.ping(extra={"state": ...})）
 - 可查詢狀態：get_state()
 """
 
@@ -11,7 +11,6 @@ import threading
 import time
 from typing import Optional, Dict, Any, Callable
 
-# 你的模組
 from devices.bh1750 import BH1750
 from devices import led as led_mod
 
@@ -26,7 +25,7 @@ _led_name: Optional[str] = None
 _is_on: bool = False
 _last_change_ts: Optional[float] = None
 
-# 外部註冊：當 state 改變時要做什麼（例如呼叫 http.ping(...)）
+# 燈狀態改變時的回推（由外部註冊，如 http_agent 設定 http.ping）
 _push_state_cb: Optional[Callable[[], None]] = None
 
 
@@ -57,7 +56,7 @@ def _resolve_sensor_cfg(
     cfg: Dict[str, Any], sensor_name: str
 ) -> Optional[Dict[str, int]]:
     """
-    從 YAML cfg['devices'] 找到 name= sensor_name 的 bus/addr；若找不到，嘗試由名稱 'bh1750-<bus>-<addr>'
+    從 YAML cfg['devices'] 找到 name= sensor_name 的 bus/addr；若找不到，嘗試 'bh1750-<bus>-<addr>'
     """
     devs = (cfg or {}).get("devices") or []
     for d in devs:
@@ -68,12 +67,10 @@ def _resolve_sensor_cfg(
             )
             return {"bus": bus, "addr": addr}
 
-    # name 形如 bh1750-1-23
     try:
         if sensor_name.lower().startswith("bh1750-"):
             _, b, a = sensor_name.split("-", 2)
             bus = _to_int(b, 1)
-            # addr 可能是 0x23 或 35 或 '23'
             a_str = str(a).lower().replace("0x", "")
             addr = (
                 int(a_str, 16)
@@ -133,7 +130,6 @@ def get_state() -> dict:
 # ===== 主工作執行緒 =====
 def _worker(cfg: Dict[str, Any]):
     global _stop_evt, _running_flag, _is_on, _last_change_ts, _led_name
-
     # ---- 讀設定（含邊界保護）----
     auto = (cfg or {}).get("auto_light", {}) or {}
     if not _to_bool(auto.get("enabled"), False):
@@ -146,11 +142,10 @@ def _worker(cfg: Dict[str, Any]):
     off_above = max(
         on_below + 1e-6, _to_float(auto.get("off_above", 120.0), 120.0)
     )  # 確保回滯
-    every_ms = max(200, _to_int(auto.get("sample_every_ms", 1000), 1000))  # 下限 200ms
+    every_ms = max(200, _to_int(auto.get("sample_every_ms", 1000), 1000))
     need_n = max(1, _to_int(auto.get("require_n_samples", 3), 3))
     debug = _to_bool(auto.get("debug"), False)
     log_every = max(0, _to_int(auto.get("log_every", 0), 0))
-
     # 解析感測器 bus/addr
     sconf = _resolve_sensor_cfg(cfg, sensor_name)
     if not sconf:
@@ -165,14 +160,19 @@ def _worker(cfg: Dict[str, Any]):
     except Exception:
         led_mod.setup_led(cfg)
 
-    # 建立感測器
+    # 初始化 _is_on 以硬體真實狀態為準
+    try:
+        _is_on = bool(led_mod.is_on(_led_name))
+    except Exception:
+        _is_on = False
+
     sensor: Optional[BH1750] = None
     try:
         sensor = BH1750(bus=bus, addr=addr)
         print(
             f"[auto_light] 啟動，sensor={sensor_name} -> bus={bus} addr=0x{addr:02x}, "
             f"led={_led_name or '(default)'} on_below={on_below} off_above={off_above}, "
-            f"every={every_ms}ms need_n={need_n}"
+            f"every={every_ms}ms need_n={need_n} is_on={_is_on}"
         )
     except Exception as e:
         print(f"[auto_light] 建立 BH1750 失敗：{e}")
@@ -183,7 +183,6 @@ def _worker(cfg: Dict[str, Any]):
     above_cnt = 0
     loop = 0
 
-    # 進入執行狀態
     try:
         # warm-up：先讀一次，立刻回推一次初始狀態
         lux0 = None
@@ -192,7 +191,7 @@ def _worker(cfg: Dict[str, Any]):
             _set_last_lux(lux0)
         except Exception as e:
             print(f"[auto_light] warm-up 讀取失敗：{e}")
-        _push_state_now()  # 讓 UI 先拿到初始 lux / running
+        _push_state_now()
 
         while not _stop_evt.is_set():
             try:
@@ -231,7 +230,7 @@ def _worker(cfg: Dict[str, Any]):
                     below_cnt = 0
                     _last_change_ts = time.time()
                     print(f"[auto_light] lux={lux:.2f} → 開燈")
-                    _push_state_now()  # ★ 立即回推
+                    _push_state_now()
 
                 # 關燈
                 elif _is_on and above_cnt >= need_n:
@@ -240,7 +239,7 @@ def _worker(cfg: Dict[str, Any]):
                     above_cnt = 0
                     _last_change_ts = time.time()
                     print(f"[auto_light] lux={lux:.2f} → 關燈")
-                    _push_state_now()  # ★ 立即回推
+                    _push_state_now()
 
                 if _stop_evt.wait(every_ms / 1000.0):
                     break
@@ -263,16 +262,20 @@ def _worker(cfg: Dict[str, Any]):
 
 # ===== 對外 API =====
 def start_auto_light(cfg: Dict[str, Any]) -> None:
-    """啟動（若已在跑就直接回報『已在執行中』）"""
+    """
+    啟動/重新啟動（若已在跑就先停再啟，確保新參數生效）
+    """
     global _running_flag, _thread
     with _running_lock:
         if _running_flag:
-            print("[auto_light] 已在執行中。")
-            return
+            # 先乾淨停掉舊執行緒
+            try:
+                stop_auto_light(wait=True)
+            except Exception as e:
+                print("[auto_light] restart stop err:", e)
         _running_flag = True
-        # 重置狀態
-        _set_last_lux(None)
-        # 不去猜硬體狀態，由 led_mod.is_on 真實回
+        _set_last_lux(None)  # 重新啟動時清掉顯示
+
     t = threading.Thread(target=_worker, args=(cfg,), daemon=True)
     _thread = t
     t.start()

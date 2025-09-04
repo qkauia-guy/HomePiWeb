@@ -5,11 +5,12 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=qkauia
-WorkingDirectory=/home/qkauia/pi_agent
-EnvironmentFile=/home/qkauia/pi_agent/.env
+User=%i
+Group=%i
+WorkingDirectory=/home/%i/pi_agent
+EnvironmentFile=/home/%i/pi_agent/.env
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 /home/qkauia/pi_agent/http_agent.py
+ExecStart=/usr/bin/python3 /home/%i/pi_agent/http_agent.py
 
 Restart=always
 RestartSec=3

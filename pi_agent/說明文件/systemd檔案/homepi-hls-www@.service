@@ -5,8 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=qkauia
-ExecStart=/usr/bin/python3 /home/qkauia/pi_agent/serve_hls.py
+User=%i
+Group=%i
+
+EnvironmentFile=/home/%i/pi_agent/.env
+ExecStart=/usr/bin/python3 /home/%i/pi_agent/serve_hls.py
 Restart=always
 RestartSec=1
 
