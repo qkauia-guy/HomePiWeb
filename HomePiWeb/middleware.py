@@ -64,7 +64,7 @@ class RequireGroupMiddleware:
         if (
             path.startswith("/hls/")
             or path.startswith("/api/device/")
-            or path.startswith("/device_pull")
+            or path.startswith("/device_pull/")
             or path.startswith("/device_ack")
             or path.startswith("/static/")
             or path.startswith("/media/")
