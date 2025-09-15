@@ -28,6 +28,11 @@ class Group(models.Model):
         # 你的群組詳情頁 URL name 若不同，請改掉 'group_detail'
         return reverse("group_detail", kwargs={"group_id": self.pk})
 
+    class Meta:
+        # 後台顯示中文名稱
+        verbose_name = "群組"
+        verbose_name_plural = "群組"
+
 
 class GroupMembership(models.Model):
     ROLE_CHOICES = [
@@ -44,6 +49,8 @@ class GroupMembership(models.Model):
 
     class Meta:
         unique_together = [("user", "group")]
+        verbose_name = "群組成員"
+        verbose_name_plural = "群組成員"
 
     def __str__(self):
         return f"{self.user.email} @ {self.group.name} ({self.role})"
@@ -60,6 +67,8 @@ class GroupDevice(models.Model):
 
     class Meta:
         unique_together = [("group", "device")]
+        verbose_name = "群組裝置關聯"
+        verbose_name_plural = "群組裝置關聯"
 
     def __str__(self):
         who = self.added_by.email if self.added_by else "unknown"
@@ -114,6 +123,8 @@ class DeviceShareRequest(models.Model):
             models.Index(fields=["group", "status"]),
             models.Index(fields=["requester", "status"]),
         ]
+        verbose_name = "裝置分享申請"
+        verbose_name_plural = "裝置分享申請"
 
     def __str__(self):
         return f"[{self.status}] {self.requester} → {self.group} / {self.device}"
@@ -153,6 +164,8 @@ class GroupShareGrant(models.Model):
             )
         ]
         indexes = [models.Index(fields=["group", "is_active"])]
+        verbose_name = "群組分享權限"
+        verbose_name_plural = "群組分享權限"
 
     def is_valid(self) -> bool:
         return self.is_active and (
@@ -184,6 +197,8 @@ class GroupDevicePermission(models.Model):
             models.Index(fields=["group", "user"]),
             models.Index(fields=["group", "device"]),
         ]
+        verbose_name = "群組裝置權限"
+        verbose_name_plural = "群組裝置權限"
 
     def __str__(self):
         state = "allow" if self.can_control else "deny"

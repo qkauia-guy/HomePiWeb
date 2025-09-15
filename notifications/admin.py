@@ -29,11 +29,11 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "user",
-        "kind",
+        "kind_zh",
         "event",
         "title",
-        "is_read",
-        "created_at",
+        "is_read_zh",
+        "created_at_zh",
         "expires_at",
         "group",
         "device",
@@ -69,4 +69,20 @@ class NotificationAdmin(admin.ModelAdmin):
             return "-"
         return f"{obj.target_content_type.model}#{obj.target_object_id}"
 
-    target_repr.short_description = "Target"
+    target_repr.short_description = "目標"
+
+    @admin.display(description="類型")
+    def kind_zh(self, obj: Notification):
+        mapping = {
+            "member": "成員/群組",
+            "device": "裝置",
+        }
+        return mapping.get(obj.kind, obj.kind)
+
+    @admin.display(boolean=True, description="已讀")
+    def is_read_zh(self, obj: Notification):
+        return obj.is_read
+
+    @admin.display(description="建立時間")
+    def created_at_zh(self, obj: Notification):
+        return obj.created_at
