@@ -9,10 +9,10 @@ from pi_devices.views import api as api_views
 
 
 def index_or_health(request):
+    # 已登入 → 導到首頁
     if request.user.is_authenticated:
         return redirect("home")
-    # 未登入時回 200 OK，避免誤打根目錄時跳轉到 /login/
-    return HttpResponse("OK", content_type="text/plain", status=200)
+    return redirect("login")
 
 
 urlpatterns = [
