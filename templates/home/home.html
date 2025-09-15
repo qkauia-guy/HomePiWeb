@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'home_pi_web/css/home.css' %}">
+<link rel="stylesheet" href="{% static 'home_pi_web/css/home.css' %}?v=20250908">
+
 <script>window.HOME_URL = "{% url 'home' %}";</script>
 {% endblock %}
 
@@ -30,6 +31,10 @@
       <script src="{% static 'home_pi_web/js/home/home.polling.js' %}"></script>
       <script src="{% static 'home_pi_web/js/home/home.toggles.js' %}"></script>
       <script src="{% static 'home_pi_web/js/home/home.light-card.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.locker-card.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.logs.js' %}"></script>
+      <script src="{% static 'home_pi_web/js/home/home.chart.js' %}"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% else %}
       <div class="alert alert-info">目前沒有包含你的群組。</div>
     {% endif %}
@@ -38,6 +43,66 @@
   <div class="container my-5">
     {% include "home/_status_cards.html" %}
   </div>
+
+
+  <!-- 裝置心跳紀錄與圖表區塊 -->
+<div class="container my-5" id="deviceLogsWrapper" style="display:none;">
+  <button class="accordion-btn w-100 text-start" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#deviceLogsCollapse" 
+          aria-expanded="false" 
+          aria-controls="deviceLogsCollapse">
+    <span> 裝置狀態紀錄 </span>
+    <span class="toggle-icon float-end">&#9662;</span>
+  </button>
+
+  <div class="collapse" id="deviceLogsCollapse">
+    <div class="card card-body bg-dark text-light border-secondary mt-2">
+      <table id="deviceLogsTable" class="table table-dark table-bordered mb-0">
+        <thead>
+          <tr>
+            <th>時間</th>
+            <th>狀態</th>
+            <th>IP</th>
+            <th>CPU</th>
+            <th>記憶體</th>
+            <th>溫度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" class="text-muted text-center">請先選擇裝置</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 裝置狀態圖表區塊 -->
+    <div class="mt-3">
+      <button class="accordion-btn w-100 text-start"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#deviceLogsChartCollapse"
+              aria-expanded="false"
+              aria-controls="deviceLogsChartCollapse">
+        <span> 裝置狀態圖表 </span>
+        <span class="toggle-icon float-end">&#9662;</span>
+      </button>
+
+      <div class="collapse" id="deviceLogsChartCollapse">
+        <div class="card card-body bg-dark text-light border-secondary mt-2">
+          <div id="deviceLogsContainer">
+            <canvas id="deviceLogsChart" height="200"></canvas>
+            <div id="statusBar" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
   
 

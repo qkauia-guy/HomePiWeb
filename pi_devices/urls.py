@@ -43,6 +43,7 @@ urlpatterns = [
     ),
     # 若你有既有 agent 用到無斜線版本，保留兼容
     path("device_pull/", api_views.device_pull, name="device_pull"),
+    # path("device_pull", api_views.device_pull),
     path("device_ack/", api_views.device_ack, name="device_ack"),
     # Camera 控制/查詢
     path(
@@ -73,4 +74,5 @@ urlpatterns = [
         device_views.upcoming_schedules,
         name="upcoming_schedules",
     ),
+    path("api/device/<int:device_id>/logs/", api_views.device_logs, name="device_logs"),
 ]

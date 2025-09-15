@@ -8,7 +8,7 @@ import urllib.parse  # 用於解析 URL
 # --- 全域設定 ---
 # 設定 HLS 串流檔案（.m3u8 和 .ts）所在的根目錄
 # 伺服器會將此目錄作為提供檔案的基礎路徑
-HLS_ROOT = "/home/qkauia/pi_agent/stream"
+HLS_ROOT = os.path.expanduser("~/pi_agent/stream")
 
 
 # --- 自訂請求處理器 ---

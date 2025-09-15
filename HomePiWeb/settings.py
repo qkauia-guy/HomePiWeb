@@ -87,6 +87,7 @@ WSGI_APPLICATION = "HomePiWeb.wsgi.application"
 #     }
 # }
 
+# DATA(PG)
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DATABASE_ENGINE"),
@@ -97,6 +98,13 @@ DATABASES = {
         "PORT": int(os.getenv("DATABASE_PORT")),
         "CONN_MAX_AGE": int(os.getenv("DATABASE_CONN_MAX_AGE")),
     }
+}
+
+# DATA(Mango)
+MONGO_CONFIG = {
+    "HOST": "localhost",
+    "PORT": 27017,
+    "DB_NAME": "homepi_logs",
 }
 
 

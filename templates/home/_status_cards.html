@@ -293,15 +293,26 @@
     </div>
   </div>
 
-  <!-- 門鎖 -->
+  <!-- 電子鎖 -->
   <div class="col-md-4">
-    <div class="card h-100 techno-card">
-      <div class="card-body">
+    <div class="card h-100 techno-card techno-sweep"
+         id="lockerCard"
+         data-cap-id=""
+         data-group-id="{{ group_id|default:'' }}">
+      <div class="card-body pb-4">
         <h5 class="card-title d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-door-closed me-2"></i> 門鎖</span>
-        <span class="badge h6 bg-secondary px-3 py-1 rounded-pill mt-1">已上鎖</span>
+          <span><i class="bi bi-door-closed me-2"></i> 電子鎖</span>
+          <span class="status-bar">
+            <!-- 工業風金屬轉圈圈（預設隱藏，JS 控制 d-none 顯示/隱藏） -->
+            <span id="lockerBadge" class="badge h6 bg-secondary px-3 py-1 rounded-pill mt-1">未綁定</span>
+            <span id="lockerSpinner" class="spinner-industrial d-none mb-1" aria-label="loading"></span>
+          </span>
         </h5>
-        <p class="card-text fs-6 mb-0">最後操作： <span class="fw-semibold">5 分鐘前</span></p>
+        <p id="lockerText" class="card-text fs-6 mb-0">請先從上方選擇「電子鎖」能力</p>
+        <div class="small text-muted mt-2">
+          <i class="bi bi-shield-check me-1"></i> 狀態： <span id="lockerStatusText"> 未連接 </span><br>
+          <i class="bi bi-clock me-1"></i> 自動上鎖： <span id="lockerAutoText"> 未啟用 </span>
+        </div>
       </div>
     </div>
   </div>
