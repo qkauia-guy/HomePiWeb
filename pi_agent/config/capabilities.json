@@ -23,5 +23,19 @@
     },
     "order": 2,
     "enabled": true
+  },
+  {
+    "kind": "locker",
+    "name": "電子鎖",
+    "slug": "main-door",
+    "config": {
+      "button_pin": 27,
+      "servo_pin": 18,
+      "led_green": 23,
+      "led_red": 22,
+      "auto_lock_delay": 10
+    },
+    "order": 3,
+    "enabled": true
   }
 ]

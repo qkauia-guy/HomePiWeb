@@ -1,491 +1,463 @@
-<!-- markdownlint-disable -->
-
-#### ＊設備初始設定建構：
-
-1. 每組設備擁有一組**QRcode**和**密碼**，讓用戶連結建立帳號、開通設備、綁定設備
-2. 用戶開通設備，設定用戶 ping 到樹梅派
-
-| 流程                                              | 說明                                                                                 | 備註                                      |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------- |
-| ① 設備出廠                                        | 樹梅派（或 ESP32）會有一組唯一設備 ID、對應初始密碼、QR Code（可編碼為網址 + token） | ex: https://example.com/bind?token=abc123 |
-| ② 用戶掃碼                                        | 掃描 QR Code → 導向「用戶註冊和開通設備頁面」                                        | 前端用手機開啟                            |
-| ③ 輸入驗證備密碼                                  | 驗證是合法擁有者                                                                     | 確保不是亂掃亂綁                          |
-| ④ 綁定帳號 + 開通設備                             | 建立 Device.user_id = request.user.id，同時設備進入啟用狀態                          | 開始記錄使用者是誰開通的                  |
-| ⑤ 通知樹梅派設備                                  | Django 發一個 ping / POST 給該設備 IP，讓設備得知「被誰開通了」                      | 可做基本 handshake，例如 POST /register   |
-| ⑥ 設備收到 user_id 或 token 後登入平台 / 記錄狀態 | 樹梅派可以將資訊儲存本地或回報                                                       | 建立起雙向綁定基礎                        |
-
----
-
-#### ＊使用者角色:
-
-- **SuperAdmin**： 擁有裝置密碼的角色,具有最高權限(一台裝置只有一位 SuperAdmin)，管理群組、指派 Admin 權限，管理設備參數。
-- **Admin**： 被授權管理設備的角色(不能直接註冊)，協助管理管理設備參數，但不能管理群組和指派權限。
-- **User**： 一般使用者角色(受邀請連結註冊的用戶)，只能操作最基本的設備行為。
-
-#### ＊權限比較表：
-
-| 權限                                     | User | Admin | SuperAdmin |
-| ---------------------------------------- | ---- | ----- | ---------- |
-| 操作智能家電                             | ✅   | ✅    | ✅         |
-| 編輯個人資料                             | ✅   | ✅    | ✅         |
-| 設定設備參數（基本參數，如風速）         | ✅   | ✅    | ✅         |
-| 設定設備參數（環境參數，如自動觸發條件） | ❌   | ✅    | ✅         |
-| 設備重命名                               | ❌   | ✅    | ✅         |
-| 成員邀請 / 建立註冊頁                    | ❌   | ❌    | ✅         |
-| 成員加入審核 / 通知查看                  | ❌   | ❌    | ✅         |
-| 指定/取消 Admin 權限                     | ❌   | ❌    | ✅         |
-| 群組建立 / 刪除                          | ❌   | ❌    | ✅         |
-
-##### ▶ User 權限：
-
-1. 會員資料修改
-2. 智能家電操作
-
-##### ▶ Admin 權限：
-
-0. 包含 **User 權限**
-1. 後台管理：
-
-- **設備管理：**
-  - 設備自訂義名稱
-  - 家電設備參數設定
-
-##### ▶ SuperAdmin 使用者權限：
-
-0. 包含 **User 權限** 以及 **Admin 權限**
-1. 群組管理 建立 / 移除
-2. **授權 Admin 權限** / **移除 Admin 權限**
-3. 後台管理：
-
-- **設備管理：**
-  - 設備自訂義名稱
-  - 家電設備參數設定
-- **成員管理：**
-  - 生成分享邀請成員頁面 (時效性生成一般成員註冊頁面)
-  - 成員加入通知
-  - 成員加入審核
-
----
-
-#### ＊模組功能：
-
-1. 解鎖：
-
-- 人臉辨識：
-  - 設定方式： 現在完全沒概念
-- 遠端解鎖：
-  - 解鎖安全參數調整： 分高低安全等級，根據等級來實現解鎖條件
-    - 低安全度解鎖方式：不需驗證或是特別的操作就可以解鎖
-    - 高安全度解鎖方式：可能要雙重驗證之類才能解鎖
-- 進出紀錄：
-  - 計算進出次數
-  - 顯示有誰在家(已有辨識人臉的人數)
-  - 家裡總共幾個人
-- 自定義通知參數：
-  - 門口警告/歡迎通知：特定人臉設定門口通知方式(警告或歡迎)
-  - 陌生人通知：幫陌生人拍照存證之類
-  - 一律遠端通知：用戶即時通知
-
-2. 監控：
-
-- 遠端即時監控：
-- 錄影：
-  - 設定自動錄影時段
-  - 設定解析度
-  - 回放錄影
-- 自定義通知參數：
-  - 記憶卡即將滿
-  - 間格性回傳家裡影像影片
-
-3. 智能家電：
-
-- 電風扇：
-  - 遠端控制： 控制開關方向風速
-  - 自動控制： 溫度感應自動控制風速
-  - 耗電量統計
-- 電燈開關：
-  - 遠端控制：控制開關明亮度
-  - 自動控制：明亮感應自動啟動點燈數量以及亮度
-  - 耗電量統計
-
----
-
-#### ＊通知機制：
-
-- 會員/群組通知
-- 設備通知
-
----
-
-#### ＊頁面操作流程：
-
-- 後台管理頁面： 預設後台設備管理列表
-- 後台設備列表頁面：會顯示當前設備的 SuperAdmin 擁有者
-- 後台群組管理頁面：預設後台群組列表
-- 如果原先只是 User，開通新裝置角色直接升為 SuperAdmin
-
-###### ▶ 初次註冊(SuperAdmin)：🅥
-
-1. 機器擁有者(Admin)掃機台上的 QRcode(帶入 token)
-2. 進入**SuperAdmin**註冊頁面
-3. 點選還不是會員，進行註冊
-4. **驗證機台密碼**
-5. 填入基本表單(會員資料)
-6. alert 註冊成功
-7. 轉跳<u>後台管理頁面(後台設備列表)</u>
-8. 發送註冊成功歡迎通知(通知分類：會員群組/個人)
-
-###### ▶ 新設備開通(已經是會員)-允許群組共享設備(SuperAdmin)：🅥
-
-1. 機器擁有者(Admin)掃機台上的 QRcode
-2. 進入**SuperAdmin**註冊頁面
-3. 點選<u>已經是會員，開通設備</u>
-4. **驗證機台密碼**
-5. 轉跳<u>設備權限設定頁面</u>
-6. 設備是否群組共享？Yes
-7. 設備開通設定成功
-8. 轉跳<u>後台管理(後台設備列表)</u>
-9. 發送開通成功通知(通知分類：會員群組/群組)
-
-> 備註：如果原先只是 User 角色，開通新設備角色直接升為 SuperAdmin
-
-###### ▶ 新設備開通-不共享設備(SuperAdmin)：🅥
-
-1. 機器擁有者(Admin)掃機台上的 QRcode
-2. 進入**SuperAdmin**註冊頁面
-3. 點選<u>已經是會員，開通設備</u>
-4. **驗證機台密碼**
-5. 轉跳<u>設備權限設定頁面</u>
-6. 設備是否群組共享？No
-7. 設備開通設定成功
-8. 轉跳<u>後台管理(後台設備列表)</u>
-9. 發送開通成功通知(通知分類：會員群組/個人)
-
-> 備註：如果原先只是 User 角色，開通新設備角色直接升為 SuperAdmin。
-> 可以選擇群組不共享設備或是自己建立新群組
-> 當然也可以不授權 Admin 權限
-
-###### ▶ 後台群組管理-建立群組(SuperAdmin)：🅥
-
-0. <u>後台管理頁面(後台設備列表)</u>
-1. 進入<u>群組管理(群組列表)</u>
-2. 點選建立群組
-3. 輸入群組表單
-4. 建立群組成功
-5. 轉跳<u>群組列表</u>
-6. 發送建立群組通知(通知分類：會員群組/個人)
-
-###### ▶ 後台群組管理-編輯群組(SuperAdmin)：🅥
-
-0. <u>後台管理頁面(後台設備列表)</u>
-1. 進入<u>群組管理(群組列表)</u>
-2. 點選編輯群組
-3. 輸入更新群組資訊
-4. 更新群組成功
-5. 轉跳<u>群組列表</u>
-6. 發送更新群組通知(通知分類：會員群組/群組)
-
-###### ▶ 後台群組管理-刪除群組(SuperAdmin)：🅥
-
-0. <u>後台管理頁面(後台設備列表)</u>
-1. 進入<u>群組管理(群組列表)</u>
-2. 點選刪除群組
-3. 驗證 Admin 密碼
-4. alert 提醒刪除動作
-5. alert 刪除群組成功
-6. 後端移除成員分享過的權限
-7. 轉跳<u>群組管理(群組列表)</u>
-8. 發送刪除群組通知(通知分類：會員群組/群組)
-
-###### ▶ 後台邀請成員(SuperAdmin)：🅥
-
-0. <u>後台管理頁面(後台設備列表)</u>
-1. 進入<u>群組管理(群組列表)</u>
-2. 進入<u>成員管理(成員列表)</u>
-3. 點選新增成員
-4. 確認分享的設備資訊
-5. 分享邀請成員連結(帶入時效 token，一次性使用)
-6. 選擇分享方式(Email, Line?)
-7. alert 分享成功
-8. 轉跳<u>成員管理(成員列表)</u>
-9. 發送邀請成功通知(通知分類：會員群組/雙方)
-
-###### ▶ 後台移除成員(SuperAdmin)：🅥
-
-0. <u>後台管理頁面(後台設備列表)</u>
-1. 進入<u>群組管理(群組列表)</u>
-2. 進入<u>成員管理(成員列表)</u>
-3. 點選刪除成員
-4. 刪除 alert 提醒
-5. 驗證 SuperAdmin 的密碼
-6. 轉跳<u>成員管理(成員列表)</u>
-7. 發送移除成功通知(通知分類：會員群組/群組)
-
-###### ▶ 後台群組共享和授權 Admin 權限(SuperAdmin)：🅥
-
-0. <u>後台管理頁面(後台設備列表)</u>
-1. 進入<u>群組管理(群組列表)</u>
-2. 是否授權設備權限? Yes
-3. 勾選授權 User Name
-4. 授權送出
-5. 授權成功
-6. 轉跳<u>群組管理(群組列表)</u>
-7. 發送授權成功通知(通知分類：會員群組/群組)
-
-###### ▶ 後台設備管理(SuperAdmin, Admin)：
-
-0. <u>後台管理頁面(後台設備列表)</u>
-1. 對應設備點選設定
-2. 摺疊區塊顯示表單設定參數
-3. 設定成功
-4. 轉跳<u>後台管理頁面(後台設備列表)</u>
-5. 發送設定成功通知(通知分類：設備/SuperAdmin, Admin)
-
-###### ▶ 修改會員資料(SuperAdmin, Admin, User)：
-
-0. navbar 點選修改會員資料
-1. 進入表單修正
-2. 確認密碼
-3. 送出
-4. 發送授權成功通知(通知分類：會員群組/個人)
-
-###### ▶ 忘記密碼(初始化)(SuperAdmin)：
-
-0. 登入頁面
-1. 點選忘記密碼
-2. alert 提醒密碼重置設備將會初始化
-3. 確認設備重置初始化
-4. 輸入設備密碼
-5. 設備資料清除重置
-6. 請重新掃描設備 QRcode 進行註冊
-
-> 目前沒有 e-mail 通知功能，尚可討論密碼重設方式
-
-###### ▶ 忘記密碼(Admin, User)：
-
-0. 登入頁面
-1. 點選忘記密碼
-2. 將重設密碼請求轉為通知 SuperAdmin
-3. 輸入預設密碼登入
-4. 轉跳修改密碼頁面
-5. 修改密碼
-6. 發送修改密碼成功通知(通知分類：會員群組/個人)
-
-> SuperAdmin 在後台群主管理/成員管理/選擇該用戶重設密碼
-> 目前沒有 e-mail 通知功能，尚可討論密碼重設方式
-
-###### ▶ 加入群組(Admin, User)：🅥
-
-0. 點擊分享連結
-1. 確認登入狀況(如果為登入轉跳到<u>登入頁面</u>)
-2. 確認設備資訊
-3. 點擊確認加入群組
-4. 轉跳<u>群組管理(群組列表)</u>
-5. 發送加入成功通知(通知分類：會員群組/群組)
-
-###### ▶ 加入群組(未註冊會員狀況)：🅥
-
-0. 點擊分享連結
-1. 確認登入狀況(如果為登入轉跳到<u>登入頁面</u>)
-2. **若沒有帳號**前往<u>註冊頁面</u>
-3. 確認設備資訊
-4. 點擊確認加入群組
-5. 轉跳<u>群組管理(群組列表)</u>
-6. 發送加入成功通知(通知分類：會員群組/群組)
-
-###### ▶ 不加入群組(Admin, User)：🅥
-
-0. 點擊通知
-1. 確認登入狀況(如果為登入轉跳到<u>登入頁面</u>)
-2. **若沒有帳號**前往<u>註冊頁面</u>
-3. 確認設備資訊
-4. 點擊不加入群組
-5. 轉跳<u>首頁</u>
-6. 發送拒絕加入通知(通知分類：會員群組/SuperAdmin)
-
-###### ▶ 前台設備控制(SuperAdmin, Admin, User)：
-
-0. <u>前台設備列表(首頁)</u>
-1. 所有設備狀態、開關、控制都在同一個頁面操作呈現
-2. 有權限的角色可以顯示其他控制連結進行參數設定
-
-#### ＊頁面整理：
-
-| 編號 | 頁面名稱                         | 說明                                          |
-| ---- | -------------------------------- | --------------------------------------------- |
-| 1    | 登入頁面                         | 含「忘記密碼」按鈕                            |
-| 2    | 註冊頁（SuperAdmin / 一般成員）  | 同一個頁面透過 QR/Token 判斷進哪種註冊模式    |
-| 3    | 重設密碼頁                       | 輸入預設密碼或 QR 驗證後 → 新密碼設定         |
-| 4    | 修改會員資料頁                   | 所有角色共用，依權限控制欄位                  |
-| 5    | 設備開通頁（QR 驗證 + 權限設定） | 原本兩頁整合為一頁：驗證後進入共享設定        |
-| 6    | 前台設備控制頁                   | 所有有權限的用戶共用                          |
-| 7    | 群組列表 + 群組建立/編輯共用頁   | 建立 / 編輯群組使用同一個表單 template        |
-| 8    | 成員列表 + 邀請 / 移除共用頁     | 操作用 modal 彈出邀請或移除                   |
-| 9    | 設備列表 + 設定共用頁            | 點設備進行參數設定 / 重命名（右側或下方展開） |
-| 10   | 忘記密碼（SuperAdmin）頁         | 設備初始化流程                                |
-| 11   | 授權管理頁                       | 授權 Admin、共享設備 → 可用 checkbox 控制     |
-| 12   | 加入群組頁                       | 點擊邀請連結 → 確認加入或拒絕群組             |
-| 13   | 訊息通知頁                       | 若你要有系統通知記錄，可集中在這一頁          |
-
-精簡後頁數總計：13 頁
-
----
-
-#### ＊系統技術架構（本地開發）
-
-| 類別     | 技術/工具                    |
-| -------- | ---------------------------- |
-| 前端     | Node.js + React              |
-| 後端     | Python + Django + DRF        |
-| 資料庫   | **MySQL（phpMyAdmin 管理）** |
-| 通知服務 | Discord Bot（本機執行）      |
-| 虛擬環境 | Poetry + `.venv`             |
-
-> Django REST Framework 是一個 專門用來建立 API 的 Django 擴充工具包，幫助你把資料（例如資料庫中的模型）變成前端（例如 React）或其他裝置能讀懂的 JSON 格式 API。
-
----
-
-#### 資料架構：
-
-###### ▶ User（使用者）
-
-| 欄位名稱   | 資料型別              | 說明               |
-| ---------- | --------------------- | ------------------ |
-| id         | Integer (Primary Key) | 使用者主鍵 ID      |
-| email      | EmailField            | 使用者信箱（唯一） |
-| password   | CharField(128)        | 密碼（加密儲存）   |
-| name       | CharField(50)         | 使用者姓名         |
-| is_admin   | BooleanField          | 是否為管理員       |
-| created_at | DateTimeField         | 註冊時間           |
-
----
-
-###### ▶ RaspberryPi（樹莓派主機）
-
-| 欄位名稱       | 資料型別              | 說明           |
-| -------------- | --------------------- | -------------- |
-| id             | Integer (Primary Key) | 主鍵 ID        |
-| name           | CharField(50)         | 主機名稱       |
-| ip_address     | IPAddressField        | IP 位址        |
-| memory_status  | CharField(50)         | 記憶體使用狀態 |
-| storage_status | CharField(50)         | 硬碟使用狀態   |
-| created_at     | DateTimeField         | 建立時間       |
-
----
-
-###### ▶ Module（模組）
-
-| 欄位名稱     | 資料型別                 | 說明                                 |
-| ------------ | ------------------------ | ------------------------------------ |
-| id           | Integer (Primary Key)    | 模組 ID                              |
-| name         | CharField(20)            | 模組名稱（例如：解鎖 / 監控 / 家電） |
-| raspberry_pi | ForeignKey → RaspberryPi | 所屬的樹莓派主機（外鍵）             |
-
----
-
-###### ▶ OperationLog（操作紀錄）
-
-| 欄位名稱        | 資料型別              | 說明               |
-| --------------- | --------------------- | ------------------ |
-| id              | Integer (Primary Key) | 紀錄 ID            |
-| user            | ForeignKey → User     | 操作者（外鍵）     |
-| module          | ForeignKey → Module   | 操作的模組（外鍵） |
-| action          | CharField(100)        | 操作行為描述       |
-| timestamp       | DateTimeField         | 操作時間           |
-| additional_info | TextField             | 補充資訊（選填）   |
-
----
-
-###### ▶ UnlockSchedule / RecordSchedule（排程設定）
-
-| 欄位名稱   | 資料型別              | 說明             |
-| ---------- | --------------------- | ---------------- |
-| id         | Integer (Primary Key) | 主鍵 ID          |
-| module     | ForeignKey → Module   | 所屬模組（外鍵） |
-| start_time | TimeField             | 開始時間         |
-| end_time   | TimeField             | 結束時間         |
-
----
-
-###### ▶ SmartDevice（智能裝置）
-
-| 欄位名稱    | 資料型別              | 說明                   |
-| ----------- | --------------------- | ---------------------- |
-| id          | Integer (Primary Key) | 裝置 ID                |
-| module      | ForeignKey → Module   | 所屬模組（外鍵）       |
-| device_type | CharField(10)         | 裝置類型（風扇、燈等） |
-| is_on       | BooleanField          | 開啟狀態               |
-| auto_mode   | BooleanField          | 自動控制               |
-| power_usage | FloatField            | 耗電量（kWh）          |
-| updated_at  | DateTimeField         | 最後更新時間           |
-
----
-
-###### ▶ Notification（通知）
-
-| 欄位名稱  | 資料型別              | 說明             |
-| --------- | --------------------- | ---------------- |
-| id        | Integer (Primary Key) | 通知 ID          |
-| user      | ForeignKey → User     | 接收者（外鍵）   |
-| module    | ForeignKey → Module   | 所屬模組（外鍵） |
-| content   | TextField             | 通知內容         |
-| timestamp | DateTimeField         | 發送時間         |
-| is_sent   | BooleanField          | 是否已發送       |
-
----
-
-#### ＊Python 套件依賴
-
-```toml
-[tool.poetry.dependencies]
-python = "^3.11"
-django = "*"
-djangorestframework = "*"
-mysqlclient = "*"
-python-decouple = "*"
-discord.py = "*"
-```
-
----
-
-#### ＊.env 設定（對應 phpMyAdmin）
-
-```env
-SECRET_KEY=your-secret
-DEBUG=True
-DB_NAME=school_db
-DB_USER=root
-DB_PASSWORD=123456
-DB_HOST=127.0.0.1
-DB_PORT=3306
-```
-
----
-
-#### ＊啟動方式（本地端）
+# HomePi Web - 樹莓派物聯網管理系統
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![Django](https://img.shields.io/badge/Django-5.2+-green.svg)](https://djangoproject.com)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+## 📋 專案概述
+
+HomePi Web 是一個基於 Django 的樹莓派物聯網管理系統，提供完整的裝置管理、群組分享、邀請制度、通知系統等功能。支援多種 IoT 裝置控制，包括燈光、風扇、電子鎖等，並具備即時串流和排程功能。
+
+## ✨ 主要功能
+
+### 🏠 裝置管理
+
+- **多裝置支援**: 支援多台樹莓派裝置同時管理
+- **即時狀態監控**: 裝置線上/離線狀態即時顯示
+- **QR Code 綁定**: 透過 QR Code 快速綁定新裝置
+- **裝置能力管理**: 動態配置裝置功能（燈光、風扇、電子鎖等）
+
+### 👥 群組與權限
+
+- **群組管理**: 建立群組並分享裝置給其他使用者
+- **角色權限**: 支援 Admin、Operator、Viewer 三種角色
+- **裝置分享**: 靈活的裝置分享申請與審核機制
+- **權限控制**: 細粒度的裝置操作權限管理
+
+### 🔐 電子鎖功能
+
+- **遠端控制**: 支援遠端上鎖、開鎖、切換操作
+- **自動上鎖**: 開鎖後自動計時上鎖功能
+- **狀態指示**: 雙 LED 狀態指示（綠燈=開鎖，紅燈=上鎖）
+- **手動操作**: 支援按鈕手動操作與遠端控制同步
+
+### 📹 即時串流
+
+- **HLS 串流**: 支援即時視訊串流功能
+- **代理服務**: 內建 HLS 代理服務，支援跨域存取
+- **串流狀態**: 即時顯示串流狀態和 URL
+
+### 📅 排程系統
+
+- **定時任務**: 支援裝置定時開關控制
+- **自動化**: 自動感光控制（BH1750 感測器 → LED）
+- **任務管理**: 完整的排程任務生命週期管理
+
+### 🔔 通知系統
+
+- **即時通知**: 系統事件即時通知
+- **通知分類**: 支援成員、裝置等多種通知類型
+- **已讀管理**: 通知已讀/未讀狀態管理
+
+## 🏗️ 系統架構
+
+### 後端技術棧
+
+- **框架**: Django 5.2+
+- **資料庫**: PostgreSQL (開發環境支援 SQLite)
+- **API**: Django REST Framework
+- **快取**: MongoDB (日誌儲存)
+- **虛擬環境**: Conda
+
+### 前端技術棧
+
+- **UI 框架**: Bootstrap 5
+- **JavaScript**: 原生 ES6+ (模組化設計)
+- **圖表**: Chart.js
+- **通知**: SweetAlert2
+- **即時更新**: AJAX 輪詢機制
+
+### 樹莓派端
+
+- **代理程式**: HTTP Agent (長輪詢通訊)
+- **硬體控制**: RPi.GPIO, 伺服馬達控制
+- **串流服務**: rpicam-vid + ffmpeg
+- **感測器**: BH1750 光感測器
+- **服務管理**: systemd 服務
+
+## 📦 安裝與設定
+
+### 環境需求
+
+- Python 3.11+
+- PostgreSQL 12+ (或 SQLite 用於開發)
+- MongoDB (可選，用於日誌)
+- Conda 虛擬環境管理
+
+### 1. 克隆專案
 
 ```bash
-# 啟動 Django 後端
-source .venv/bin/activate
-python manage.py runserver
-
-# 啟動 React 前端
-cd frontend
-npm install
-npm start
+git clone <repository-url>
+cd HomePiWeb
 ```
+
+### 2. 建立虛擬環境
+
+```bash
+# 使用 Conda 建立環境
+conda create --name HomePiWeb python=3.11
+conda activate HomePiWeb
+
+# 或使用 venv
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate  # Windows
+```
+
+### 3. 安裝依賴
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. 環境設定
+
+```bash
+# 複製環境變數範本
+cp .env.example .env
+
+# 編輯環境變數
+nano .env
+```
+
+### 5. 資料庫設定
+
+```bash
+# 執行資料庫遷移
+python manage.py migrate
+
+# 建立超級使用者
+python manage.py createsuperuser
+```
+
+### 6. 啟動開發伺服器
+
+```bash
+python manage.py runserver 0.0.0.0:8800
+```
+
+## 🔧 樹莓派設定
+
+### 1. 安裝依賴
+
+```bash
+# 安裝 Python 依賴
+pip install -r pi_agent/requirements.txt
+
+# 安裝系統依賴
+sudo apt update
+sudo apt install -y python3-rpi.gpio python3-pip
+```
+
+### 2. 硬體接線
+
+```yaml
+# 電子鎖接線範例
+電子鎖:
+  按鈕: GPIO 27
+  伺服馬達: GPIO 18
+  綠燈 (開鎖): GPIO 23
+  紅燈 (上鎖): GPIO 22
+
+# 光感測器
+BH1750:
+  SDA: GPIO 2
+  SCL: GPIO 3
+```
+
+### 3. 設定檔案
+
+```yaml
+# pi_agent/config/homepi.yml
+server:
+  url: 'http://your-server:8800'
+  token: 'your-device-token'
+
+devices:
+  - name: 'main_light'
+    kind: 'light'
+    config:
+      pin: 18
+  - name: 'main_locker'
+    kind: 'locker'
+    config:
+      button_pin: 27
+      servo_pin: 18
+      led_green: 23
+      led_red: 22
+      auto_lock_delay: 10
+```
+
+### 4. 啟動服務
+
+```bash
+# 啟動 HTTP Agent
+sudo systemctl start homepi-http-agent@your-device-id
+
+# 啟動 HLS 串流
+sudo systemctl start homepi-hls@your-device-id
+
+# 啟動排程服務
+sudo systemctl start homepi-scheduler@your-device-id
+```
+
+## 📱 使用指南
+
+### 1. 裝置綁定
+
+1. 在樹莓派上啟動 HTTP Agent
+2. 掃描 QR Code 或輸入驗證碼
+3. 設定裝置顯示名稱
+4. 配置裝置能力
+
+### 2. 群組管理
+
+1. 建立群組並設定名稱
+2. 邀請成員加入群組
+3. 將裝置分享到群組
+4. 設定成員權限
+
+### 3. 裝置控制
+
+1. 選擇群組和裝置
+2. 選擇要控制的功能
+3. 使用控制按鈕操作
+4. 查看即時狀態更新
+
+### 4. 電子鎖操作
+
+1. 選擇包含電子鎖的裝置
+2. 使用上鎖/開鎖/切換按鈕
+3. 監控自動上鎖狀態
+4. 查看 LED 狀態指示
+
+## 🔌 API 文件
+
+### 裝置通訊 API
+
+```http
+# 裝置心跳
+POST /api/device/ping/
+Content-Type: application/json
+{
+  "serial": "PI-XXXXXXXX",
+  "token": "device-token",
+  "status": "online"
+}
+
+# 拉取指令
+POST /api/device/pull/
+Content-Type: application/json
+{
+  "serial": "PI-XXXXXXXX",
+  "token": "device-token"
+}
+
+# 回報執行結果
+POST /api/device/ack/
+Content-Type: application/json
+{
+  "serial": "PI-XXXXXXXX",
+  "req_id": "command-request-id",
+  "status": "done",
+  "result": {...}
+}
+```
+
+### 裝置控制 API
+
+```http
+# 相機控制
+POST /api/camera/{serial}/{action}/
+{
+  "action": "start|stop|status"
+}
+
+# 能力控制
+POST /api/capability/{serial}/{cap_slug}/{action}/
+{
+  "action": "light_on|light_off|locker_lock|locker_unlock"
+}
+```
+
+## 📊 資料庫結構
+
+### 主要模型
+
+- **User**: 使用者管理 (email 登入)
+- **Device**: 樹莓派裝置
+- **DeviceCapability**: 裝置功能配置
+- **Group**: 群組管理
+- **GroupMembership**: 群組成員關係
+- **DeviceCommand**: 裝置指令佇列
+- **DeviceSchedule**: 排程任務
+- **Notification**: 通知系統
+
+### 關聯關係
+
+```
+User (1:N) Device
+User (M:N) Group (through GroupMembership)
+Device (1:N) DeviceCapability
+Device (1:N) DeviceCommand
+Device (1:N) DeviceSchedule
+Group (M:N) Device (through GroupDevice)
+```
+
+## 🚀 部署指南
+
+### 生產環境設定
+
+```python
+# settings.py
+DEBUG = False
+ALLOWED_HOSTS = ['your-domain.com']
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'homepi_prod',
+        'USER': 'homepi_user',
+        'PASSWORD': 'secure_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
+
+### Nginx 設定
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8800;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /static/ {
+        alias /path/to/HomePiWeb/static/;
+    }
+
+    location /media/ {
+        alias /path/to/HomePiWeb/media/;
+    }
+}
+```
+
+### systemd 服務
+
+```ini
+# /etc/systemd/system/homepi.service
+[Unit]
+Description=HomePi Web Application
+After=network.target
+
+[Service]
+Type=exec
+User=homepi
+Group=homepi
+WorkingDirectory=/path/to/HomePiWeb
+Environment=PATH=/path/to/HomePiWeb/venv/bin
+ExecStart=/path/to/HomePiWeb/venv/bin/gunicorn HomePiWeb.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+## 🧪 測試
+
+### 執行測試
+
+```bash
+# 執行所有測試
+python manage.py test
+
+# 執行特定 app 測試
+python manage.py test users
+python manage.py test pi_devices
+python manage.py test groups
+```
+
+### 測試覆蓋率
+
+```bash
+# 安裝 coverage
+pip install coverage
+
+# 執行測試並產生報告
+coverage run --source='.' manage.py test
+coverage report
+coverage html
+```
+
+## 📝 開發指南
+
+### 程式碼風格
+
+- 遵循 PEP8 規範
+- 使用 Black 自動格式化
+- 使用 isort 自動排序 import
+- 程式碼註解使用正體繁體中文
+
+### Git 工作流程
+
+- 使用 Conventional Commits 格式
+- 功能分支開發
+- Pull Request 審查
+- 自動化測試檢查
+
+### 新增裝置功能
+
+1. 在 `DeviceCapability.KIND_CHOICES` 新增功能類型
+2. 建立對應的硬體控制模組
+3. 實作前端控制介面
+4. 新增 JavaScript 控制邏輯
+5. 更新 API 端點
+
+## 🐛 常見問題
+
+### Q: 裝置無法連線？
+
+A: 檢查網路連線、防火牆設定、HTTP Agent 服務狀態
+
+### Q: 電子鎖無法控制？
+
+A: 確認 GPIO 接線正確、權限設定、硬體驅動安裝
+
+### Q: 串流無法播放？
+
+A: 檢查 rpicam-vid 安裝、HLS 服務狀態、網路頻寬
+
+### Q: 通知不顯示？
+
+A: 確認通知服務啟動、資料庫連線、前端 JavaScript 載入
+
+## 📄 授權
+
+本專案採用 MIT 授權條款。詳見 [LICENSE](LICENSE) 檔案。
+
+## 🤝 貢獻
+
+歡迎提交 Issue 和 Pull Request！
+
+1. Fork 本專案
+2. 建立功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交變更 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 開啟 Pull Request
+
+## 📞 支援
+
+如有問題或建議，請透過以下方式聯繫：
+
+- 提交 [Issue](https://github.com/your-repo/issues)
+- 發送 Email: kauia96@example.com
 
 ---
 
-#### ＊Discord Bot 結構建議
-
-```
-backend/apps/notifications/
-├── discord_bot/
-│   ├── bot.py
-│   └── sender.py
-```
-
-> Bot 可本地運行，自資料庫中讀取事件通知使用者。
-
----
+**HomePi Web** - 讓樹莓派物聯網管理變得簡單易用 🏠✨
