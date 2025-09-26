@@ -6,27 +6,16 @@ dependencies:
   - python=3.11
   - pip
   - psycopg2
-  - bzip2=1.0.8
-  - ca-certificates=2025.8.3
-  - cyrus-sasl=2.1.28
-  - expat=2.7.1
-  - icu=75.1
-  - krb5=1.21.3
-  - libevent=2.1.12
-  - libffi=3.4.4
-  - libpq=17.6
-  - libsodium=1.0.18
-  - lmdb=0.9.31
-  - openldap=2.6.10
-  - openssl=3.5.2
-  - setuptools=78.1.1
-  - sqlite=3.50.2
-  - tk=8.6.14
-  - tzdata=2025b
-  - wheel=0.45.1
-  - xz=5.6.4
-  - zlib=1.2.13
-
+  - sqlite
+  - tk
+  - openssl
+  - ca-certificates
+  - setuptools
+  - wheel
+  - tzdata
+  - zlib
+  - bzip2
+  - xz
   - pip:
       - asgiref==3.9.1
       - certifi==2025.8.3
@@ -35,11 +24,14 @@ dependencies:
       - charset-normalizer==3.4.3
       - django==5.2.5
       - djangorestframework==3.16.1
+      - dnspython==2.8.0
+      - gunicorn==23.0.0
       - idna==3.10
       - msgpack==1.1.1
       - packaging==25.0
       - pillow==11.3.0
       - psycopg2-binary==2.9.10
+      - pymongo==4.14.1
       - python-dotenv==1.1.1
       - qrcode==8.2
       - redis==6.4.0
@@ -47,4 +39,3 @@ dependencies:
       - sqlparse==0.5.3
       - urllib3==2.5.0
       - whitenoise==6.9.0
-      # - gunicorn==23.0.0  <-- 注意：gunicorn 不支援 Windows，已註解
