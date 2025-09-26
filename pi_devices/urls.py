@@ -75,4 +75,9 @@ urlpatterns = [
         name="upcoming_schedules",
     ),
     path("api/device/<int:device_id>/logs/", api_views.device_logs, name="device_logs"),
+    path(
+        "device/<int:pk>/",
+        device_views.DeviceDetailView.as_view(),
+        name="device_detail",
+    ),
 ]

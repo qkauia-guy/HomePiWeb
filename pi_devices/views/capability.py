@@ -22,6 +22,7 @@ from django.middleware.csrf import get_token
 ALLOWED = {
     "light": {"light_on", "light_off", "light_toggle"},
     "fan": {"fan_on", "fan_off", "fan_set_speed"},
+    "locker": {"locker_lock", "locker_unlock", "locker_toggle"},
 }
 
 
@@ -187,12 +188,21 @@ def action(request, device_id: int, cap_id: int, action: str):
             "stop": "camera_stop",
             "status": "camera_status",
         }
+    elif kind == "locker":
+        mapping = {
+            "lock": "locker_lock",
+            "unlock": "locker_unlock",
+            "toggle": "locker_toggle",
+        }
     else:
         mapping = {}
 
     cmd_name = mapping.get((action or "").lower())
     if cmd_name:
-        payload = {"slug": cap.slug} if getattr(cap, "slug", None) else {}
+        payload = {}
+        if getattr(cap, "slug", None):
+            payload["target"] = cap.slug  # ★ agent 用
+            payload["slug"] = cap.slug
         _queue_command(device, cmd_name, payload=payload)
 
     next_url = request.POST.get("next")
@@ -261,6 +271,18 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
             "stop": "camera_stop",
             "status": "camera_status",
         }.get(act)
+    elif kind == "locker":
+        cmd_name = {
+            "lock": "locker_lock",
+            "unlock": "locker_unlock",
+            "toggle": "locker_toggle",
+        }.get(act)
+        # ★ 依使用者要求：locker 的 payload 指定固定 target = "main-door"
+        #   這樣 Agent 會收到：
+        #   - unlock: cmd=locker_unlock, payload.target=main-door
+        #   - toggle: cmd=locker_toggle, payload.target=main-door
+        #   - lock  : cmd=locker_lock,   payload.target=main-door（保持一致性）
+        payload["target"] = "main-door"
 
     # 自動感光模式開關（不強制綁 kind）
     if cmd_name is None and act in ("auto_on", "auto_off"):
@@ -296,8 +318,9 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
         messages.error(request, err)
         return redirect(request.META.get("HTTP_REFERER", reverse("home")))
 
-    # 附上 slug（慣例）
+    # 附上 slug（慣例）。若前面已指定 target（例如 locker=main-door），不覆蓋。
     if getattr(cap, "slug", None):
+        payload.setdefault("target", cap.slug)
         payload.setdefault("slug", cap.slug)
 
     # 送指令
@@ -308,6 +331,8 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
         "on": "已送出：開燈",
         "off": "已送出：關燈",
         "toggle": "已送出：切換",
+        "lock": "已送出：上鎖",
+        "unlock": "已送出：開鎖",
         "auto_on": "已啟用自動",
         "auto_off": "已停用自動",
         "start": "已送出：錄影開始",

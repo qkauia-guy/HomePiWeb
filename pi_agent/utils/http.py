@@ -132,6 +132,7 @@ def ack(req_id: str, ok: bool = True, error: str = "", state: dict | None = None
         error: 如果執行失敗，提供錯誤訊息。
         state: 可選擇性地附帶裝置的最新狀態。
     """
+    print(f"[DEBUG] ack 開始發送: req_id={req_id}, ok={ok}, error='{error}', state={state}")
     url = f"{API_BASE}{ACK_PATH}"
     payload = {
         "serial_number": SERIAL,
@@ -143,15 +144,22 @@ def ack(req_id: str, ok: bool = True, error: str = "", state: dict | None = None
     if state is not None:
         payload["state"] = state
 
+    print(f"[DEBUG] ack payload: {payload}")
+    print(f"[DEBUG] ack URL: {url}")
+
     try:
         r = _session.post(url, json=payload, timeout=5)
+        print(f"[DEBUG] ack HTTP 回應: status_code={r.status_code}")
     except Exception as e:
+        print(f"[DEBUG] ack 連線錯誤: {e}")
         print("ack err (conn):", e)
         return
 
     if not r.ok:
+        print(f"[DEBUG] ack 失敗: HTTP {r.status_code}")
         _print_resp("ack err", r)
     else:
+        print(f"[DEBUG] ack 成功: HTTP {r.status_code}")
         print("ack ok")
 
 
