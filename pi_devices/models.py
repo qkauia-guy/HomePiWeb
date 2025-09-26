@@ -161,6 +161,7 @@ class DeviceCapability(models.Model):
     KIND_CHOICES = [
         ("light", "燈光"),
         ("fan", "風扇/空調"),
+        ("locker", "電子鎖"),
         # ... 之後可擴充
     ]
 

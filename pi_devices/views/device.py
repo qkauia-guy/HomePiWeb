@@ -20,7 +20,8 @@ from groups.models import Group, GroupMembership, GroupDevicePermission, GroupDe
 from django.utils.dateparse import parse_datetime
 from datetime import timezone as dt_timezone
 from django.views.decorators.cache import never_cache
-
+from django.views.generic import DetailView
+from ..models import Device
 
 # 🔔 通知服務
 from notifications.services import (
@@ -31,6 +32,11 @@ from notifications.services import (
     notify_group_device_removed,
     notify_user_online,  # 這個只有 api 會用；留著也無妨
 )
+
+
+class DeviceDetailView(DetailView):
+    model = Device
+    template_name = "pi_devices/device_detail.html"
 
 
 # =========================

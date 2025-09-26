@@ -63,6 +63,7 @@ class DeviceCapabilityInline(admin.TabularInline):
 class DeviceAdmin(admin.ModelAdmin):
     # 顯示欄
     list_display = (
+        "id",
         "display_name_or_sn",  # 名稱
         "serial_number_zh",
         "owner_link",  # 擁有者
@@ -79,7 +80,6 @@ class DeviceAdmin(admin.ModelAdmin):
         "serial_number",
         "display_name",
         "user__email",
-        "user__username",
         "capabilities__name",
         "capabilities__slug",
     )
@@ -161,7 +161,7 @@ class DeviceAdmin(admin.ModelAdmin):
 # ========== DeviceCapability 後台（獨立頁） ==========
 @admin.register(DeviceCapability)
 class DeviceCapabilityAdmin(admin.ModelAdmin):
-    list_display = ("name", "kind_zh", "device", "enabled_zh", "order", "slug")
+    list_display = ("id", "name", "kind_zh", "device", "enabled_zh", "order", "slug")
     list_filter = ("kind", "enabled", "device")
     search_fields = ("name", "slug", "device__serial_number", "device__display_name")
     ordering = ("device", "order", "id")

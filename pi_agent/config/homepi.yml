@@ -1,36 +1,47 @@
+# 使用 pigpio 來避免軟體 PWM 抖動
 gpio_factory: lgpio
 
+# 設備清單（caps discovery 用）
 devices:
   - name: led_1
     kind: led
     pin: 17
     active_high: true
+  - name: main-door
+    kind: locker
+    config:
+      servo_pin: 18 # 伺服馬達腳位
+      lock_on_boot: false # 開機時不主動移動伺服，避免自轉
+      detach_after_move: false # 動作後停止 PWM，避免持續抖動
+      simple_mode: true # 僅控制伺服（不使用 LED/按鈕/自動上鎖）
+      auto_lock_delay: 0 # 不使用自動上鎖
+      servo_min_us: 500 # 最小脈寬，依實測調整
+      servo_max_us: 2400 # 最大脈寬，依實測調整
 
-  - name: btn_1
-    kind: button
-    pin: 27
-    pull_up: true
-    bounce: 0.05
+# Locker 驅動初始化用（⚠ 必須額外有這一段，setup_locker 會讀這裡）
+lockers:
+  main-door:
+    servo_pin: 18
+    lock_on_boot: false
+    detach_after_move: false
+    simple_mode: true
+    auto_lock_delay: 0
+    servo_min_us: 500
+    servo_max_us: 2400
 
-  # 新增：BH1750（GY-302），常見 I2C：bus=1, addr=0x23
-  - name: bh1750-1-23
-    kind: sensor_bh1750
-    bus: 1
-    addr: 0x23
-
-# 新增：自動感光控制預設（預設關閉；用按鈕開）
+# 自動感光控制預設（預設關閉；用指令開啟）
 auto_light:
   sensor: bh1750-1-23
   led: led_1
-  on_below: 40 # 暗到 <40 lx 才開燈（你環境剛剛暗是 0～20lx）
-  off_above: 250 # 亮到 >250 lx 才關燈（你剛剛亮可到 200+）
+  on_below: 40 # 暗到 <40 lx 才開燈
+  off_above: 250 # 亮到 >250 lx 才關燈
   require_n_samples: 3
   sample_every_ms: 1000
-  debug: false
+  debug: true
   log_every: 0
-
-  # 之後你要加裝置就一直加，不用動 service
-  # - name: relay_1
-  #   kind: relay
-  #   pin: 23
-  #   active_high: false
+# 之後要加裝置，直接在 devices: 加，不用動 service
+# - name: relay_1
+#   kind: relay
+#   config:
+#     pin: 23
+#     active_high: false

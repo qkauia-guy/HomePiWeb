@@ -12,6 +12,7 @@ from django.http import (
     Http404,
     StreamingHttpResponse,
     HttpResponseNotFound,
+    HttpResponseForbidden,
 )
 from django.utils import timezone
 from django.db import transaction
@@ -31,6 +32,12 @@ from django.db import IntegrityError
 from django.utils import timezone as djtz
 from groups.models import Group
 from django.views.decorators.cache import never_cache
+from HomePiWeb.mongo import device_ping_logs
+from django.utils.timezone import localtime, is_naive, make_aware
+from datetime import datetime, timezone as dt_timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ---------- Helpers ----------
 
@@ -209,7 +216,7 @@ def device_ping(request):
             # (1) upsert capabilities（若有帶）
             if isinstance(caps, list) and caps:
                 sync_caps(device, caps, auto_disable_unseen=False)
-
+            print(f"[DEBUG] device_ack merge state_map={state_map}")
             # (2) merge 即時狀態到 cached_state（若有帶）
             if isinstance(state_map, dict) and state_map:
                 # 先檢查模型是否真的有 cached_state 欄位；沒有就整段跳過（避免 500）
@@ -270,6 +277,26 @@ def device_ping(request):
                         new_ip=client_ip,
                     )
                 )
+
+            # ⬇️ 新增：把心跳紀錄存到 MongoDB
+            try:
+                doc = {
+                    "device_id": str(device.pk),
+                    "ping_at": datetime.utcnow(),  # 用 UTC 確保時區一致
+                    "ip": client_ip,
+                    "status": "online",
+                }
+
+                # 如果 extra 有 metrics，就加進去
+                if isinstance(extra.get("metrics"), dict):
+                    doc.update(extra["metrics"])
+
+                device_ping_logs.insert_one(doc)
+
+            except Exception as e:
+                import logging
+
+                logging.error(f"MongoDB insert error: {e}")
 
     except Device.DoesNotExist:
         return JsonResponse({"error": "Device not found"}, status=404)
@@ -332,6 +359,19 @@ def device_pull(request):
         time.sleep(0.2)
 
 
+# views/api.py
+
+import json
+import time
+
+from django.db import transaction
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+from pi_devices.models import Device, DeviceCapability, DeviceCommand
+
+
 @csrf_exempt
 @require_POST
 def device_ack(request):
@@ -358,13 +398,14 @@ def device_ack(request):
         )
     except Device.DoesNotExist:
         return JsonResponse({"error": "Device not found"}, status=404)
+
     if device.token != token:
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
     from django.utils import timezone as djtz
 
     with transaction.atomic():
-        # 更新指令狀態
+        # --- 更新指令狀態 ---
         cmd = (
             DeviceCommand.objects.select_for_update()
             .filter(device=device, req_id=req_id)
@@ -376,7 +417,7 @@ def device_ack(request):
             cmd.done_at = djtz.now()
             cmd.save(update_fields=["status", "error", "done_at"])
 
-        # ★ 立刻 merge 回報的狀態：{ '<slug>': {...} }
+        # --- 合併 agent 回傳的 state ---
         if isinstance(state_map, dict) and state_map:
             slugs = list(state_map.keys())
             caps = DeviceCapability.objects.filter(device=device, slug__in=slugs)
@@ -386,9 +427,34 @@ def device_ack(request):
                 if not cap or not isinstance(st, dict):
                     continue
                 merged = (cap.cached_state or {}).copy()
-                merged.update(st)  # 直接覆蓋同名 key
+                merged.update(st)
                 cap.cached_state = merged
                 cap.save(update_fields=["cached_state"])
+
+        # --- Fallback：若沒有 state_map，也針對 locker 指令補上狀態 ---
+        if (
+            not state_map
+            and cmd
+            and cmd.command
+            in (
+                "locker_lock",
+                "locker_unlock",
+                "locker_toggle",
+            )
+        ):
+            slug = (cmd.payload or {}).get("slug")
+            if slug:
+                cap = DeviceCapability.objects.filter(device=device, slug=slug).first()
+                if cap:
+                    merged = (cap.cached_state or {}).copy()
+                    if cmd.command == "locker_toggle":
+                        if "locked" in merged:
+                            merged["locked"] = not bool(merged["locked"])
+                    else:
+                        merged["locked"] = cmd.command == "locker_lock"
+                    merged["last_change_ts"] = int(time.time())
+                    cap.cached_state = merged
+                    cap.save(update_fields=["cached_state"])
 
     return JsonResponse({"ok": True})
 
@@ -631,8 +697,12 @@ def api_cap_status(request, cap_id: int):
     last_lux = st.get("last_lux", None)
     last_change_ts = st.get("last_change_ts", None)
 
-    # last_change_ts 可能是 float/datetime/None，把它標準化成 epoch 秒（int）
-    if hasattr(last_change_ts, "timestamp"):  # datetime-like
+    # 電子鎖狀態
+    locked = bool(st.get("locked", False))
+    auto_lock_running = bool(st.get("auto_lock_running", False))
+
+    # last_change_ts → 標準化成 epoch 秒
+    if hasattr(last_change_ts, "timestamp"):
         try:
             last_change_ts = int(last_change_ts.timestamp())
         except Exception:
@@ -642,7 +712,6 @@ def api_cap_status(request, cap_id: int):
     else:
         last_change_ts = None
 
-    # 是否有相關指令尚未完成（用 slug 過濾）
     now = timezone.now()
     pending = DeviceCommand.objects.filter(
         device=cap.device,
@@ -651,17 +720,27 @@ def api_cap_status(request, cap_id: int):
         payload__slug=cap.slug,
     ).exists()
 
-    resp = JsonResponse(
-        {
-            "ok": True,
-            "light_is_on": light_is_on,
-            "auto_light_running": auto_running,
-            "last_lux": last_lux,
-            "pending": pending,
-            "last_change_ts": last_change_ts,
-            "server_ts": int(timezone.now().timestamp()),
-        }
+    resp_data = {
+        "ok": True,
+        "light_is_on": light_is_on,
+        "auto_light_running": auto_running,
+        "last_lux": last_lux,
+        "locked": locked,
+        "auto_lock_running": auto_lock_running,
+        "pending": pending,
+        "last_change_ts": last_change_ts,
+        "server_ts": int(now.timestamp()),
+    }
+
+    # ★ DEBUG 輸出
+    logger.warning(
+        "[api_cap_status] cap=%s cached_state=%s → resp=%s",
+        cap.slug,
+        json.dumps(st, ensure_ascii=False),
+        json.dumps(resp_data, ensure_ascii=False),
     )
+
+    resp = JsonResponse(resp_data)
     resp["Cache-Control"] = "no-store"
     return resp
 
@@ -765,3 +844,67 @@ def device_schedule_ack(request):
         return JsonResponse(
             {"error": f"server error: {type(e).__name__}: {e}"}, status=500
         )
+
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.utils.timezone import is_naive, make_aware, localtime
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
+from datetime import datetime, timezone as dt_timezone
+
+from pi_devices.models import Device
+from HomePiWeb.mongo import device_ping_logs
+
+
+@csrf_exempt
+@require_GET
+def device_logs(request, device_id):
+    """
+    查詢某裝置的歷史心跳紀錄
+    GET /api/device/<id>/logs/?limit=10
+    """
+    # 確認裝置存在於 PostgreSQL
+    device = get_object_or_404(Device, pk=device_id)
+
+    # limit：容錯處理
+    try:
+        limit = int(request.GET.get("limit", 10))
+    except (TypeError, ValueError):
+        limit = 10
+
+    # 從 MongoDB 查詢紀錄
+    logs = list(
+        device_ping_logs.find({"device_id": str(device.pk)})
+        .sort("ping_at", -1)
+        .limit(limit)
+    )
+
+    results = []
+    for log in logs:
+        # 🕒 格式化時間
+        ping_at = log.get("ping_at")
+        if isinstance(ping_at, datetime):
+            if is_naive(ping_at):
+                ping_at = make_aware(ping_at, dt_timezone.utc)
+            ping_at_str = localtime(ping_at).strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            ping_at_str = None
+
+        # 📊 相容舊欄位 (cpu/memory/temp) 與 新欄位 (cpu_percent/memory_percent/temperature)
+        cpu_val = log.get("cpu_percent") or log.get("cpu")
+        mem_val = log.get("memory_percent") or log.get("memory")
+        temp_val = log.get("temperature") or log.get("temp")
+
+        results.append(
+            {
+                "ping_at": ping_at_str,
+                "ip": log.get("ip"),
+                "status": log.get("status", "unknown"),
+                "cpu_percent": float(cpu_val) if cpu_val is not None else None,
+                "memory_percent": float(mem_val) if mem_val is not None else None,
+                "temperature": float(temp_val) if temp_val is not None else None,
+            }
+        )
+
+    return JsonResponse({"device": device.serial_number, "logs": results})

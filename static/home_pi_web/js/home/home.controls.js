@@ -31,6 +31,26 @@
     lightEl.setAttribute('aria-disabled', locked ? 'true' : 'false');
   }
 
+  // 處理電子鎖按鈕點擊
+  document.addEventListener('click', async (evt) => {
+    const el = evt.target.closest('.locker-btn');
+    if (!el) return;
+
+    el.disabled = true; // 防止連點
+    const url = el.dataset.url;
+    const fd = new FormData();
+    if (el.dataset.group) fd.append('group_id', el.dataset.group);
+    if (el.dataset.next !== undefined) fd.append('next', el.dataset.next);
+
+    try {
+      await post(url, fd);
+    } catch (e) {
+      alert('操作失敗，請再試一次：' + e.message);
+    } finally {
+      el.disabled = false;
+    }
+  });
+
   document.addEventListener('change', async (evt) => {
     const el = evt.target;
     if (!el.matches('.cap-toggle')) return;

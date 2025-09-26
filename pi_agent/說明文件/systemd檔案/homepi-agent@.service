@@ -10,6 +10,7 @@ Group=%i
 WorkingDirectory=/home/%i/pi_agent
 EnvironmentFile=/home/%i/pi_agent/.env
 Environment=PYTHONUNBUFFERED=1
+Environment=GPIOZERO_PIN_FACTORY=lgpio 
 ExecStart=/usr/bin/python3 /home/%i/pi_agent/http_agent.py
 
 Restart=always

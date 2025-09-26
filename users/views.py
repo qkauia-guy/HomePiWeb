@@ -235,6 +235,7 @@ def ajax_caps(request):
 
     # ✅ 不需要匯入 Capability，直接用關聯取
     caps = device.capabilities.filter(enabled=True)
+    # caps = device.capabilities.filter(enabled=True).exclude(kind__startswith="sensor")
     return render(request, "home/partials/_cap_options.html", {"caps": caps})
 
 
@@ -286,6 +287,7 @@ def ajax_cap_form(request, cap_id: int):
         "light": "home/forms/_cap_light.html",
         "fan": "home/forms/_cap_fan.html",
         "camera": "home/forms/_cap_camera.html",
+        "locker": "home/forms/_cap_locker.html",
     }.get((cap.kind or "").lower(), "home/forms/_cap_generic.html")
 
     caps_for_select = device.capabilities.filter(enabled=True).exclude(
