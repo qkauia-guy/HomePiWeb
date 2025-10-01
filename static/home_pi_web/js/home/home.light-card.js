@@ -26,12 +26,12 @@
     return { setHold, isHeld };
   })();
 
-  // 速度參數
-  const FAST_BURST_MS = 300; // 動作後爆發輪詢間隔
-  const FAST_BURST_TICKS = 8; // 動作後快速輪詢次數（~2.4s）
-  const AUTO_MS = 900; // 自動模式輪詢
-  const HOLD_MS = 2500;
-  const IDLE_MS = 5000; // 閒置輪詢
+  // 速度參數 - 優化為更快的更新
+  const FAST_BURST_MS = 200; // 動作後爆發輪詢間隔 (0.2秒)
+  const FAST_BURST_TICKS = 12; // 動作後快速輪詢次數（~2.4s）
+  const AUTO_MS = 500; // 自動模式輪詢 (0.5秒)
+  const HOLD_MS = 1500; // 縮短保護期
+  const IDLE_MS = 2000; // 閒置輪詢 (2秒)
 
   function shouldApplyRemote(card, remoteTs) {
     const now = Date.now();
@@ -48,11 +48,34 @@
     return true;
   }
 
+  // 時間格式化函數
+  function formatScheduleTime(timestamp) {
+    if (!timestamp) return ' 未排程 ';
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    
+    if (diff < 0) return ' 已過期 ';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return ` ${hours}小時${minutes}分鐘後 `;
+    } else if (minutes > 0) {
+      return ` ${minutes}分鐘後 `;
+    } else {
+      return ' 即將執行 ';
+    }
+  }
+
   // 渲染卡片（尊重 hold）
   function renderLight(card, state) {
     const badge = card.querySelector('#lightBadge');
     const text = card.querySelector('#lightText');
     const spin = card.querySelector('#lightSpinner');
+    const schedOnText = card.querySelector('#schedOnText');
+    const schedOffText = card.querySelector('#schedOffText');
 
     const isAuto = !!state.auto_light_running;
     const isOn = !!state.light_is_on;
@@ -79,6 +102,14 @@
       ? `目前狀態：${isOn ? '開燈中💡' : '已熄燈'}`
       : `目前狀態：${isOn ? '開燈中💡' : '已熄燈'}`;
 
+    // 排程時間
+    if (schedOnText) {
+      schedOnText.textContent = state.next_on ? formatScheduleTime(state.next_on) : ' 未排程 ';
+    }
+    if (schedOffText) {
+      schedOffText.textContent = state.next_off ? formatScheduleTime(state.next_off) : ' 未排程 ';
+    }
+
     // spinner：自動或 pending 顯示
     if (spin) {
       const pending = Boolean(state.pending);
@@ -93,15 +124,22 @@
       const autoSwitch = document.getElementById(`autoSwitch-${capId}`);
       const lightSwitch = document.getElementById(`lightSwitch-${capId}`);
 
-      if (autoSwitch && !held) {
-        if (autoSwitch.checked !== isAuto) autoSwitch.checked = isAuto;
-        if (lightSwitch) lightSwitch.disabled = isAuto; // 自動時鎖手動
-      } else if (autoSwitch && held) {
-        if (lightSwitch) lightSwitch.disabled = true; // hold 期間先鎖住
+      if (autoSwitch) {
+        if (!held) {
+          // 不在保護期，正常同步
+          if (autoSwitch.checked !== isAuto) autoSwitch.checked = isAuto;
+          if (lightSwitch) lightSwitch.disabled = isAuto; // 自動時鎖手動
+        } else {
+          // 在保護期，只設置禁用狀態，不改變勾選狀態
+          if (lightSwitch) lightSwitch.disabled = true; // hold 期間先鎖住
+        }
       }
 
       if (lightSwitch && !held) {
-        if (lightSwitch.checked !== isOn) lightSwitch.checked = isOn;
+        if (lightSwitch.checked !== isOn) {
+          console.log(`同步燈光開關狀態: ${lightSwitch.checked} -> ${isOn}`);
+          lightSwitch.checked = isOn;
+        }
       }
     }
   }
@@ -109,7 +147,12 @@
   // 帶競態保護的拉狀態
   async function fetchLightState(card) {
     const url = card.dataset.statusUrl;
-    if (!url) return;
+    if (!url) {
+      console.log('燈光狀態更新失敗：沒有狀態URL');
+      return;
+    }
+
+    console.log('開始獲取燈光狀態:', url);
 
     // 取消上一筆還在路上的請求
     if (_lightFetchController) _lightFetchController.abort();
@@ -128,22 +171,33 @@
       });
       if (!resp.ok) throw new Error('HTTP_' + resp.status);
       data = await resp.json();
-    } catch {
+      console.log('燈光狀態API回應:', data);
+    } catch (e) {
+      console.error('燈光狀態API請求失敗:', e);
       card.querySelector('#lightSpinner')?.classList.add('d-none');
       return;
     }
 
-    if (card.dataset.reqToken !== String(current)) return;
+    if (card.dataset.reqToken !== String(current)) {
+      console.log('燈光狀態更新被新請求覆蓋');
+      return;
+    }
 
     // ❶ 本地保護期：剛做完操作的一小段時間，忽略回傳的舊狀態
     const holdUntil = parseInt(card.dataset.localHoldUntil || '0', 10) || 0;
     if (Date.now() < holdUntil) {
       // 還在保護期就別覆蓋 UI，但可以記錄 data 以備用（可選）
+      console.log('燈光狀態更新被保護期阻擋，保護期剩餘:', holdUntil - Date.now(), 'ms');
       return;
     }
 
-    if (data && data.ok) renderLight(card, data);
-    else card.querySelector('#lightSpinner')?.classList.add('d-none');
+    if (data && data.ok) {
+      console.log('更新燈光狀態卡片:', data);
+      renderLight(card, data);
+    } else {
+      console.log('燈光狀態API回應無效:', data);
+      card.querySelector('#lightSpinner')?.classList.add('d-none');
+    }
   }
 
   function resetLightCard(card, msg = '請先從上方選擇「燈光」能力') {
@@ -164,9 +218,11 @@
 
   function startLightPolling(card) {
     let timer = null;
+    console.log('啟動燈光輪詢，URL:', card.dataset.statusUrl);
 
     async function tick() {
       try {
+        console.log('執行燈光狀態輪詢...');
         await fetchLightState(card);
       } finally {
         clearTimeout(timer);
@@ -181,10 +237,13 @@
         if (burst > 0) {
           next = FAST_BURST_MS;
           card.dataset.burst = String(burst - 1);
+          console.log('爆發輪詢，剩餘次數:', burst - 1, '下次間隔:', next);
         } else if (isAuto || spinOn) {
           next = AUTO_MS;
+          console.log('自動模式輪詢，間隔:', next);
         } else {
           next = IDLE_MS;
+          console.log('閒置輪詢，間隔:', next);
         }
         timer = setTimeout(tick, next);
       }
@@ -203,8 +262,31 @@
       stopLightPoll = null;
     }
   };
+  // 強制清除保護期並更新狀態
+  function forceUpdateLightState(card) {
+    if (!card) {
+      console.log('強制更新失敗：沒有燈光卡片');
+      return;
+    }
+    
+    console.log('強制清除保護期並更新燈光狀態');
+    // 清除保護期
+    card.dataset.localHoldUntil = '0';
+    
+    // 立即更新狀態
+    if (window.fetchLightState) {
+      console.log('執行強制燈光狀態更新');
+      window.fetchLightState(card).catch((e) => {
+        console.error('強制更新燈光狀態失敗:', e);
+      });
+    } else {
+      console.error('fetchLightState 函數不存在');
+    }
+  }
+
   window.startLightPolling = startLightPolling;
   window.fetchLightState = fetchLightState;
+  window.forceUpdateLightState = forceUpdateLightState;
 
   // 根據裝置 ID 初始化狀態卡片
   async function initDeviceStatusFromSelection(deviceId) {

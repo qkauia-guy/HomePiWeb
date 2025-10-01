@@ -58,12 +58,49 @@
     showBanner(e?.code === 'group_required' ? 'warning' : 'danger', msg);
   }
 
+         // 觸發狀態卡片更新
+         function triggerStatusUpdate() {
+           // 先嘗試初始化狀態卡片（如果還沒初始化的話）
+           if (window.initStatusCards) {
+             window.initStatusCards();
+           }
+           
+           // 觸發燈光卡片更新
+           const lightCard = document.getElementById('lightCard');
+           if (lightCard && lightCard.dataset.statusUrl) {
+             // 清除保護期，允許立即更新
+             lightCard.dataset.localHoldUntil = '0';
+             
+             if (window.fetchLightState) {
+               window.fetchLightState(lightCard).catch(() => {});
+             }
+             
+             // 觸發爆發輪詢（快速更新）
+             lightCard.dataset.burst = '8';
+           }
+           
+           // 觸發電子鎖卡片更新
+           const lockerCard = document.getElementById('lockerCard');
+           if (lockerCard && lockerCard.dataset.statusUrl) {
+             // 清除保護期，允許立即更新
+             lockerCard.dataset.localHoldUntil = '0';
+             
+             if (window.fetchLockerState) {
+               window.fetchLockerState(lockerCard).catch(() => {});
+             }
+             
+             // 觸發爆發輪詢（快速更新）
+             lockerCard.dataset.burst = '8';
+           }
+         }
+
   // 將共用工具掛到全域，給其他模組用
   window.HomeUI = {
     showBanner,
     resetSelect,
     syncNextHiddenInputs,
     handleFetchError,
+    triggerStatusUpdate,
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -199,6 +236,11 @@
         } else {
           window.location.href = nextUrl; // 保險導回
         }
+        
+               // 表單提交成功後，觸發狀態卡片更新
+               setTimeout(() => {
+                 window.HomeUI.triggerStatusUpdate();
+               }, 50); // 縮短延遲
       } catch {
         showBanner('danger', '送出失敗，請稍後再試。');
       }

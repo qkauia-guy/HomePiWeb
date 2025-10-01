@@ -49,6 +49,17 @@
     try {
       const response = await post(url, fd);
       console.log('請求成功:', response);
+      
+             // 觸發狀態卡片更新
+             setTimeout(() => {
+               if (window.HomeUI?.triggerStatusUpdate) {
+                 window.HomeUI.triggerStatusUpdate();
+               }
+               // 也嘗試初始化狀態卡片
+               if (window.initStatusCards) {
+                 window.initStatusCards();
+               }
+             }, 50); // 縮短延遲
     } catch (e) {
       console.error('請求失敗:', e);
       alert('操作失敗，請再試一次：' + e.message);
@@ -82,6 +93,17 @@
     try {
       await post(url, fd);
       if (el.dataset.lockTarget) setManualLockedByAuto(el, el.checked);
+      
+             // 觸發狀態卡片更新
+             setTimeout(() => {
+               if (window.HomeUI?.triggerStatusUpdate) {
+                 window.HomeUI.triggerStatusUpdate();
+               }
+               // 也嘗試初始化狀態卡片
+               if (window.initStatusCards) {
+                 window.initStatusCards();
+               }
+             }, 50); // 縮短延遲
     } catch (e) {
       const was = !el.checked;
       el.checked = was;

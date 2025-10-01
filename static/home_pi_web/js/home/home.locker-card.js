@@ -26,24 +26,24 @@
     return { setHold, isHeld };
   })();
 
-  // 速度參數
-  const FAST_BURST_MS = 300; // 動作後爆發輪詢間隔
-  const FAST_BURST_TICKS = 8; // 動作後快速輪詢次數（~2.4s）
-  const HOLD_MS = 2500;
-  const IDLE_MS = 5000; // 閒置輪詢
+  // 速度參數 - 優化為更快的更新
+  const FAST_BURST_MS = 200; // 動作後爆發輪詢間隔 (0.2秒)
+  const FAST_BURST_TICKS = 12; // 動作後快速輪詢次數（~2.4s）
+  const HOLD_MS = 1500; // 縮短保護期
+  const IDLE_MS = 2000; // 閒置輪詢 (2秒)
 
   // 時間格式化函數
   function formatScheduleTime(timestamp) {
     if (!timestamp) return ' 未排程 ';
     const date = new Date(timestamp * 1000);
     const now = new Date();
-    const diff = date - now;
+    const diff = date.getTime() - now.getTime();
     
     if (diff < 0) return ' 已過期 ';
     if (diff < 60000) return ' 即將執行 ';
     
-    const hours = Math.floor(diff / 3600000);
-    const minutes = Math.floor((diff % 3600000) / 60000);
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     if (hours > 0) {
       return ` ${hours}小時${minutes}分鐘後 `;

@@ -271,10 +271,11 @@
 
   <!-- 燈光 -->
   <div class="col-md-4">
-    <div class="card h-100 techno-card techno-sweep"
+    <div class="card h-100 techno-card techno-sweep mobile-clickable"
          id="lightCard"
          data-cap-id=""
-         data-group-id="{{ group_id|default:'' }}">
+         data-group-id="{{ group_id|default:'' }}"
+         data-capability="light">
       <div class="card-body pb-4">
         <h5 class="card-title d-flex align-items-center justify-content-between">
           <span><i class="bi bi-lightbulb me-2"></i> 燈光</span>
@@ -295,10 +296,11 @@
 
   <!-- 電子鎖 -->
   <div class="col-md-4">
-    <div class="card h-100 techno-card techno-sweep"
+    <div class="card h-100 techno-card techno-sweep mobile-clickable"
          id="lockerCard"
          data-cap-id=""
-         data-group-id="{{ group_id|default:'' }}">
+         data-group-id="{{ group_id|default:'' }}"
+         data-capability="locker">
       <div class="card-body pb-4">
         <h5 class="card-title d-flex align-items-center justify-content-between">
           <span><i class="bi bi-door-closed me-2"></i> 電子鎖</span>
