@@ -40,7 +40,7 @@
   border: 1px solid var(--bs-border-color);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--bs-body-bg);
+  background: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -364,7 +364,7 @@ button[aria-expanded='true'] .toggle-icon {
 }
 
 #deviceLogsChart {
-  background-color: #fff; /* 白底 */
+  background-color: var(--chart-bg); /* 使用 CSS 變數 */
   border-radius: 6px; /* 可選，讓邊角圓滑一點 */
   padding: 8px; /* 可選，避免線貼邊 */
 }

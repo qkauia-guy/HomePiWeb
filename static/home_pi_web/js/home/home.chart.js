@@ -36,24 +36,24 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             label: 'CPU (%)',
             data: cpuData,
-            borderColor: 'blue',
-            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+            borderColor: 'rgb(33, 150, 243)',
+            backgroundColor: 'rgba(33, 150, 243, 0.1)',
             fill: true,
             yAxisID: 'y',
           },
           {
             label: '記憶體 (%)',
             data: memData,
-            borderColor: 'orange',
-            backgroundColor: 'rgba(255, 165, 0, 0.1)',
+            borderColor: 'rgb(255, 152, 0)',
+            backgroundColor: 'rgba(255, 152, 0, 0.1)',
             fill: true,
             yAxisID: 'y',
           },
           {
             label: '溫度 (°C)',
             data: tempData,
-            borderColor: 'red',
-            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+            borderColor: 'rgb(244, 67, 54)',
+            backgroundColor: 'rgba(244, 67, 54, 0.1)',
             fill: true,
             yAxisID: 'y1',
           },
@@ -116,8 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
     logs.forEach((log) => {
       const seg = document.createElement('div');
       seg.style.flex = '1';
-      seg.style.background = log.status === 'offline' ? '#dc3545' : '#28a745'; // 用 Bootstrap 紅/綠
-      seg.style.borderRight = '1px solid #fff'; // 每格有分隔線
+      seg.style.background = log.status === 'offline' ? 'var(--status-offline)' : 'var(--status-online)';
+      seg.style.borderRight = '1px solid var(--border-color)';
       seg.title = `${log.ping_at} → ${log.status}`;
       bar.appendChild(seg);
     });

@@ -1,3 +1,5 @@
+// 使用全局配置函數
+
 (function () {
   // 1) 自動幫所有欄位套上 Bootstrap 樣式
   const form = document.getElementById('register-form');
@@ -22,11 +24,10 @@
     form.addEventListener('submit', function (e) {
       if (!form.checkValidity()) {
         e.preventDefault();
-        Swal.fire({
-          icon: 'warning',
-          title: '欄位未填完整',
-          text: '請檢查必填欄位與格式',
-        });
+        Swal.fire(window.getSwalConfig ? 
+          window.getSwalConfig('warning', '欄位未填完整', '請檢查必填欄位與格式') :
+          { icon: 'warning', title: '欄位未填完整', text: '請檢查必填欄位與格式' }
+        );
         return;
       }
       btn.disabled = true;

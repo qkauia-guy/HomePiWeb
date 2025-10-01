@@ -194,10 +194,11 @@ button[aria-expanded='true'] .toggle-icon {
 }
 
 #deviceLogsChart {
-  background-color: #fff; /* 白底 */
-  border-radius: 6px; /* 圓角 */
-  padding: 8px; /* 留白避免線貼邊 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); /* 微陰影，像儀表板 */
+  background-color: var(--chart-bg);
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 2px 8px var(--card-shadow-hover);
+  border: 1px solid var(--chart-border);
 }
 
 /* =========================
@@ -270,16 +271,49 @@ button[aria-expanded='true'] .toggle-icon {
     margin-top: 0.25rem;
   }
   
-  /* 歡迎文字在手機上隱藏或簡化 */
+  /* 歡迎文字在手機上簡化 */
   .navbar-text {
-    font-size: 0.8rem;
-    display: none; /* 或改為 display: block 並調整樣式 */
+    font-size: 0.75rem;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
   }
   
   /* 登出按鈕在手機上的調整 */
   .navbar-nav .btn {
     font-size: 0.85rem;
     padding: 0.375rem 0.75rem;
+  }
+  
+  /* 右側元素在手機上的排列優化 */
+  .navbar-nav.ms-auto {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  /* 黑夜模式按鈕在手機上的調整 */
+  .theme-toggle {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.9rem;
+  }
+  
+  /* 通知按鈕在手機上的調整 */
+  .navbar-nav .nav-link {
+    padding: 0.4rem 0.6rem;
+  }
+  
+  /* 確保右側元素不會換行 */
+  .navbar-nav.ms-auto {
+    flex-wrap: nowrap;
+  }
+  
+  /* 通知徽章在手機上的調整 */
+  .navbar-nav .badge {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
   }
 }
 
@@ -305,6 +339,23 @@ button[aria-expanded='true'] .toggle-icon {
     font-size: 0.8rem;
     padding: 0.3rem 0.6rem;
   }
+  
+  /* 歡迎文字在超小螢幕上進一步簡化 */
+  .navbar-text {
+    font-size: 0.7rem;
+    max-width: 100px;
+  }
+  
+  /* 右側元素在超小螢幕上的緊湊排列 */
+  .navbar-nav.ms-auto {
+    gap: 0.25rem;
+  }
+  
+  /* 黑夜模式按鈕在超小螢幕上的調整 */
+  .theme-toggle {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.8rem;
+  }
 }
 
 /* 橫向手機 (landscape) 優化 */
@@ -320,6 +371,282 @@ button[aria-expanded='true'] .toggle-icon {
   .navbar-nav .nav-link {
     padding: 0.3rem 0.5rem;
     font-size: 0.8rem;
+  }
+  
+  /* 橫向手機上的歡迎文字 */
+  .navbar-text {
+    font-size: 0.7rem;
+    max-width: 80px;
+  }
+  
+  /* 橫向手機上的按鈕調整 */
+  .navbar-nav .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* 橫向手機上的黑夜模式按鈕 */
+  .theme-toggle {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.75rem;
+  }
+}
+
+/* =========================
+   SweetAlert2 黑夜模式修復
+   ========================= */
+
+/* 強制覆蓋 SweetAlert2 的背景色 */
+.swal2-dark-popup {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  color: #f1f5f9 !important;
+  border: 1px solid #475569 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(59, 130, 246, 0.1) !important;
+}
+
+.swal2-dark-backdrop {
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.swal2-light-popup {
+  background-color: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.swal2-light-backdrop {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 黑夜模式下的 SweetAlert2 元素 */
+[data-theme="dark"] .swal2-popup {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  color: #f1f5f9 !important;
+  border: 1px solid #475569 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(59, 130, 246, 0.1) !important;
+}
+
+[data-theme="dark"] .swal2-backdrop {
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="dark"] .swal2-title {
+  color: #f1f5f9 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .swal2-content {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .swal2-confirm {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .swal2-confirm:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+[data-theme="dark"] .swal2-cancel {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+  border: 1px solid #64748b !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .swal2-cancel:hover {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+  box-shadow: 0 6px 16px rgba(100, 116, 139, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+[data-theme="dark"] .swal2-close {
+  color: #f1f5f9 !important;
+  background-color: rgba(71, 85, 105, 0.2) !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme="dark"] .swal2-close:hover {
+  background-color: rgba(71, 85, 105, 0.4) !important;
+  transform: scale(1.1) !important;
+}
+
+/* 科技感圖示效果 */
+[data-theme="dark"] .swal2-icon {
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-success {
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-error {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-warning {
+  border-color: #f59e0b !important;
+  color: #f59e0b !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-info {
+  border-color: #3b82f6 !important;
+  color: #3b82f6 !important;
+}
+
+/* =========================
+   黑夜模式 CSS 變數系統
+   ========================= */
+
+/* 預設為淺色模式 */
+:root {
+  /* 基礎顏色 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --border-color: #dee2e6;
+  --border-light: #e9ecef;
+  
+  /* 卡片和元件 */
+  --card-bg: #ffffff;
+  --card-border: #dee2e6;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: rgba(0, 0, 0, 0.15);
+  
+  /* 狀態顏色 */
+  --status-online: #28a745;
+  --status-offline: #dc3545;
+  --status-warning: #ffc107;
+  --status-info: #17a2b8;
+  
+  /* 工業風卡片顏色 */
+  --techno-bg-start: #f7f7f7;
+  --techno-bg-mid: #dcdcdc;
+  --techno-bg-end: #bcbcbc;
+  --techno-border: #a0a0a0;
+  --techno-text: #1a1a1a;
+  --techno-text-secondary: #2c2c2c;
+  --techno-text-muted: #444;
+  --techno-accent: #3f51b5;
+  
+  /* 圖表背景 */
+  --chart-bg: #ffffff;
+  --chart-border: #dee2e6;
+  
+  /* 表格樣式 */
+  --table-bg: #ffffff;
+  --table-border: #dee2e6;
+  --table-header-bg: #f8f9fa;
+  --table-row-even: #f8f9fa;
+  --table-row-hover: #e9ecef;
+}
+
+/* 黑夜模式 - 現代深色主題 */
+[data-theme="dark"] {
+  /* 基礎顏色 - 更舒適的深色調 */
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #262626;
+  --text-primary: #f5f5f5;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --border-light: #4b5563;
+  
+  /* 卡片和元件 - 更精緻的設計 */
+  --card-bg: #1a1a1a;
+  --card-border: #374151;
+  --card-shadow: rgba(0, 0, 0, 0.4);
+  --card-shadow-hover: rgba(0, 0, 0, 0.5);
+  
+  /* 狀態顏色 - 更鮮豔的配色 */
+  --status-online: #10b981;
+  --status-offline: #ef4444;
+  --status-warning: #f59e0b;
+  --status-info: #3b82f6;
+  
+  /* 工業風卡片顏色（現代版） */
+  --techno-bg-start: #1f2937;
+  --techno-bg-mid: #111827;
+  --techno-bg-end: #0f172a;
+  --techno-border: #374151;
+  --techno-text: #f9fafb;
+  --techno-text-secondary: #e5e7eb;
+  --techno-text-muted: #9ca3af;
+  --techno-accent: #6366f1;
+  
+  /* 圖表背景 */
+  --chart-bg: #1a1a1a;
+  --chart-border: #374151;
+  
+  /* 表格樣式 */
+  --table-bg: #1a1a1a;
+  --table-border: #374151;
+  --table-header-bg: #111827;
+  --table-row-even: #111827;
+  --table-row-hover: #1f2937;
+}
+
+/* 自動模式（跟隨系統設定） */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* 基礎顏色 */
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #3a3a3a;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+    --text-muted: #808080;
+    --border-color: #404040;
+    --border-light: #333333;
+    
+    /* 卡片和元件 */
+    --card-bg: #2d2d2d;
+    --card-border: #404040;
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    --card-shadow-hover: rgba(0, 0, 0, 0.4);
+    
+    /* 狀態顏色 */
+    --status-online: #4caf50;
+    --status-offline: #f44336;
+    --status-warning: #ff9800;
+    --status-info: #2196f3;
+    
+    /* 工業風卡片顏色 */
+    --techno-bg-start: #3a3a3a;
+    --techno-bg-mid: #2d2d2d;
+    --techno-bg-end: #1f1f1f;
+    --techno-border: #555555;
+    --techno-text: #ffffff;
+    --techno-text-secondary: #e0e0e0;
+    --techno-text-muted: #b3b3b3;
+    --techno-accent: #5c6bc0;
+    
+    /* 圖表背景 */
+    --chart-bg: #2d2d2d;
+    --chart-border: #404040;
+    
+    /* 表格樣式 */
+    --table-bg: #2d2d2d;
+    --table-border: #404040;
+    --table-header-bg: #3a3a3a;
+    --table-row-even: #333333;
+    --table-row-hover: #404040;
   }
 }
 
@@ -363,4 +690,1291 @@ footer {
     bottom: 0;
     width: 100%;
   }
+}
+
+/* =========================
+   黑夜模式額外樣式優化
+   ========================= */
+
+/* 黑夜模式下的 body 背景 */
+[data-theme="dark"] body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 確保所有頁面容器都有黑夜模式 */
+[data-theme="dark"] .container,
+[data-theme="dark"] .container-fluid {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+/* 特別修復 container mt-4 的背景問題 */
+[data-theme="dark"] .container.mt-4 {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+/* 修復所有可能的 container 變體 */
+[data-theme="dark"] .container.mt-3,
+[data-theme="dark"] .container.mt-4,
+[data-theme="dark"] .container.mt-5,
+[data-theme="dark"] .container.py-4,
+[data-theme="dark"] .container.py-5 {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+/* 黑夜模式下的主要內容區域 */
+[data-theme="dark"] main {
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的頁面標題 */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的段落文字 */
+[data-theme="dark"] p {
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的 div 元素 */
+[data-theme="dark"] div {
+  color: inherit;
+}
+
+/* 強制黑夜模式背景 - 使用最高優先級 */
+html[data-theme="dark"] body.bg-body-tertiary {
+  background-color: var(--bg-primary) !important;
+}
+
+html[data-theme="dark"] .bg-body-tertiary {
+  background-color: var(--bg-primary) !important;
+}
+
+html[data-theme="dark"] .bg-body-secondary {
+  background-color: var(--bg-secondary) !important;
+}
+
+html[data-theme="dark"] .bg-body {
+  background-color: var(--bg-primary) !important;
+}
+
+/* 特別修復 body 元素 */
+html[data-theme="dark"] body {
+  background-color: var(--bg-primary) !important;
+}
+
+/* 黑夜模式下的 Bootstrap 背景類別覆蓋 */
+html[data-theme="dark"] .bg-light {
+  background-color: var(--bg-secondary) !important;
+}
+
+html[data-theme="dark"] .bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+/* 最終強制修復 - 使用最高優先級 */
+html[data-theme="dark"] body,
+html[data-theme="dark"] body * {
+  background-color: transparent !important;
+}
+
+/* 但排除需要特定背景的元素 */
+html[data-theme="dark"] body .card,
+html[data-theme="dark"] body .modal,
+html[data-theme="dark"] body .dropdown-menu,
+html[data-theme="dark"] body .offcanvas,
+html[data-theme="dark"] body .navbar,
+html[data-theme="dark"] body .btn,
+html[data-theme="dark"] body .form-control,
+html[data-theme="dark"] body .form-select,
+html[data-theme="dark"] body .form-check-input,
+html[data-theme="dark"] body .table,
+html[data-theme="dark"] body .list-group-item,
+html[data-theme="dark"] body .alert,
+html[data-theme="dark"] body .badge,
+html[data-theme="dark"] body .progress,
+html[data-theme="dark"] body .tooltip,
+html[data-theme="dark"] body .toast,
+html[data-theme="dark"] body .spinner-border,
+html[data-theme="dark"] body .spinner-grow,
+html[data-theme="dark"] body .carousel,
+html[data-theme="dark"] body .accordion,
+html[data-theme="dark"] body .nav-tabs,
+html[data-theme="dark"] body .nav-pills,
+html[data-theme="dark"] body .pagination,
+html[data-theme="dark"] body .breadcrumb,
+html[data-theme="dark"] body .input-group,
+html[data-theme="dark"] body .btn-group,
+html[data-theme="dark"] body .btn-toolbar {
+  background-color: unset !important;
+}
+
+/* 黑夜模式下的文字顏色覆蓋 */
+[data-theme="dark"] .text-dark {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-body {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-body-emphasis {
+  color: var(--text-primary) !important;
+}
+
+/* 黑夜模式下的邊框顏色 */
+[data-theme="dark"] .border {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .border-light {
+  border-color: var(--border-light) !important;
+}
+
+/* 使用更簡潔的方法修復白色背景問題 */
+[data-theme="dark"] body * {
+  background-color: inherit !important;
+}
+
+/* 但排除需要特定背景的元素 */
+[data-theme="dark"] body .card,
+[data-theme="dark"] body .modal,
+[data-theme="dark"] body .dropdown-menu,
+[data-theme="dark"] body .offcanvas,
+[data-theme="dark"] body .navbar,
+[data-theme="dark"] body .btn,
+[data-theme="dark"] body .form-control,
+[data-theme="dark"] body .form-select,
+[data-theme="dark"] body .form-check-input,
+[data-theme="dark"] body .table,
+[data-theme="dark"] body .list-group-item,
+[data-theme="dark"] body .alert,
+[data-theme="dark"] body .badge,
+[data-theme="dark"] body .progress,
+[data-theme="dark"] body .tooltip,
+[data-theme="dark"] body .toast,
+[data-theme="dark"] body .spinner-border,
+[data-theme="dark"] body .spinner-grow,
+[data-theme="dark"] body .carousel,
+[data-theme="dark"] body .accordion,
+[data-theme="dark"] body .nav-tabs,
+[data-theme="dark"] body .nav-pills,
+[data-theme="dark"] body .pagination,
+[data-theme="dark"] body .breadcrumb,
+[data-theme="dark"] body .input-group,
+[data-theme="dark"] body .btn-group,
+[data-theme="dark"] body .btn-toolbar {
+  background-color: unset !important;
+}
+
+/* 特別修復 main 元素的背景 */
+[data-theme="dark"] main {
+  background-color: var(--bg-primary) !important;
+}
+
+/* 修復所有可能的 Bootstrap 背景類別 */
+[data-theme="dark"] .bg-transparent {
+  background-color: transparent !important;
+}
+
+[data-theme="dark"] .bg-opacity-10,
+[data-theme="dark"] .bg-opacity-25,
+[data-theme="dark"] .bg-opacity-50,
+[data-theme="dark"] .bg-opacity-75,
+[data-theme="dark"] .bg-opacity-100 {
+  background-color: transparent !important;
+}
+
+/* 確保特定元素有正確的背景 */
+[data-theme="dark"] .card {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .modal {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .offcanvas {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .navbar {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .form-control {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .table {
+  background-color: var(--table-bg) !important;
+}
+
+[data-theme="dark"] .list-group-item {
+  background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .alert {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .badge {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .progress {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .tooltip {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .toast {
+  background-color: var(--card-bg) !important;
+}
+
+/* 這些樣式已經包含在上面，移除重複 */
+
+/* 黑夜模式下的 navbar 樣式 */
+[data-theme="dark"] .navbar {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="dark"] .navbar-dark {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .navbar-dark .navbar-brand,
+[data-theme="dark"] .navbar-dark .navbar-nav .nav-link,
+[data-theme="dark"] .navbar-dark .navbar-text {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .navbar-dark .navbar-nav .nav-link:hover {
+  color: var(--bs-primary) !important;
+}
+
+[data-theme="dark"] .navbar-dark .navbar-toggler {
+  border-color: var(--border-color) !important;
+  background-color: transparent;
+}
+
+[data-theme="dark"] .navbar-dark .navbar-toggler:hover {
+  border-color: var(--bs-primary) !important;
+}
+
+[data-theme="dark"] .navbar-dark .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28245, 245, 245, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* 修復 navbar 的固定定位樣式 */
+[data-theme="dark"] .navbar.fixed-top {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="dark"] .navbar.sticky-top {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 特別修復 navbar-dark bg-dark 的邊框問題 */
+[data-theme="dark"] .navbar.navbar-dark.bg-dark {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 確保 navbar 容器也有正確的樣式 */
+[data-theme="dark"] .navbar .container-fluid {
+  background-color: transparent;
+}
+
+/* 修復 navbar 的 collapse 區域 */
+[data-theme="dark"] .navbar-collapse {
+  background-color: transparent;
+}
+
+/* 黑夜模式下的 footer 樣式 */
+[data-theme="dark"] footer {
+  background-color: var(--bg-secondary) !important;
+  border-top: 1px solid var(--border-color) !important;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] footer.bg-body-tertiary {
+  background-color: var(--bg-secondary) !important;
+  border-top: 1px solid var(--border-color) !important;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="dark"] footer .text-body-secondary {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] footer small {
+  color: var(--text-secondary) !important;
+}
+
+/* 黑夜模式下的 offcanvas - 實色背景 */
+[data-theme="dark"] .offcanvas {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary);
+  border-right: 1px solid var(--border-color);
+}
+
+/* Offcanvas 寬度設定 */
+.offcanvas {
+  --bs-offcanvas-width: 320px;
+}
+
+@media (max-width: 576px) {
+  .offcanvas {
+    --bs-offcanvas-width: 90vw;
+  }
+}
+
+[data-theme="dark"] .offcanvas-header {
+  background-color: var(--bg-primary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 1rem 1.5rem;
+}
+
+[data-theme="dark"] .offcanvas-header .offcanvas-title {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+/* 修復所有 close button 的黑夜模式 */
+[data-theme="dark"] .btn-close {
+  background-color: var(--text-primary) !important;
+  opacity: 0.8;
+  filter: none !important;
+}
+
+[data-theme="dark"] .btn-close:hover {
+  opacity: 1;
+  background-color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .btn-close:focus {
+  background-color: var(--text-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(245, 245, 245, 0.25);
+}
+
+/* 特別修復 offcanvas-header 的 close button */
+[data-theme="dark"] .offcanvas-header .btn-close {
+  background-color: var(--text-primary) !important;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .offcanvas-header .btn-close:hover {
+  opacity: 1;
+}
+
+/* 修復 modal 的 close button */
+[data-theme="dark"] .modal-header .btn-close {
+  background-color: var(--text-primary) !important;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .modal-header .btn-close:hover {
+  opacity: 1;
+}
+
+[data-theme="dark"] .offcanvas-body {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary);
+  padding: 1.5rem;
+}
+
+/* 黑夜模式下的卡片樣式 */
+[data-theme="dark"] .card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的表格樣式 */
+[data-theme="dark"] .table {
+  color: var(--text-primary);
+  background-color: var(--table-bg);
+}
+
+[data-theme="dark"] .table thead th {
+  background-color: var(--table-header-bg);
+  border-color: var(--table-border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+  border-color: var(--table-border);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > td,
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > th {
+  background-color: var(--table-row-even);
+}
+
+[data-theme="dark"] .table-hover > tbody > tr:hover > td,
+[data-theme="dark"] .table-hover > tbody > tr:hover > th {
+  background-color: var(--table-row-hover);
+}
+
+/* 黑夜模式下的程式碼 */
+[data-theme="dark"] code {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+}
+
+/* 黑夜模式下的按鈕樣式 */
+[data-theme="dark"] .btn-outline-secondary {
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的表單控制項 */
+[data-theme="dark"] .form-control {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control:focus {
+  background-color: var(--bg-secondary);
+  border-color: var(--bs-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* 黑夜模式下的表單標籤 */
+[data-theme="dark"] .form-label {
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的表單文字 */
+[data-theme="dark"] .form-text {
+  color: var(--text-muted);
+}
+
+/* 黑夜模式下的表單開關 */
+[data-theme="dark"] .form-check-input {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+[data-theme="dark"] .form-check-input:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+[data-theme="dark"] .form-check-label {
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的表單選擇 */
+[data-theme="dark"] .form-select {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--bg-secondary);
+  border-color: var(--bs-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* 黑夜模式下的文字區域 */
+[data-theme="dark"] .form-control[type="textarea"],
+[data-theme="dark"] textarea.form-control {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control[type="textarea"]:focus,
+[data-theme="dark"] textarea.form-control:focus {
+  background-color: var(--bg-secondary);
+  border-color: var(--bs-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* 黑夜模式下的表單提示文字 */
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .form-control::-webkit-input-placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .form-control::-moz-placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .form-control:-ms-input-placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .form-control:-moz-placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.8;
+}
+
+/* 黑夜模式下的下拉選單 - 實色背景 */
+[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .dropdown-menu-end,
+[data-theme="dark"] .dropdown-menu-lg-start,
+[data-theme="dark"] .dropdown-menu.show {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-primary) !important;
+  background-color: transparent;
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-divider {
+  border-color: var(--border-color) !important;
+}
+
+/* 黑夜模式下的徽章 */
+[data-theme="dark"] .badge {
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的文字顏色 */
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-body-secondary {
+  color: var(--text-secondary) !important;
+}
+
+/* 黑夜模式下的邊框 */
+[data-theme="dark"] .border {
+  border-color: var(--border-color) !important;
+}
+
+/* 黑夜模式下的分隔線 */
+[data-theme="dark"] hr {
+  border-color: var(--border-color);
+  opacity: 0.3;
+}
+
+/* 黑夜模式下的警告框 */
+[data-theme="dark"] .alert {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .alert-danger {
+  background-color: color-mix(in srgb, var(--status-offline) 10%, var(--bg-secondary));
+  border-color: var(--status-offline);
+  color: var(--status-offline);
+}
+
+[data-theme="dark"] .alert-success {
+  background-color: color-mix(in srgb, var(--status-online) 10%, var(--bg-secondary));
+  border-color: var(--status-online);
+  color: var(--status-online);
+}
+
+[data-theme="dark"] .alert-warning {
+  background-color: color-mix(in srgb, var(--status-warning) 10%, var(--bg-secondary));
+  border-color: var(--status-warning);
+  color: var(--status-warning);
+}
+
+[data-theme="dark"] .alert-info {
+  background-color: color-mix(in srgb, var(--status-info) 10%, var(--bg-secondary));
+  border-color: var(--status-info);
+  color: var(--status-info);
+}
+
+/* 黑夜模式下的連結 */
+[data-theme="dark"] a {
+  color: var(--bs-primary);
+}
+
+[data-theme="dark"] a:hover {
+  color: var(--bs-primary);
+  opacity: 0.8;
+}
+
+/* 黑夜模式下的文字顏色覆蓋 */
+[data-theme="dark"] .text-primary {
+  color: var(--bs-primary) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-success {
+  color: var(--status-online) !important;
+}
+
+[data-theme="dark"] .text-danger {
+  color: var(--status-offline) !important;
+}
+
+[data-theme="dark"] .text-warning {
+  color: var(--status-warning) !important;
+}
+
+[data-theme="dark"] .text-info {
+  color: var(--status-info) !important;
+}
+
+/* 黑夜模式下的背景顏色覆蓋 */
+[data-theme="dark"] .bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+[data-theme="dark"] .bg-secondary {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .bg-success {
+  background-color: var(--status-online) !important;
+}
+
+[data-theme="dark"] .bg-danger {
+  background-color: var(--status-offline) !important;
+}
+
+[data-theme="dark"] .bg-warning {
+  background-color: var(--status-warning) !important;
+}
+
+[data-theme="dark"] .bg-info {
+  background-color: var(--status-info) !important;
+}
+
+/* 黑夜模式下的按鈕樣式 - 現代配色 */
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-outline-primary {
+  color: #6366f1;
+  border: 2px solid #6366f1;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-color: #6366f1;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-success {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .btn-success:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+[data-theme="dark"] .btn-outline-success {
+  color: #10b981;
+  border: 2px solid #10b981;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-outline-success:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #10b981;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-outline-danger {
+  color: #ef4444;
+  border: 2px solid #ef4444;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-outline-danger:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-info {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-info:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-outline-info {
+  color: #06b6d4;
+  border: 2px solid #06b6d4;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-outline-info:hover {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border-color: #06b6d4;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-warning:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+  transform: translateY(-1px);
+}
+
+/* 強制修復 device-list 中的按鈕樣式 */
+[data-theme="dark"] .device-list .btn,
+[data-theme="dark"] .groups-scope .btn,
+[data-theme="dark"] .groups-scope .d-grid .btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .device-list .btn:hover,
+[data-theme="dark"] .groups-scope .btn:hover,
+[data-theme="dark"] .groups-scope .d-grid .btn:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 專門修復 offcanvas 中的按鈕樣式 */
+[data-theme="dark"] .offcanvas-body .btn-success {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="dark"] .offcanvas-body .btn-success:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  transform: translateY(-1px) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .offcanvas-body .btn-success:focus {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .offcanvas-body .btn-success:active {
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important;
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* 修復 offcanvas 中的其他按鈕樣式 */
+[data-theme="dark"] .offcanvas-body .btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .offcanvas-body .btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  transform: translateY(-1px) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .offcanvas-body .btn-outline-secondary {
+  color: var(--text-primary) !important;
+  border: 2px solid var(--border-color) !important;
+  background: transparent !important;
+  transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .offcanvas-body .btn-outline-secondary:hover {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 修復 btn-primary 在 device-list 中的樣式 */
+[data-theme="dark"] .device-list .btn-primary,
+[data-theme="dark"] .groups-scope .btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+}
+
+[data-theme="dark"] .device-list .btn-primary:hover,
+[data-theme="dark"] .groups-scope .btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 修復 btn-outline-secondary 在 device-list 中的樣式 */
+[data-theme="dark"] .device-list .btn-outline-secondary,
+[data-theme="dark"] .groups-scope .btn-outline-secondary {
+  color: var(--text-primary) !important;
+  border: 2px solid var(--border-color) !important;
+  background: transparent !important;
+  transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .device-list .btn-outline-secondary:hover,
+[data-theme="dark"] .groups-scope .btn-outline-secondary:hover {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 黑夜模式下的 btn-dark 修正 */
+[data-theme="dark"] .btn-dark {
+  background-color: var(--bg-primary);
+  border-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-dark:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-outline-dark {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline-dark:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* 黑夜模式下的列表群組 */
+[data-theme="dark"] .list-group-item {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .list-group-item:hover {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .list-group-item.active {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* 黑夜模式下的 device-list 和 list-unstyled */
+[data-theme="dark"] .device-list {
+  background-color: transparent;
+}
+
+[data-theme="dark"] .device-list .device-item {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .device-list .device-item:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--bs-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .device-list .device-sub {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .device-list .status-dot {
+  background-color: var(--status-offline);
+}
+
+[data-theme="dark"] .device-list .status-dot.on {
+  background-color: var(--status-online);
+}
+
+[data-theme="dark"] .device-list .chev {
+  color: var(--text-secondary);
+}
+
+/* 黑夜模式下的 groups-scope */
+[data-theme="dark"] .groups-scope .device-item {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .groups-scope .device-item:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--bs-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .groups-scope .device-sub {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .groups-scope .status-dot {
+  background-color: var(--status-offline);
+}
+
+[data-theme="dark"] .groups-scope .status-dot.on {
+  background-color: var(--status-online);
+}
+
+[data-theme="dark"] .groups-scope .chev {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .groups-scope .device-actions {
+  background-color: var(--card-bg);
+}
+
+/* 黑夜模式下的導航標籤 */
+[data-theme="dark"] .nav-tabs .nav-link {
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link:hover {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.active {
+  color: var(--text-primary);
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+/* 黑夜模式下的分頁 */
+[data-theme="dark"] .pagination .page-link {
+  color: var(--text-primary);
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .pagination .page-link:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* 黑夜模式下的進度條 */
+[data-theme="dark"] .progress {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .progress-bar {
+  background-color: var(--bs-primary);
+}
+
+/* 黑夜模式下的工具提示 */
+[data-theme="dark"] .tooltip .tooltip-inner {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .tooltip.bs-tooltip-top .tooltip-arrow::before {
+  border-top-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+  border-bottom-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .tooltip.bs-tooltip-start .tooltip-arrow::before {
+  border-left-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .tooltip.bs-tooltip-end .tooltip-arrow::before {
+  border-right-color: var(--bg-primary);
+}
+
+/* 淺色模式下的美觀按鈕配色 */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-color: #3b82f6;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+/* 淺色模式下的 btn-success 樣式 */
+:not([data-theme="dark"]) .btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+}
+
+:not([data-theme="dark"]) .btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-outline-success {
+  color: #10b981;
+  border: 2px solid #10b981;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-success:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #10b981;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-outline-danger {
+  color: #ef4444;
+  border: 2px solid #ef4444;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-danger:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-outline-info {
+  color: #06b6d4;
+  border: 2px solid #06b6d4;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-info:hover {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border-color: #06b6d4;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-warning:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+  transform: translateY(-1px);
+}
+
+/* 黑夜模式切換按鈕樣式 */
+#theme-toggle {
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+#theme-toggle i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+#theme-toggle:hover i {
+  transform: rotate(180deg);
 }
