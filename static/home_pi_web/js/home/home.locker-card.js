@@ -32,6 +32,26 @@
   const HOLD_MS = 2500;
   const IDLE_MS = 5000; // 閒置輪詢
 
+  // 時間格式化函數
+  function formatScheduleTime(timestamp) {
+    if (!timestamp) return ' 未排程 ';
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diff = date - now;
+    
+    if (diff < 0) return ' 已過期 ';
+    if (diff < 60000) return ' 即將執行 ';
+    
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    
+    if (hours > 0) {
+      return ` ${hours}小時${minutes}分鐘後 `;
+    } else {
+      return ` ${minutes}分鐘後 `;
+    }
+  }
+
   function shouldApplyRemote(card, remoteTs) {
     const now = Date.now();
     const holdUntil = parseInt(card.dataset.localHoldUntil || '0', 10) || 0;
@@ -49,12 +69,12 @@
 
   // 渲染卡片（尊重 hold）
   function renderLocker(card, state) {
+    console.log('[Locker] 渲染狀態:', state);
     const badge = card.querySelector('#lockerBadge');
     const text = card.querySelector('#lockerText');
     const spin = card.querySelector('#lockerSpinner');
 
     const isLocked = !!state.locked;
-    const autoLockRunning = !!state.auto_lock_running;
 
     // ★ 取得 capId 與 hold 狀態
     const capId = card.dataset.capId || '';
@@ -71,33 +91,39 @@
     }
 
     // 文案
-    if (autoLockRunning) {
-      text.textContent = `目前狀態：已開鎖（${
-        isLocked ? '上鎖中' : '開鎖中'
-      }）`;
-    } else {
-      text.textContent = `目前狀態：${isLocked ? '已上鎖🔒' : '已開鎖🔓'}`;
-    }
+    text.textContent = `目前狀態：${isLocked ? '已上鎖🔒' : '已開鎖🔓'}`;
 
     // 更新狀態文字
     const statusText = card.querySelector('#lockerStatusText');
-    const autoText = card.querySelector('#lockerAutoText');
+    const schedOnText = card.querySelector('#lockerSchedOnText');
+    const schedOffText = card.querySelector('#lockerSchedOffText');
+    
     if (statusText) {
       statusText.textContent = isLocked ? '已上鎖' : '已開鎖';
     }
-    if (autoText) {
-      autoText.textContent = autoLockRunning ? '啟用中' : '未啟用';
+    
+    // 更新排程文字（如果有的話）
+    if (schedOnText) {
+      console.log('[Locker] 更新開鎖排程:', state.next_unlock);
+      schedOnText.textContent = state.next_unlock ? formatScheduleTime(state.next_unlock) : ' 未排程 ';
+    }
+    if (schedOffText) {
+      console.log('[Locker] 更新上鎖排程:', state.next_lock);
+      schedOffText.textContent = state.next_lock ? formatScheduleTime(state.next_lock) : ' 未排程 ';
     }
 
     // spinner：pending 顯示
     if (spin) {
       const pending = Boolean(state.pending);
-      spin.classList.toggle('d-none', !pending);
+      if (pending) {
+        spin.classList.remove('d-none');
+      } else {
+        spin.classList.add('d-none');
+      }
     }
 
     // 記錄狀態給輪詢節奏用
     card.dataset.isLocked = isLocked ? '1' : '0';
-    card.dataset.autoLockRunning = autoLockRunning ? '1' : '0';
 
     // 同步面板內的按鈕（★hold 中不覆寫按鈕狀態）
     if (capId) {
@@ -137,8 +163,14 @@
       });
       if (!resp.ok) throw new Error('HTTP_' + resp.status);
       data = await resp.json();
-    } catch {
+    } catch (error) {
+      console.error('電子鎖狀態更新失敗:', error);
       card.querySelector('#lockerSpinner')?.classList.add('d-none');
+      // 更新狀態文字顯示錯誤
+      const text = card.querySelector('#lockerText');
+      if (text) {
+        text.textContent = '連線失敗，請檢查網路';
+      }
       return;
     }
 
@@ -151,25 +183,47 @@
       return;
     }
 
-    if (data && data.ok) renderLocker(card, data);
-    else card.querySelector('#lockerSpinner')?.classList.add('d-none');
+    if (data && data.ok) {
+      console.log('[Locker] API 回應:', data);
+      renderLocker(card, data);
+    } else {
+      console.log('[Locker] API 回應失敗:', data);
+      card.querySelector('#lockerSpinner')?.classList.add('d-none');
+      // 如果 API 回傳失敗，顯示錯誤狀態
+      const text = card.querySelector('#lockerText');
+      if (text) {
+        text.textContent = '狀態更新失敗';
+      }
+    }
   }
 
   function resetLockerCard(card, msg = '請先從上方選擇「電子鎖」能力') {
     const badge = card.querySelector('#lockerBadge');
     const text = card.querySelector('#lockerText');
     const spin = card.querySelector('#lockerSpinner');
+    const statusText = card.querySelector('#lockerStatusText');
+    const autoText = card.querySelector('#lockerAutoText');
+    
     badge.classList.remove('bg-success', 'bg-secondary', 'bg-warning');
     badge.classList.add('bg-secondary');
     badge.textContent = '未綁定';
     text.textContent = msg;
     spin?.classList.add('d-none');
+    
+    // 重置狀態文字
+    if (statusText) statusText.textContent = '未連接';
+    
+    // 重置排程文字
+    const schedOnText = card.querySelector('#lockerSchedOnText');
+    const schedOffText = card.querySelector('#lockerSchedOffText');
+    if (schedOnText) schedOnText.textContent = ' 未排程 ';
+    if (schedOffText) schedOffText.textContent = ' 未排程 ';
+    
     card.dataset.capId = '';
     card.dataset.statusUrl = '';
     card.dataset.reqToken = '0';
     card.dataset.burst = '0';
     card.dataset.isLocked = '0';
-    card.dataset.autoLockRunning = '0';
   }
 
   function startLockerPolling(card) {
@@ -232,13 +286,15 @@
     card.dataset.reqToken = '0';
     card.dataset.burst = '0';
     card.dataset.isLocked = '0';
-    card.dataset.autoLockRunning = '0';
 
     if (stopLockerPoll) {
       stopLockerPoll();
       stopLockerPoll = null;
     }
     stopLockerPoll = startLockerPolling(card);
+    
+    // 立即執行一次狀態更新
+    setTimeout(() => fetchLockerState(card).catch(() => {}), 100);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

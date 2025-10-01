@@ -720,6 +720,40 @@ def api_cap_status(request, cap_id: int):
         payload__slug=cap.slug,
     ).exists()
 
+    # 查詢排程資訊
+    next_unlock = None
+    next_lock = None
+    if cap.kind == "locker":
+        from pi_devices.models import DeviceSchedule
+        # 查詢下次開鎖排程
+        unlock_schedule = DeviceSchedule.objects.filter(
+            device=cap.device,
+            payload__slug=cap.slug,
+            action="locker_unlock",
+            status="pending",
+            run_at__gt=now
+        ).order_by('run_at').first()
+        
+        # 查詢下次上鎖排程
+        lock_schedule = DeviceSchedule.objects.filter(
+            device=cap.device,
+            payload__slug=cap.slug,
+            action="locker_lock",
+            status="pending",
+            run_at__gt=now
+        ).order_by('run_at').first()
+        
+        # 除錯訊息
+        logger.warning(
+            "[api_cap_status] 排程查詢: cap=%s, slug=%s, now=%s, unlock_schedule=%s, lock_schedule=%s",
+            cap.slug, cap.slug, now, unlock_schedule, lock_schedule
+        )
+        
+        if unlock_schedule:
+            next_unlock = int(unlock_schedule.run_at.timestamp())
+        if lock_schedule:
+            next_lock = int(lock_schedule.run_at.timestamp())
+
     resp_data = {
         "ok": True,
         "light_is_on": light_is_on,
@@ -731,6 +765,11 @@ def api_cap_status(request, cap_id: int):
         "last_change_ts": last_change_ts,
         "server_ts": int(now.timestamp()),
     }
+    
+    # 添加排程資訊（僅電子鎖）
+    if cap.kind == "locker":
+        resp_data["next_unlock"] = next_unlock
+        resp_data["next_lock"] = next_lock
 
     # ★ DEBUG 輸出
     logger.warning(

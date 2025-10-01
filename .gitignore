@@ -14,3 +14,18 @@ static/qrcodes/
 # 影片片段生成忽略
 stream/*.ts
 stream/*.m3u8
+pi_agent/說明文件/systemd檔案/homepi-hls-off.service
+.gitignore
+pi_agent/說明文件/systemd檔案/homepi-hls-off.timer
+pi_agent/說明文件/systemd檔案/homepi-hls-http@.service
+.cursor/rules/01.mdc
+pi_agent/install.sh
+.gitignore
+pi_agent/stream/*.m3u8
+pi_agent/stream/*.ts
+pi_agent/stream/*.h264
+專案資料結構文件.md
+電子鎖功能說明.md
+Note_qkauia.md
+Note_qkauia.md
+pi_agent/test.h264

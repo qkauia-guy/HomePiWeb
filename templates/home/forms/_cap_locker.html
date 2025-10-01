@@ -2,7 +2,6 @@
   <div class="card-body">
     <h5 class="card-title mb-3">{{ device.label }}｜{{ cap.name }}</h5>
 
-
     <div class="row align-items-start">
       
       <!-- 左邊：電子鎖控制按鈕 -->
@@ -41,15 +40,41 @@
         </button>
       </div>
 
-      <!-- 右邊：狀態資訊 -->
+      <!-- 右邊：排程表單 -->
       <div class="col-md-7">
-        <div class="d-flex align-items-center gap-3">
-          <span class="badge bg-secondary" id="lockerBadge">狀態未知</span>
-          <span class="small text-muted" id="lockerText">等待更新...</span>
-          <div class="spinner-border spinner-border-sm text-primary d-none" id="lockerSpinner"></div>
-        </div>
-        <div class="small text-muted mt-2" id="lockerStatusText">手動控制</div>
-        <div class="small text-muted" id="lockerAutoText">未啟用</div>
+        <form
+          id="schedForm-{{ cap.id }}"
+          class="row gy-2 gx-2 align-items-end"
+          data-create-url="{% url 'create_schedule' %}"
+          data-upcoming-url="{% url 'upcoming_schedules' device_id=device.id %}"
+          data-slug="{{ cap.slug }}"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="device_id" value="{{ device.id }}">
+          <input type="hidden" name="slug" value="{{ cap.slug }}">
+          <input type="hidden" name="on_action" value="locker_unlock">
+          <input type="hidden" name="off_action" value="locker_lock">
+
+          <div class="col-auto">
+            <label class="form-label mb-1">開鎖時間</label>
+            <input type="datetime-local" name="on_at_local" class="form-control form-control-sm">
+          </div>
+
+          <div class="col-auto">
+            <label class="form-label mb-1">上鎖時間</label>
+            <input type="datetime-local" name="off_at_local" class="form-control form-control-sm">
+          </div>
+
+          <div class="col-auto d-flex gap-2">
+            <button type="button" class="btn btn-success btn-sm" data-submit-both="#schedForm-{{ cap.id }}">排程時間</button>
+          </div>
+
+          <div class="col-12">
+            <small class="text-muted">時間使用你的瀏覽器時區（後端自動轉 UTC 存）。</small>
+            <div class="text-success small d-none mt-1" id="schedMsg-{{ cap.id }}"></div>
+            <div class="text-danger small d-none mt-1" id="schedErr-{{ cap.id }}"></div>
+          </div>
+        </form>
       </div>
     </div>
   </div>

@@ -204,6 +204,34 @@ def action(request, device_id: int, cap_id: int, action: str):
             payload["target"] = cap.slug  # ★ agent 用
             payload["slug"] = cap.slug
         _queue_command(device, cmd_name, payload=payload)
+        
+        # 發送通知給群組成員
+        try:
+            from notifications.services.devices import notify_device_action
+            
+            # 除錯資訊
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Device action notification (action view): device={device.id}, action={cmd_name}, actor={request.user.id}, group={group}")
+            
+            # 發送通知
+            result = notify_device_action(
+                device=device,
+                action=cmd_name,
+                actor=request.user,
+                group=group,
+                capability_name=cap.name,
+            )
+            
+            logger.info(f"Notification result (action view): {len(result) if result else 0} notifications created")
+            
+        except Exception as e:
+            # 通知失敗不影響主要功能，只記錄錯誤
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to send device action notification: {e}")
+            import traceback
+            logger.warning(f"Traceback: {traceback.format_exc()}")
 
     next_url = request.POST.get("next")
     if not next_url:
@@ -325,6 +353,39 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
 
     # 送指令
     req_id = _queue_command(device, cmd_name, payload=payload)
+    
+    # 發送通知給群組成員
+    try:
+        from notifications.services.devices import notify_device_action
+        
+        # 取得群組物件（如果有的話）
+        group_obj = None
+        if gid:
+            group_obj = get_object_or_404(Group, pk=gid)
+        
+        # 除錯資訊
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Device action notification: device={device.id}, action={cmd_name}, actor={request.user.id}, group_id={gid}, group_obj={group_obj}")
+        
+        # 發送通知
+        result = notify_device_action(
+            device=device,
+            action=cmd_name,
+            actor=request.user,
+            group=group_obj,
+            capability_name=cap.name,
+        )
+        
+        logger.info(f"Notification result: {len(result) if result else 0} notifications created")
+        
+    except Exception as e:
+        # 通知失敗不影響主要功能，只記錄錯誤
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to send device action notification: {e}")
+        import traceback
+        logger.warning(f"Traceback: {traceback.format_exc()}")
 
     # 訊息字串（同時支援 AJAX 與 redirect）
     msg = {

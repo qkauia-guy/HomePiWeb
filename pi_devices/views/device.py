@@ -415,15 +415,27 @@ def create_schedule(request):
 
     created = []
 
-    # 新版：自動判斷建立哪種排程
+    # 新版：根據隱藏欄位或 slug 判斷動作類型
     now = timezone.now()
+    
+    # 取得動作類型
+    on_action = request.POST.get("on_action") or "light_on"
+    off_action = request.POST.get("off_action") or "light_off"
+    
+    # 如果沒有指定動作，根據 slug 判斷
+    if not request.POST.get("on_action") and not request.POST.get("off_action"):
+        slug = request.POST.get("slug", "")
+        if "locker" in slug.lower() or "door" in slug.lower():
+            on_action = "locker_unlock"
+            off_action = "locker_lock"
+    
     if on_dt_utc:
         if on_dt_utc < now:
             return JsonResponse(
                 {"ok": False, "error": "on time is in the past"}, status=400
             )
         s = DeviceSchedule.objects.create(
-            device=device, action="light_on", payload=payload, run_at=on_dt_utc
+            device=device, action=on_action, payload=payload, run_at=on_dt_utc
         )
         created.append(
             {"id": s.id, "action": s.action, "run_at": int(s.run_at.timestamp())}
@@ -435,7 +447,7 @@ def create_schedule(request):
                 {"ok": False, "error": "off time is in the past"}, status=400
             )
         s = DeviceSchedule.objects.create(
-            device=device, action="light_off", payload=payload, run_at=off_dt_utc
+            device=device, action=off_action, payload=payload, run_at=off_dt_utc
         )
         created.append(
             {"id": s.id, "action": s.action, "run_at": int(s.run_at.timestamp())}
