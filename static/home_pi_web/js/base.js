@@ -196,6 +196,17 @@
       } else {
         throw new Error('HTTP ' + resp.status);
       }
+      
+           // 觸發狀態卡片更新
+           setTimeout(() => {
+             if (window.HomeUI?.triggerStatusUpdate) {
+               window.HomeUI.triggerStatusUpdate();
+             }
+             // 也嘗試初始化狀態卡片
+             if (window.initStatusCards) {
+               window.initStatusCards();
+             }
+           }, 50); // 縮短延遲
     } catch (e) {
       el.checked = !el.checked; // 復原
       toast('操作失敗，請再試一次：' + (e?.message || e), false);

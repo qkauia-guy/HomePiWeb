@@ -253,6 +253,9 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
     - auto_on / auto_off -> 佇列 auto_light_on / auto_light_off
       （payload 可選帶門檻與去抖動參數）
     """
+    import time
+    start_time = time.time()
+    
     device = get_object_or_404(Device, pk=device_id)
     cap = get_object_or_404(DeviceCapability, pk=cap_id, device=device)
 
@@ -354,38 +357,30 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
     # 送指令
     req_id = _queue_command(device, cmd_name, payload=payload)
     
-    # 發送通知給群組成員
-    try:
-        from notifications.services.devices import notify_device_action
-        
-        # 取得群組物件（如果有的話）
-        group_obj = None
-        if gid:
-            group_obj = get_object_or_404(Group, pk=gid)
-        
-        # 除錯資訊
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"Device action notification: device={device.id}, action={cmd_name}, actor={request.user.id}, group_id={gid}, group_obj={group_obj}")
-        
-        # 發送通知
-        result = notify_device_action(
-            device=device,
-            action=cmd_name,
-            actor=request.user,
-            group=group_obj,
-            capability_name=cap.name,
-        )
-        
-        logger.info(f"Notification result: {len(result) if result else 0} notifications created")
-        
-    except Exception as e:
-        # 通知失敗不影響主要功能，只記錄錯誤
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning(f"Failed to send device action notification: {e}")
-        import traceback
-        logger.warning(f"Traceback: {traceback.format_exc()}")
+    # 暫時禁用通知發送以提升響應速度
+    # TODO: 可以考慮使用 Celery 或其他異步任務隊列來處理通知
+    # try:
+    #     from notifications.services.devices import notify_device_action
+    #     
+    #     # 取得群組物件（如果有的話）
+    #     group_obj = None
+    #     if gid:
+    #         group_obj = get_object_or_404(Group, pk=gid)
+    #     
+    #     # 發送通知
+    #     result = notify_device_action(
+    #         device=device,
+    #         action=cmd_name,
+    #         actor=request.user,
+    #         group=group_obj,
+    #         capability_name=cap.name,
+    #     )
+    #     
+    # except Exception as e:
+    #     # 通知失敗不影響主要功能，只記錄錯誤
+    #     import logging
+    #     logger = logging.getLogger(__name__)
+    #     logger.warning(f"Failed to send device action notification: {e}")
 
     # 訊息字串（同時支援 AJAX 與 redirect）
     msg = {
@@ -404,6 +399,10 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
     messages.success(request, msg)
 
     if is_ajax:
+        # 記錄處理時間
+        processing_time = time.time() - start_time
+        print(f"capability_action 處理時間: {processing_time:.3f}秒")
+        
         # 把這次 messages 取出回傳前端（前端用 toast 顯示）
         storage = get_messages(request)
         data = [{"level": m.level_tag, "message": m.message} for m in storage]
@@ -414,6 +413,7 @@ def capability_action(request, device_id: int, cap_id: int, action: str):
                 "cap_id": cap.id,
                 "action": act,
                 "messages": data,
+                "processing_time": processing_time,  # 添加處理時間到回應中
             },
             status=200,
         )

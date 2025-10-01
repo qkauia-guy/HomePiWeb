@@ -1978,3 +1978,118 @@ html[data-theme="dark"] body .btn-toolbar {
 #theme-toggle:hover i {
   transform: rotate(180deg);
 }
+
+/* =========================
+   手機版輪播照片隱藏
+   ========================= */
+
+/* 手機版隱藏輪播照片 */
+@media (max-width: 767.98px) {
+  /* 隱藏整個輪播容器 */
+  .carousel {
+    display: none !important;
+  }
+  
+  /* 隱藏輪播相關的所有元素 */
+  .carousel-inner,
+  .carousel-item,
+  .carousel-control-prev,
+  .carousel-control-next,
+  .carousel-indicators {
+    display: none !important;
+  }
+  
+  /* 隱藏輪播照片的容器行 - 使用特定的 class */
+  .carousel-container {
+    display: none !important;
+  }
+}
+
+/* 超小螢幕也隱藏輪播照片 */
+@media (max-width: 575.98px) {
+  .carousel,
+  .carousel-inner,
+  .carousel-item,
+  .carousel-control-prev,
+  .carousel-control-next,
+  .carousel-indicators {
+    display: none !important;
+  }
+  
+  /* 超小螢幕也隱藏包含輪播的行 */
+  .carousel-container {
+    display: none !important;
+  }
+}
+
+/* =========================
+   手機版畫面規劃
+   ========================= */
+
+/* 手機版隱藏功能選擇器 */
+@media (max-width: 767.98px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* 手機版提示文字樣式 */
+  .mobile-text {
+    display: inline !important;
+    font-size: 0.85rem;
+  }
+  
+  .desktop-text {
+    display: none !important;
+  }
+  
+  /* 手機版狀態卡片可點擊樣式 */
+  .mobile-clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .mobile-clickable:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 手機版狀態卡片點擊效果 */
+  .mobile-clickable::after {
+    content: "點擊控制";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .mobile-clickable:hover::after {
+    opacity: 1;
+  }
+}
+
+/* 桌面版顯示完整功能 */
+@media (min-width: 768px) {
+  .mobile-text {
+    display: none !important;
+  }
+  
+  .desktop-text {
+    display: inline !important;
+  }
+  
+  .desktop-only {
+    display: block !important;
+  }
+}

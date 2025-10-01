@@ -302,6 +302,17 @@
           detail: { created: data.created || [] },
         })
       );
+      
+      // 觸發狀態卡片更新，讓桌機版也能看到新的排程時間
+      setTimeout(() => {
+        if (window.HomeUI?.triggerStatusUpdate) {
+          window.HomeUI.triggerStatusUpdate();
+        }
+        // 也嘗試初始化狀態卡片
+        if (window.initStatusCards) {
+          window.initStatusCards();
+        }
+      }, 100);
     } catch (err) {
       showSchedMsg(f, '建立排程失敗：' + err.message, true);
     }
@@ -325,6 +336,17 @@
     document.querySelectorAll("form[id^='schedForm-']").forEach((f) => {
       fetchAndRenderUpcoming(f);
     });
+    
+    // 觸發狀態卡片更新，讓桌機版也能看到新的排程時間
+    setTimeout(() => {
+      if (window.HomeUI?.triggerStatusUpdate) {
+        window.HomeUI.triggerStatusUpdate();
+      }
+      // 也嘗試初始化狀態卡片
+      if (window.initStatusCards) {
+        window.initStatusCards();
+      }
+    }, 100);
   });
 
   // 可見性切換：回到分頁時刷新

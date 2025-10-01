@@ -294,6 +294,17 @@ def ajax_cap_form(request, cap_id: int):
         kind__startswith="sensor"
     )
 
+    # 為 cap 添加 meta 屬性，包含當前狀態
+    cap.meta = cap.cached_state or {}
+    
+    # 確保 meta 中有必要的狀態欄位
+    if not hasattr(cap.meta, 'light_is_on'):
+        cap.meta['light_is_on'] = bool(cap.meta.get('light_is_on', False))
+    if not hasattr(cap.meta, 'auto_light_running'):
+        cap.meta['auto_light_running'] = bool(cap.meta.get('auto_light_running', False))
+    if not hasattr(cap.meta, 'locked'):
+        cap.meta['locked'] = bool(cap.meta.get('locked', False))
+
     return render(
         request,
         tpl,

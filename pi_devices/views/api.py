@@ -767,6 +767,9 @@ def api_device_status(request, device_id: int):
 @never_cache
 @login_required
 def api_cap_status(request, cap_id: int):
+    import time
+    start_time = time.time()
+    
     cap = get_object_or_404(
         DeviceCapability.objects.select_related("device"), pk=cap_id
     )
@@ -821,8 +824,12 @@ def api_cap_status(request, cap_id: int):
     # 查詢排程資訊
     next_unlock = None
     next_lock = None
+    next_on = None
+    next_off = None
+    
+    from pi_devices.models import DeviceSchedule
+    
     if cap.kind == "locker":
-        from pi_devices.models import DeviceSchedule
         # 查詢下次開鎖排程
         unlock_schedule = DeviceSchedule.objects.filter(
             device=cap.device,
@@ -851,6 +858,36 @@ def api_cap_status(request, cap_id: int):
             next_unlock = int(unlock_schedule.run_at.timestamp())
         if lock_schedule:
             next_lock = int(lock_schedule.run_at.timestamp())
+    
+    elif cap.kind == "light":
+        # 查詢下次開燈排程
+        on_schedule = DeviceSchedule.objects.filter(
+            device=cap.device,
+            payload__slug=cap.slug,
+            action="light_on",
+            status="pending",
+            run_at__gt=now
+        ).order_by('run_at').first()
+        
+        # 查詢下次關燈排程
+        off_schedule = DeviceSchedule.objects.filter(
+            device=cap.device,
+            payload__slug=cap.slug,
+            action="light_off",
+            status="pending",
+            run_at__gt=now
+        ).order_by('run_at').first()
+        
+        # 除錯訊息
+        logger.warning(
+            "[api_cap_status] 燈光排程查詢: cap=%s, slug=%s, now=%s, on_schedule=%s, off_schedule=%s",
+            cap.slug, cap.slug, now, on_schedule, off_schedule
+        )
+        
+        if on_schedule:
+            next_on = int(on_schedule.run_at.timestamp())
+        if off_schedule:
+            next_off = int(off_schedule.run_at.timestamp())
 
     resp_data = {
         "ok": True,
@@ -864,10 +901,13 @@ def api_cap_status(request, cap_id: int):
         "server_ts": int(now.timestamp()),
     }
     
-    # 添加排程資訊（僅電子鎖）
+    # 添加排程資訊
     if cap.kind == "locker":
         resp_data["next_unlock"] = next_unlock
         resp_data["next_lock"] = next_lock
+    elif cap.kind == "light":
+        resp_data["next_on"] = next_on
+        resp_data["next_off"] = next_off
 
     # ★ DEBUG 輸出
     logger.warning(
@@ -877,6 +917,10 @@ def api_cap_status(request, cap_id: int):
         json.dumps(resp_data, ensure_ascii=False),
     )
 
+    # 記錄處理時間
+    processing_time = time.time() - start_time
+    print(f"api_cap_status 處理時間: {processing_time:.3f}秒")
+    
     resp = JsonResponse(resp_data)
     resp["Cache-Control"] = "no-store"
     return resp
