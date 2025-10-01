@@ -195,6 +195,97 @@
   }
 
   let stopLightPoll = null;
+  
+  // 暴露函數到全域，讓其他模組可以調用
+  window.stopLightPoll = () => {
+    if (stopLightPoll) {
+      stopLightPoll();
+      stopLightPoll = null;
+    }
+  };
+  window.startLightPolling = startLightPolling;
+  window.fetchLightState = fetchLightState;
+
+  // 根據裝置 ID 初始化狀態卡片
+  async function initDeviceStatusFromSelection(deviceId) {
+    const lightCard = document.getElementById('lightCard');
+    const lockerCard = document.getElementById('lockerCard');
+    
+    if (!lightCard && !lockerCard) return;
+
+    const g = groupSelect?.value || '';
+    const statusUrl = `/api/device/${encodeURIComponent(deviceId)}/status/` + 
+      (g ? `?group_id=${encodeURIComponent(g)}` : '');
+
+    try {
+      const resp = await fetch(statusUrl, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+      
+      if (!resp.ok) throw new Error('HTTP_' + resp.status);
+      const data = await resp.json();
+      
+      if (data && data.ok && data.capabilities) {
+        // 初始化燈光卡片
+        if (lightCard && data.capabilities.light) {
+          const lightCap = data.capabilities.light;
+          
+          lightCard.dataset.capId = lightCap.id;
+          lightCard.dataset.statusUrl = `/api/cap/${lightCap.id}/status/` + 
+            (g ? `?group_id=${encodeURIComponent(g)}` : '');
+          lightCard.dataset.reqToken = '0';
+          lightCard.dataset.burst = '0';
+          lightCard.dataset.isAuto = '0';
+
+          // 停止現有輪詢
+          if (stopLightPoll) {
+            stopLightPoll();
+            stopLightPoll = null;
+          }
+          
+          // 開始輪詢
+          stopLightPoll = startLightPolling(lightCard);
+          
+          // 立即執行一次狀態更新
+          setTimeout(() => fetchLightState(lightCard).catch(() => {}), 100);
+        }
+        
+        // 初始化電子鎖卡片
+        if (lockerCard && data.capabilities.locker) {
+          const lockerCap = data.capabilities.locker;
+          
+          lockerCard.dataset.capId = lockerCap.id;
+          lockerCard.dataset.statusUrl = `/api/cap/${lockerCap.id}/status/` + 
+            (g ? `?group_id=${encodeURIComponent(g)}` : '');
+          lockerCard.dataset.reqToken = '0';
+          lockerCard.dataset.burst = '0';
+          lockerCard.dataset.isLocked = '0';
+
+          // 停止現有輪詢（需要從 locker-card.js 獲取）
+          if (window.stopLockerPoll) {
+            window.stopLockerPoll();
+            window.stopLockerPoll = null;
+          }
+          
+          // 開始輪詢（需要從 locker-card.js 獲取）
+          if (window.startLockerPolling) {
+            window.stopLockerPoll = window.startLockerPolling(lockerCard);
+          }
+          
+          // 立即執行一次狀態更新
+          setTimeout(() => {
+            if (window.fetchLockerState) {
+              window.fetchLockerState(lockerCard).catch(() => {});
+            }
+          }, 100);
+        }
+      }
+    } catch (error) {
+      console.error('載入裝置狀態失敗:', error);
+    }
+  }
 
   function initLightCardFromSelection() {
     const card = document.getElementById('lightCard');
@@ -213,41 +304,60 @@
       return;
     }
 
-    const g = groupSelect?.value || '';
-    const statusUrl =
-      `/api/cap/${encodeURIComponent(capId)}/status/` +
-      (g ? `?group_id=${encodeURIComponent(g)}` : '');
+    // 選擇功能後，使用裝置狀態 API 來獲取整體狀態
+    const deviceId = deviceSelect?.value;
+    if (deviceId) {
+      initDeviceStatusFromSelection(deviceId);
+    } else {
+      // 如果沒有選定裝置，使用原有的能力狀態 API
+      const g = groupSelect?.value || '';
+      const statusUrl =
+        `/api/cap/${encodeURIComponent(capId)}/status/` +
+        (g ? `?group_id=${encodeURIComponent(g)}` : '');
 
-    card.dataset.capId = capId;
-    card.dataset.statusUrl = statusUrl;
-    card.dataset.reqToken = '0';
-    card.dataset.burst = '0';
-    card.dataset.isAuto = '0';
+      card.dataset.capId = capId;
+      card.dataset.statusUrl = statusUrl;
+      card.dataset.reqToken = '0';
+      card.dataset.burst = '0';
+      card.dataset.isAuto = '0';
 
-    if (stopLightPoll) {
-      stopLightPoll();
-      stopLightPoll = null;
+      if (stopLightPoll) {
+        stopLightPoll();
+        stopLightPoll = null;
+      }
+      stopLightPoll = startLightPolling(card);
     }
-    stopLightPoll = startLightPolling(card);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // 切換群組 / 裝置 → 停輪詢 & 重置
+    // 切換群組 → 停輪詢 & 重置，不嘗試顯示狀態
     groupSelect?.addEventListener('change', () => {
       if (stopLightPoll) {
         stopLightPoll();
         stopLightPoll = null;
       }
       const card = document.getElementById('lightCard');
-      if (card) resetLightCard(card, '請先選擇裝置與功能');
+      if (card) resetLightCard(card, '請先從上方選擇「燈光」能力');
+      
+      // 群組選擇時不嘗試顯示狀態，因為還沒有選擇裝置和能力
     });
+    
+    // 切換裝置 → 停輪詢 & 重置，然後顯示裝置狀態
     deviceSelect?.addEventListener('change', () => {
       if (stopLightPoll) {
         stopLightPoll();
         stopLightPoll = null;
       }
       const card = document.getElementById('lightCard');
-      if (card) resetLightCard(card, '請先選擇功能');
+      if (card) resetLightCard(card, '請先從上方選擇「燈光」能力');
+      
+      // 等待能力選單載入完成後，嘗試顯示裝置狀態
+      setTimeout(() => {
+        const deviceId = deviceSelect?.value;
+        if (deviceId) {
+          initDeviceStatusFromSelection(deviceId);
+        }
+      }, 500);
     });
 
     // 選到 light → 啟動輪詢
@@ -255,8 +365,13 @@
       initLightCardFromSelection();
     });
 
-    // 首次進來補一次
-    setTimeout(() => initLightCardFromSelection(), 0);
+    // 監聽 URL 參數恢復完成事件
+    document.addEventListener('url-params-restored', () => {
+      initLightCardFromSelection();
+    });
+    
+    // 首次進來補一次（延遲更久，等待 URL 參數恢復完成）
+    setTimeout(() => initLightCardFromSelection(), 1000);
 
     // 用 switch 操作時：開 spinner + 啟動爆發輪詢
     document.addEventListener('change', (evt) => {
