@@ -668,6 +668,104 @@ def _parse_gid(raw: str | None) -> int | None:
 
 @never_cache
 @login_required
+def api_device_status(request, device_id: int):
+    """
+    根據裝置 ID 獲取裝置的整體狀態（包含所有能力）
+    """
+    device = get_object_or_404(Device, pk=device_id)
+    
+    gid_raw = request.GET.get("group_id") or request.GET.get("g") or ""
+    gid = _parse_gid(gid_raw)
+    if gid:
+        group = get_object_or_404(Group, pk=gid)
+        if not device.groups.filter(pk=group.id).exists():
+            return HttpResponseForbidden("Device not in group")
+        is_visible = (group.owner_id == request.user.id) or group.memberships.filter(
+            user=request.user
+        ).exists()
+        if not is_visible:
+            return HttpResponseForbidden("No permission")
+    else:
+        visible = device.groups.filter(
+            Q(owner=request.user) | Q(memberships__user=request.user)
+        ).exists()
+        if not visible:
+            return HttpResponseForbidden("No permission")
+    
+    # 獲取裝置的所有能力
+    capabilities = device.capabilities.all()
+    
+    # 初始化狀態
+    device_status = {
+        "ok": True,
+        "device_id": device.id,
+        "device_name": device.label,
+        "capabilities": {},
+        "server_ts": int(timezone.now().timestamp()),
+    }
+    
+    # 為每個能力獲取狀態
+    for cap in capabilities:
+        st = cap.cached_state or {}
+        
+        cap_status = {
+            "id": cap.id,
+            "name": cap.name,
+            "kind": cap.kind,
+            "slug": cap.slug,
+            "light_is_on": bool(st.get("light_is_on", False)),
+            "auto_light_running": bool(st.get("auto_light_running", False)),
+            "last_lux": st.get("last_lux", None),
+            "locked": bool(st.get("locked", False)),
+            "auto_lock_running": bool(st.get("auto_lock_running", False)),
+            "last_change_ts": st.get("last_change_ts", None),
+        }
+        
+        # 處理 last_change_ts
+        last_change_ts = cap_status["last_change_ts"]
+        if hasattr(last_change_ts, "timestamp"):
+            try:
+                cap_status["last_change_ts"] = int(last_change_ts.timestamp())
+            except Exception:
+                cap_status["last_change_ts"] = None
+        elif isinstance(last_change_ts, (int, float)):
+            cap_status["last_change_ts"] = int(last_change_ts)
+        else:
+            cap_status["last_change_ts"] = None
+        
+        # 查詢排程資訊（僅電子鎖）
+        if cap.kind == "locker":
+            from pi_devices.models import DeviceSchedule
+            now = timezone.now()
+            
+            unlock_schedule = DeviceSchedule.objects.filter(
+                device=device,
+                payload__slug=cap.slug,
+                action="locker_unlock",
+                status="pending",
+                run_at__gt=now
+            ).order_by('run_at').first()
+            
+            lock_schedule = DeviceSchedule.objects.filter(
+                device=device,
+                payload__slug=cap.slug,
+                action="locker_lock",
+                status="pending",
+                run_at__gt=now
+            ).order_by('run_at').first()
+            
+            cap_status["next_unlock"] = int(unlock_schedule.run_at.timestamp()) if unlock_schedule else None
+            cap_status["next_lock"] = int(lock_schedule.run_at.timestamp()) if lock_schedule else None
+        
+        device_status["capabilities"][cap.kind] = cap_status
+    
+    resp = JsonResponse(device_status)
+    resp["Cache-Control"] = "no-store"
+    return resp
+
+
+@never_cache
+@login_required
 def api_cap_status(request, cap_id: int):
     cap = get_object_or_404(
         DeviceCapability.objects.select_related("device"), pk=cap_id

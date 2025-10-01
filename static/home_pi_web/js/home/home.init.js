@@ -224,6 +224,9 @@
         }
       }
       syncNextHiddenInputs();
+      
+      // 通知其他模組：URL 參數恢復完成
+      document.dispatchEvent(new CustomEvent('url-params-restored'));
     })();
   });
 })();

@@ -316,3 +316,138 @@ style: 統一程式碼縮排
 | `startapp`     | 建立新的應用程式（App） |
 
 ---
+
+##### `tree` 套件 資料結構樹狀圖指令:
+
+###### 安裝套件
+
+- 在某些 Linux 發行版或 macOS 上，tree 指令可能不是內建的，需要手動安裝。
+  - Ubuntu/Debian: `sudo apt-get install tree`
+  - macOS (使用 Homebrew): `brew install tree`
+
+| 參數        | 說明                                                             |
+| :---------- | :--------------------------------------------------------------- |
+| `-L [層級]` | 指定要顯示的目錄層級深度。例如 `tree -L 2` 只會顯示到第二層。    |
+| `-d`        | 只顯示目錄，不顯示檔案。                                         |
+| `-f`        | 在每個檔案或目錄前顯示完整的相對路徑。                           |
+| `-s`        | 列出檔案或目錄的大小。                                           |
+| `-h`        | 以更容易閱讀的格式（如 K, M, G）顯示檔案大小。                   |
+| `-p`        | 顯示檔案和目錄的權限。                                           |
+| `-C`        | 為不同的檔案類型加上顏色，使其更容易區分。                       |
+| `-a`        | 顯示所有檔案和目錄，包含隱藏檔（以 `.` 開頭的檔案）。            |
+| `-I [範本]` | 忽略符合指定範本的檔案或目錄。例如 `tree -I "node_modules"`。    |
+| `-N`        | 在處理非英語系檔名（如中文）時，直接列出原始字元，避免亂碼問題。 |
+
+###### 常用範例
+
+- **限制顯示層級為 2 層，並加上顏色：**
+
+  - `tree -L 2 -C`
+
+- **顯示包含檔案大小和權限的結構：**
+
+  - `tree -shp`
+
+- **將當前目錄結構輸出到一個文字檔：** -`tree -a > directory_structure.txt`
+
+##### 型別提示：
+
+###### 變數型別標註：
+
+```python
+age: int = 20
+name: str = "Alice"
+is_active: bool = True
+```
+
+###### 函式型別提示：
+
+```python
+def greet(name: str) -> str:
+    return f"Hello, {name}"
+
+def add_numbers(a: int, b: int) -> int:
+    return a + b
+```
+
+> name: str 參數型別標註, -> str 回傳值型別提示
+
+###### 集合、複合型別（需要 typing 套件）：
+
+```python
+from typing import List, Dict, Tuple, Optional, Iterable, Any
+
+def total(nums: List[int]) -> int:
+    return sum(nums)
+
+def get_user(id: int) -> Optional[str]:
+    # 可能傳回 user 資料(str) 或 None
+    return None if id == 0 else "User"
+
+def parse(data: Iterable[str]) -> List[str]:
+    return [d.lower() for d in data]
+
+def info(user: Dict[str, Any]) -> str:
+    # user 是鍵為字串，值任意型別的字典
+    return str(user)
+```
+
+> List[int]：int 類型清單
+> Optional[str]：str 或 None
+> Dict[str, Any]：key 為字串、value 任意型別的字典
+> Iterable[str]：可被 for 迴圈走訪的字串容器
+
+###### 多重型別回傳 (Union 或 |)：
+
+```python
+from typing import Union
+
+def answer(flag: bool) -> Union[int, str]:
+    return 123 if flag else "YES"
+
+def code(data: str | int) -> None:
+    print(data)
+```
+
+###### 補充說明：
+
+- Python 3.9 之後集合型別可直接寫 `list[int]`、`dict[str, float]`，不用 `import typing`。
+- 型別提示只給人或檢查工具「看懂」，不會改變 Python 實際運作行為。
+
+##### models 語法學習集：
+
+###### import:
+
+- `from __future__ import annotations`:
+
+`from __future__ import annotations` 是一個特殊的引入指令，但它的作用和一般的 import 不太一樣。它被稱為「未來語句 (Future statement)」。
+
+它啟用了 PEP 563 中定義的「延遲評估類型註解 (Postponed Evaluation of Type Annotations)」功能。
+
+**核心功能：將類型註解變成字串**
+
+```python
+# 在 Python 3.8 或更早版本中會報錯
+def get_user_name(user: User) -> str:
+    return user.name
+
+class User:
+    name: str
+```
+
+> 在上面的例子中，當 Python 讀到 get_user_name 函式時，User 類別還沒有被定義，所以會立刻拋出 NameError。
+
+加上 from **future** import annotations 的情況：
+
+```python
+from __future__ import annotations
+
+# 這段程式碼可以正常執行
+def get_user_name(user: User) -> str:
+    return user.name
+
+class User:
+    name: str
+```
+
+> 加上這行指令後，Python 會把 user: User 中的 User 當成一個字串 'User' 來儲存。它不會馬上尋找 User 這個類別是什麼，因此避免了錯誤。等到真正需要進行類型檢查時（例如使用 MyPy 工具），這個字串才會被解析。

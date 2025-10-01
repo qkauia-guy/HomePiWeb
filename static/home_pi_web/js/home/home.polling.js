@@ -169,7 +169,9 @@
         stopLightPoll = null;
       }
       const card = $('#lightCard');
-      if (card) resetLightCard(card, '請先選擇裝置與功能');
+      if (card) resetLightCard(card, '請先從上方選擇「燈光」能力');
+      
+      // 群組選擇時不嘗試顯示狀態，因為還沒有選擇裝置和能力
     });
     deviceSelect?.addEventListener('change', () => {
       if (stopLightPoll) {
@@ -177,13 +179,20 @@
         stopLightPoll = null;
       }
       const card = $('#lightCard');
-      if (card) resetLightCard(card, '請先選擇功能');
+      if (card) resetLightCard(card, '請先從上方選擇「燈光」能力');
+      
+      // 裝置選擇時不嘗試顯示狀態，因為能力選單會被重置
     });
 
     capSelect?.addEventListener('change', () => {
       initLightCardFromSelection();
     });
-    setTimeout(() => initLightCardFromSelection(), 0);
+    // 監聽 URL 參數恢復完成事件
+    document.addEventListener('url-params-restored', () => {
+      initLightCardFromSelection();
+    });
+    
+    setTimeout(() => initLightCardFromSelection(), 1000);
 
     // 用 switch 操作：開 spinner + 爆發輪詢
     document.addEventListener('change', (evt) => {

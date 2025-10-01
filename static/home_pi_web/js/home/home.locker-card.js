@@ -258,6 +258,97 @@
   }
 
   let stopLockerPoll = null;
+  
+  // 暴露函數到全域，讓其他模組可以調用
+  window.stopLockerPoll = () => {
+    if (stopLockerPoll) {
+      stopLockerPoll();
+      stopLockerPoll = null;
+    }
+  };
+  window.startLockerPolling = startLockerPolling;
+  window.fetchLockerState = fetchLockerState;
+
+  // 根據裝置 ID 初始化狀態卡片
+  async function initDeviceStatusFromSelection(deviceId) {
+    const lightCard = document.getElementById('lightCard');
+    const lockerCard = document.getElementById('lockerCard');
+    
+    if (!lightCard && !lockerCard) return;
+
+    const g = groupSelect?.value || '';
+    const statusUrl = `/api/device/${encodeURIComponent(deviceId)}/status/` + 
+      (g ? `?group_id=${encodeURIComponent(g)}` : '');
+
+    try {
+      const resp = await fetch(statusUrl, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+      
+      if (!resp.ok) throw new Error('HTTP_' + resp.status);
+      const data = await resp.json();
+      
+      if (data && data.ok && data.capabilities) {
+        // 初始化燈光卡片
+        if (lightCard && data.capabilities.light) {
+          const lightCap = data.capabilities.light;
+          
+          lightCard.dataset.capId = lightCap.id;
+          lightCard.dataset.statusUrl = `/api/cap/${lightCap.id}/status/` + 
+            (g ? `?group_id=${encodeURIComponent(g)}` : '');
+          lightCard.dataset.reqToken = '0';
+          lightCard.dataset.burst = '0';
+          lightCard.dataset.isAuto = '0';
+
+          // 停止現有輪詢（需要從 light-card.js 獲取）
+          if (window.stopLightPoll) {
+            window.stopLightPoll();
+            window.stopLightPoll = null;
+          }
+          
+          // 開始輪詢（需要從 light-card.js 獲取）
+          if (window.startLightPolling) {
+            window.stopLightPoll = window.startLightPolling(lightCard);
+          }
+          
+          // 立即執行一次狀態更新
+          setTimeout(() => {
+            if (window.fetchLightState) {
+              window.fetchLightState(lightCard).catch(() => {});
+            }
+          }, 100);
+        }
+        
+        // 初始化電子鎖卡片
+        if (lockerCard && data.capabilities.locker) {
+          const lockerCap = data.capabilities.locker;
+          
+          lockerCard.dataset.capId = lockerCap.id;
+          lockerCard.dataset.statusUrl = `/api/cap/${lockerCap.id}/status/` + 
+            (g ? `?group_id=${encodeURIComponent(g)}` : '');
+          lockerCard.dataset.reqToken = '0';
+          lockerCard.dataset.burst = '0';
+          lockerCard.dataset.isLocked = '0';
+
+          // 停止現有輪詢
+          if (stopLockerPoll) {
+            stopLockerPoll();
+            stopLockerPoll = null;
+          }
+          
+          // 開始輪詢
+          stopLockerPoll = startLockerPolling(lockerCard);
+          
+          // 立即執行一次狀態更新
+          setTimeout(() => fetchLockerState(lockerCard).catch(() => {}), 100);
+        }
+      }
+    } catch (error) {
+      console.error('載入裝置狀態失敗:', error);
+    }
+  }
 
   function initLockerCardFromSelection() {
     const card = document.getElementById('lockerCard');
@@ -276,44 +367,63 @@
       return;
     }
 
-    const g = groupSelect?.value || '';
-    const statusUrl =
-      `/api/cap/${encodeURIComponent(capId)}/status/` +
-      (g ? `?group_id=${encodeURIComponent(g)}` : '');
+    // 選擇功能後，使用裝置狀態 API 來獲取整體狀態
+    const deviceId = deviceSelect?.value;
+    if (deviceId) {
+      initDeviceStatusFromSelection(deviceId);
+    } else {
+      // 如果沒有選定裝置，使用原有的能力狀態 API
+      const g = groupSelect?.value || '';
+      const statusUrl =
+        `/api/cap/${encodeURIComponent(capId)}/status/` +
+        (g ? `?group_id=${encodeURIComponent(g)}` : '');
 
-    card.dataset.capId = capId;
-    card.dataset.statusUrl = statusUrl;
-    card.dataset.reqToken = '0';
-    card.dataset.burst = '0';
-    card.dataset.isLocked = '0';
+      card.dataset.capId = capId;
+      card.dataset.statusUrl = statusUrl;
+      card.dataset.reqToken = '0';
+      card.dataset.burst = '0';
+      card.dataset.isLocked = '0';
 
-    if (stopLockerPoll) {
-      stopLockerPoll();
-      stopLockerPoll = null;
+      if (stopLockerPoll) {
+        stopLockerPoll();
+        stopLockerPoll = null;
+      }
+      stopLockerPoll = startLockerPolling(card);
+      
+      // 立即執行一次狀態更新
+      setTimeout(() => fetchLockerState(card).catch(() => {}), 100);
     }
-    stopLockerPoll = startLockerPolling(card);
-    
-    // 立即執行一次狀態更新
-    setTimeout(() => fetchLockerState(card).catch(() => {}), 100);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // 切換群組 / 裝置 → 停輪詢 & 重置
+    // 切換群組 → 停輪詢 & 重置，不嘗試顯示狀態
     groupSelect?.addEventListener('change', () => {
       if (stopLockerPoll) {
         stopLockerPoll();
         stopLockerPoll = null;
       }
       const card = document.getElementById('lockerCard');
-      if (card) resetLockerCard(card, '請先選擇裝置與功能');
+      if (card) resetLockerCard(card, '請先從上方選擇「電子鎖」能力');
+      
+      // 群組選擇時不嘗試顯示狀態，因為還沒有選擇裝置和能力
     });
+    
+    // 切換裝置 → 停輪詢 & 重置，然後顯示裝置狀態
     deviceSelect?.addEventListener('change', () => {
       if (stopLockerPoll) {
         stopLockerPoll();
         stopLockerPoll = null;
       }
       const card = document.getElementById('lockerCard');
-      if (card) resetLockerCard(card, '請先選擇功能');
+      if (card) resetLockerCard(card, '請先從上方選擇「電子鎖」能力');
+      
+      // 等待能力選單載入完成後，嘗試顯示裝置狀態
+      setTimeout(() => {
+        const deviceId = deviceSelect?.value;
+        if (deviceId) {
+          initDeviceStatusFromSelection(deviceId);
+        }
+      }, 500);
     });
 
     // 選到 locker → 啟動輪詢
@@ -321,8 +431,13 @@
       initLockerCardFromSelection();
     });
 
-    // 首次進來補一次
-    setTimeout(() => initLockerCardFromSelection(), 0);
+    // 監聽 URL 參數恢復完成事件
+    document.addEventListener('url-params-restored', () => {
+      initLockerCardFromSelection();
+    });
+    
+    // 首次進來補一次（延遲更久，等待 URL 參數恢復完成）
+    setTimeout(() => initLockerCardFromSelection(), 1000);
 
     // 用按鈕操作時：開 spinner + 啟動爆發輪詢
     document.addEventListener('click', (evt) => {
