@@ -199,3 +199,168 @@ button[aria-expanded='true'] .toggle-icon {
   padding: 8px; /* 留白避免線貼邊 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); /* 微陰影，像儀表板 */
 }
+
+/* =========================
+   Navbar 響應式設計 (RWD)
+   ========================= */
+
+/* 平板尺寸優化 (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
+  
+  .navbar-text {
+    font-size: 0.85rem;
+  }
+}
+
+/* 手機尺寸優化 (小於 768px) */
+@media (max-width: 767.98px) {
+  /* Navbar 高度調整 */
+  .navbar {
+    min-height: 56px;
+    padding: 0.5rem 0;
+  }
+  
+  /* Brand 字體大小 */
+  .navbar-brand {
+    font-size: 1rem;
+    padding: 0.25rem 0;
+  }
+  
+  /* 漢堡選單按鈕 */
+  .navbar-toggler {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  /* 收合後的選單項目 */
+  .navbar-collapse {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .navbar-nav .nav-item {
+    margin-bottom: 0.25rem;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* 通知下拉選單在手機上的優化 */
+  .dropdown-menu {
+    min-width: 280px;
+    max-width: 90vw;
+    margin-top: 0.25rem;
+  }
+  
+  /* 歡迎文字在手機上隱藏或簡化 */
+  .navbar-text {
+    font-size: 0.8rem;
+    display: none; /* 或改為 display: block 並調整樣式 */
+  }
+  
+  /* 登出按鈕在手機上的調整 */
+  .navbar-nav .btn {
+    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+/* 超小螢幕 (小於 576px) */
+@media (max-width: 575.98px) {
+  .navbar-brand {
+    font-size: 0.95rem;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  /* 通知下拉選單進一步縮小 */
+  .dropdown-menu {
+    min-width: 260px;
+    max-width: 95vw;
+  }
+  
+  /* 登出按鈕更緊湊 */
+  .navbar-nav .btn {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+/* 橫向手機 (landscape) 優化 */
+@media (max-width: 767.98px) and (orientation: landscape) {
+  .navbar {
+    min-height: 48px;
+  }
+  
+  .navbar-brand {
+    font-size: 0.9rem;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* =========================
+   Sticky Footer 樣式
+   ========================= */
+
+/* 確保 body 使用 flexbox 佈局 */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 主要內容區域自動擴展 */
+main {
+  flex: 1 0 auto;
+}
+
+/* 頁尾樣式 */
+footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* 手機版頁尾優化 */
+@media (max-width: 767.98px) {
+  footer {
+    padding: 0.75rem 0 !important;
+  }
+  
+  footer small {
+    font-size: 0.75rem;
+  }
+}
+
+/* 確保頁尾在內容很少時也能固定在底部 */
+@media (min-width: 768px) {
+  footer {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+  }
+}
