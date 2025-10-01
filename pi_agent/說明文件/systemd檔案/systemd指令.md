@@ -38,6 +38,7 @@ sudo systemctl enable homepi-scheduler@qkauia.service
 > _**6. 查看詳細錯誤日誌
 > 當服務啟動失敗（failed）時，請查看日誌：
 > journalctl -u homepi-hls@qkauia.service -n 50 --no-pager
+> journalctl -u homepi-scheduler@qkauia.service -n 50 --no-pager
 > 將 homepi-hls@qkauia.service 替換為你要排查的單元名稱。
 > -n 50 顯示最近 50 行，可依需要調整。
 > \*\*\*✅ 依照以上流程，可以完整確認、啟動並檢查 HomePi 相關服務的運行狀態。

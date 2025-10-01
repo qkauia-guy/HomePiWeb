@@ -41,7 +41,7 @@ LARGE_FILES=$(find "$STREAM_DIR" -name "seg_*.ts" -size +$MAX_SIZE -type f)
 if [ -n "$LARGE_FILES" ]; then
     echo "發現異常大的檔案："
     echo "$LARGE_FILES"
-
+    
     # 刪除這些檔案
     echo "$LARGE_FILES" | xargs rm -f
     echo "已刪除異常大的 HLS 片段檔案"
@@ -175,7 +175,6 @@ crontab -r
 ### 腳本無法執行
 
 1. 檢查檔案權限：
-
    ```bash
    ls -la cleanup_hls.sh
    # 應該顯示 -rwxr-xr-x
@@ -190,13 +189,11 @@ crontab -r
 ### crontab 沒有執行
 
 1. 檢查 crontab 服務狀態：
-
    ```bash
    sudo systemctl status cron
    ```
 
 2. 檢查 crontab 設定：
-
    ```bash
    crontab -l
    ```
@@ -236,7 +233,6 @@ chmod +x cleanup_hls.sh
 ## 支援
 
 如果遇到問題，請檢查：
-
 1. 腳本權限是否正確
 2. 路徑是否正確
 3. crontab 設定是否正確

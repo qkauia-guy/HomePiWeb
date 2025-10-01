@@ -29,3 +29,4 @@ pi_agent/stream/*.h264
 Note_qkauia.md
 Note_qkauia.md
 pi_agent/test.h264
+\n# Log files\npi_agent/cleanup.log
