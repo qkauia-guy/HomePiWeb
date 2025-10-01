@@ -12,7 +12,7 @@
   <script src="{% static 'home_pi_web/js/groups/_group_items.js' %}" defer data-turbo-track="reload"></script>
 
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;"></div>
   <!-- 唯一 Offcanvas -->
   <div class="offcanvas offcanvas-start bg-body" id="sideBar" tabindex="-1"
@@ -168,12 +168,14 @@
   </nav>
 
   <!-- 主要內容 -->
-  <div class="container mt-4">
-    {% block content %}{% endblock %}
-  </div>
+  <main class="flex-grow-1">
+    <div class="container mt-4">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
 
   <!-- 頁尾 -->
-  <footer class="bg-body-tertiary text-center py-3 mt-5">
+  <footer class="bg-body-tertiary text-center py-3 mt-auto">
     <small class="text-body-secondary">&copy; 2025 HomePi 系統</small>
   </footer>
 
