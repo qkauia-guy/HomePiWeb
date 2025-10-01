@@ -231,18 +231,29 @@ def run_action(action: str, payload: dict | None = None):
             try:
                 target = payload.get("target") or payload.get("name")
                 if target is not None:
+                    print(f"[sched] 執行動作: {name}, target: {target}")
                     handler(target)
                 else:
+                    print(f"[sched] 執行動作: {name} (無 target)")
                     handler()
             except TypeError:
+                print(f"[sched] 執行動作: {name} (TypeError, 無參數)")
                 handler()
         else:
             print(f"[sched] unknown action: {name}")
             return
 
-    slug = payload.get("slug") or _LAST_LIGHT_SLUG or _first_light_slug(_CAPS_SNAPSHOT)
+    # 根據 action 類型決定使用哪個 slug
+    if name.startswith("locker_"):
+        # 電子鎖排程：使用 payload 中的 slug 或預設的 main-door
+        slug = payload.get("slug") or "main-door"
+    else:
+        # 電燈排程：使用原有的邏輯
+        slug = payload.get("slug") or _LAST_LIGHT_SLUG or _first_light_slug(_CAPS_SNAPSHOT)
+    
     if slug:
         try:
+            print(f"[sched] 推播狀態: slug={slug}, action={name}")
             http.ping(extra={"state": _state_for_slug(slug)})
         except Exception as e:
             print("[sched] push state err:", e)
