@@ -193,3 +193,26 @@ LOGIN_EXEMPT_URLS = [
 ]
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+# 日誌設定
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'pi_devices.views.capability': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'notifications.services.devices': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

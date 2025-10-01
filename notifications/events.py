@@ -40,6 +40,18 @@ DEVICE_IP_CHANGED = "device_ip_changed"
 DEVICE_OFFLINE = "device_offline"
 DEVICE_ONLINE = "device_online"
 
+# device actions
+DEVICE_LIGHT_ON = "device_light_on"
+DEVICE_LIGHT_OFF = "device_light_off"
+DEVICE_LIGHT_TOGGLE = "device_light_toggle"
+DEVICE_LOCKER_LOCK = "device_locker_lock"
+DEVICE_LOCKER_UNLOCK = "device_locker_unlock"
+DEVICE_LOCKER_TOGGLE = "device_locker_toggle"
+DEVICE_AUTO_LIGHT_ON = "device_auto_light_on"
+DEVICE_AUTO_LIGHT_OFF = "device_auto_light_off"
+DEVICE_AUTO_LOCK_ON = "device_auto_lock_on"
+DEVICE_AUTO_LOCK_OFF = "device_auto_lock_off"
+
 # 使用者線上/離線
 USER_ONLINE = "user_online"
 USER_OFFLINE = "user_offline"

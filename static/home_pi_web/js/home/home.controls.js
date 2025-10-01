@@ -36,15 +36,21 @@
     const el = evt.target.closest('.locker-btn');
     if (!el) return;
 
+    console.log('電子鎖按鈕被點擊:', el.id, el.dataset);
+    
     el.disabled = true; // 防止連點
     const url = el.dataset.url;
     const fd = new FormData();
     if (el.dataset.group) fd.append('group_id', el.dataset.group);
     if (el.dataset.next !== undefined) fd.append('next', el.dataset.next);
 
+    console.log('發送請求到:', url, 'group_id:', el.dataset.group);
+
     try {
-      await post(url, fd);
+      const response = await post(url, fd);
+      console.log('請求成功:', response);
     } catch (e) {
+      console.error('請求失敗:', e);
       alert('操作失敗，請再試一次：' + e.message);
     } finally {
       el.disabled = false;
