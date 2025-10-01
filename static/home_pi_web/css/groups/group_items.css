@@ -17,7 +17,7 @@
   border: 1px solid var(--bs-border-color);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--bs-body-bg);
+  background: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -67,7 +67,7 @@
   opacity: 0; /* 不透明 */
   visibility: hidden; /* 不可點、不佔可視流 */
   border-top: 0;
-  background: var(--bs-body-bg);
+  background: var(--card-bg);
   transition: height 0.28s ease, opacity 0.18s ease;
 }
 /* 內層避免外距外溢；用 padding 取代 margin */
@@ -97,4 +97,35 @@
   .groups-scope .device-actions {
     transition: none;
   }
+}
+
+/* 黑夜模式樣式 */
+[data-theme="dark"] .groups-scope .device-item {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .groups-scope .device-item:hover,
+[data-theme="dark"] .groups-scope .device-item:focus {
+  border-color: var(--techno-accent) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .groups-scope .device-actions {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .groups-scope .device-sub {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .groups-scope .status-dot {
+  background: var(--text-muted) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-muted), transparent 75%) !important;
+}
+
+[data-theme="dark"] .groups-scope .status-dot.on {
+  background: var(--status-online) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-online), transparent 75%) !important;
 }

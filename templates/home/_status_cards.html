@@ -5,16 +5,16 @@
 /* ===== 工業風金屬科技卡片 ===== */
 .techno-card {
   position: relative;
-  background: linear-gradient(160deg, #f7f7f7 0%, #dcdcdc 45%, #bcbcbc 100%);
-  border: 1px solid #a0a0a0;
+  background: linear-gradient(160deg, var(--techno-bg-start) 0%, var(--techno-bg-mid) 45%, var(--techno-bg-end) 100%);
+  border: 1px solid var(--techno-border);
   border-radius: 12px;
   overflow: hidden;
 
   /* 更重的金屬立體陰影 */
   box-shadow:
-    0 4px 10px rgba(0,0,0,0.3),          /* 外部投影 */
-    inset 0 1px 1px rgba(255,255,255,0.6), /* 上內亮邊 */
-    inset 0 -2px 4px rgba(0,0,0,0.2);       /* 下內暗邊 */
+    0 4px 10px var(--card-shadow-hover),
+    inset 0 1px 1px rgba(255,255,255,0.6),
+    inset 0 -2px 4px rgba(0,0,0,0.2);
 
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
@@ -87,13 +87,13 @@
 /* ===== 文字與細節 ===== */
 .techno-card .card-title {
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--techno-text);
   letter-spacing: 0.6px;
   text-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
-.techno-card .card-title i { color: #3f51b5; } /* 工業藍紫 */
-.techno-card .card-text { color: #2c2c2c; }
-.techno-card .small { color: #444 !important; }
+.techno-card .card-title i { color: var(--techno-accent); }
+.techno-card .card-text { color: var(--techno-text-secondary); }
+.techno-card .small { color: var(--techno-text-muted) !important; }
 
 /* ===== 右上狀態列：修正排列與對齊 ===== */
 .status-bar {
@@ -108,17 +108,17 @@
   position: relative;
   display: inline-block;
   font-weight: 600;
-  border: 1px solid rgba(0,0,0,0.25);
-  color: #222 !important;
+  border: 1px solid var(--border-color);
+  color: var(--techno-text) !important;
 
   /* 銀色金屬漸層（會被不同狀態覆蓋） */
-  background: linear-gradient(145deg, #f0f0f0, #a9a8a8);
+  background: linear-gradient(145deg, var(--techno-bg-start), var(--techno-bg-mid));
 
   /* 立體感：上亮、下暗 */
   box-shadow:
     inset 0 2px 3px rgba(255,255,255,0.8),
     inset 0 -2px 3px rgba(0,0,0,0.2),
-    0 2px 4px rgba(0,0,0,0.15);
+    0 2px 4px var(--card-shadow);
 
   text-shadow: 0 1px 0 rgba(255,255,255,0.7);
   overflow: hidden;  /* 保證反光不溢出 */
@@ -141,14 +141,14 @@
 
 /* ===== 狀態顏色（高光版） ===== */
 .badge.bg-success {
-  background: linear-gradient(145deg, #dae8d9, #073d07);
-  border-color: #858785;
-  color: #103d10 !important;
+  background: linear-gradient(145deg, var(--status-online), color-mix(in srgb, var(--status-online) 20%, #000));
+  border-color: var(--border-color);
+  color: var(--text-primary) !important;
 }
 .badge.bg-secondary {
-  background: linear-gradient(145deg, #e2e2e2, #312b2b);
-  border-color: #999;
-  color: #2c2c2c !important;
+  background: linear-gradient(145deg, var(--techno-bg-start), var(--techno-bg-end));
+  border-color: var(--border-color);
+  color: var(--techno-text) !important;
 }
 
 /* ===== Badge 掃光動畫（可選） ===== */
@@ -196,16 +196,16 @@
   /* 金屬外圈（拉絲 + 高光） */
   background:
     conic-gradient(from 210deg,
-      #ffffff 0deg, #e9e9e9 40deg, #cfcfcf 120deg,
-      #b8b8b8 180deg, #dadada 240deg, #f7f7f7 300deg, #ffffff 360deg);
+      var(--techno-bg-start) 0deg, var(--techno-bg-mid) 40deg, var(--techno-bg-end) 120deg,
+      var(--techno-border) 180deg, var(--techno-bg-mid) 240deg, var(--techno-bg-start) 300deg, var(--techno-bg-start) 360deg);
 
   /* 冷光外暈（更科技）：外擴藍青微光 + 陰影 */
   box-shadow:
-    0 0 0 1px rgba(160,160,160,.6),   /* 細邊 */
-    0 0 10px rgba(125, 172, 203, 0.35),   /* 冷色外暈 */
-    0 2px 6px rgba(0,0,0,.18),        /* 外投影 */
-    inset 0 1px 1px rgba(255,255,255,.8),  /* 上內亮 */
-    inset 0 -2px 4px rgba(0,0,0,.20);      /* 下內暗 */
+    0 0 0 1px var(--techno-border),
+    0 0 10px rgba(125, 172, 203, 0.35),
+    0 2px 6px var(--card-shadow),
+    inset 0 1px 1px rgba(255,255,255,.8),
+    inset 0 -2px 4px rgba(0,0,0,.20);
 
   overflow: hidden;
 }
@@ -218,7 +218,7 @@
   border-radius: 50%;
   background:
     radial-gradient(closest-side, rgba(0,0,0,.12), transparent 60%),
-    linear-gradient(145deg, #f7f7f7 0%, #dcdcdc 60%, #bcbcbc 100%);
+    linear-gradient(145deg, var(--techno-bg-start) 0%, var(--techno-bg-mid) 60%, var(--techno-bg-end) 100%);
   box-shadow:
     inset 0 1px 1px rgba(255,255,255,.75),
     inset 0 -2px 3px rgba(0,0,0,.15);

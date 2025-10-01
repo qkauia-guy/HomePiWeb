@@ -8,16 +8,77 @@
   <link rel="icon" href="{% static 'home_pi_web/images/favicon.ico' %}" type="image/x-icon">
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="{% static 'home_pi_web/css/base.css' %}">
+  <!-- 強制黑夜模式樣式 -->
+  <style>
+    html[data-theme="dark"] body {
+      background-color: var(--bg-primary) !important;
+    }
+    html[data-theme="dark"] main {
+      background-color: var(--bg-primary) !important;
+    }
+    html[data-theme="dark"] .container {
+      background-color: transparent !important;
+    }
+    html[data-theme="dark"] .navbar {
+      background-color: var(--bg-secondary) !important;
+      border-bottom: 1px solid var(--border-color) !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    html[data-theme="dark"] footer {
+      background-color: var(--bg-secondary) !important;
+      border-top: 1px solid var(--border-color) !important;
+      box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    html[data-theme="dark"] .offcanvas-body .btn-success {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+      border: none !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+      font-weight: 600 !important;
+    }
+    html[data-theme="dark"] .offcanvas-body .btn-success:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+      transform: translateY(-1px) !important;
+      color: #fff !important;
+    }
+    html[data-theme="dark"] .groups-scope .d-grid .btn-success {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+      border: none !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+      font-weight: 600 !important;
+    }
+    html[data-theme="dark"] .groups-scope .d-grid .btn-success:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+      transform: translateY(-1px) !important;
+      color: #fff !important;
+    }
+    html[data-theme="dark"] .btn-success {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+      border: none !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+    }
+    html[data-theme="dark"] .btn-success:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+      transform: translateY(-1px) !important;
+      color: #fff !important;
+    }
+  </style>
   <script src="{% static 'home_pi_web/js/groups/_group_items.js' %}" defer data-turbo-track="reload"></script>
 
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 bg-body-tertiary">
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;"></div>
   <!-- 唯一 Offcanvas -->
   <div class="offcanvas offcanvas-start bg-body" id="sideBar" tabindex="-1"
       aria-labelledby="sideBarLabel"
-      style="--bs-offcanvas-width: min(250px, 95vw);">
+      style="--bs-offcanvas-width: min(320px, 90vw);">
     <div class="offcanvas-header">
       <h5 id="sideBarLabel" class="mb-0">設備管理</h5>
       <button class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -33,7 +94,7 @@
   {# ====== 側欄：我的群組（新增：與設備管理相同顯示方式） ====== #}
   <div class="offcanvas offcanvas-start bg-body" id="sideBarGroups" tabindex="-1"
        aria-labelledby="sideBarGroupsLabel"
-       style="--bs-offcanvas-width: min(250px, 95vw);">
+       style="--bs-offcanvas-width: min(320px, 90vw);">
     <div class="offcanvas-header">
       <h5 id="sideBarGroupsLabel" class="mb-0">群組 / 設備 操作</h5>
       <button class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -88,7 +149,7 @@
         </ul>
         {% endif %}
 
-        <!-- Right side: notifications + user -->
+        <!-- Right side: notifications + user + theme toggle -->
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
 
           {% if request.user.is_authenticated %}
@@ -148,17 +209,33 @@
             </li>
 
             <!-- Logout -->
-            <li class="nav-item">
+            <li class="nav-item me-2">
               <form action="{% url 'logout' %}" method="post" class="d-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-secondary text-white">登出</button>
               </form>
             </li>
 
+            <!-- 黑夜模式切換按鈕 -->
+            <li class="nav-item">
+              <button class="btn btn-outline-secondary btn-sm theme-toggle" 
+                      title="切換黑夜模式" aria-label="切換黑夜模式">
+                <i class="bi bi-sun-fill theme-icon"></i>
+              </button>
+            </li>
+
           {% else %}
             <!-- 未登入狀態 -->
-            <li class="nav-item">
+            <li class="nav-item me-2">
               <a class="nav-link" href="{% url 'login' %}">登入</a>
+            </li>
+            
+            <!-- 黑夜模式切換按鈕（未登入狀態） -->
+            <li class="nav-item">
+              <button class="btn btn-outline-secondary btn-sm theme-toggle" 
+                      title="切換黑夜模式" aria-label="切換黑夜模式">
+                <i class="bi bi-sun-fill theme-icon"></i>
+              </button>
             </li>
           {% endif %}
 
@@ -184,6 +261,34 @@
 
   <!-- SweetAlert2（共用） -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script>
+    // 全局 SweetAlert 配置
+    window.getCurrentTheme = function() {
+      return document.documentElement.getAttribute('data-theme') || 
+             document.body.getAttribute('data-theme') || 
+             (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    };
+    
+    window.getSwalConfig = function(icon, title, html, confirmButtonText = '確定') {
+      const theme = getCurrentTheme();
+      return {
+        icon,
+        title,
+        html,
+        confirmButtonText,
+        colorScheme: theme,
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#f5f5f5' : '#333',
+        confirmButtonColor: theme === 'dark' ? '#6366f1' : '#007bff',
+        cancelButtonColor: theme === 'dark' ? '#6b7280' : '#6c757d',
+        // 強制覆蓋背景色，避免透明
+        customClass: {
+          popup: theme === 'dark' ? 'swal2-dark-popup' : 'swal2-light-popup',
+          backdrop: theme === 'dark' ? 'swal2-dark-backdrop' : 'swal2-light-backdrop'
+        }
+      };
+    };
+  </script>
 
   <!-- 隱藏 messages：給 SweetAlert 用（一定要在 body 內） -->
   <div id="flash-messages" style="display:none;">
@@ -230,6 +335,60 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+  <!-- 黑夜模式 JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const themeToggles = document.querySelectorAll('.theme-toggle');
+      const themeIcons = document.querySelectorAll('.theme-icon');
+      const body = document.body;
+      
+      // 從 localStorage 讀取主題設定，或使用系統偏好
+      function getInitialTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+          return savedTheme;
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      
+      // 設定主題
+      function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        
+        // 更新圖示
+        if (theme === 'dark') {
+          themeIcons.forEach(icon => icon.className = 'bi bi-moon-fill theme-icon');
+          themeToggles.forEach(toggle => toggle.title = '切換到淺色模式');
+        } else {
+          themeIcons.forEach(icon => icon.className = 'bi bi-sun-fill theme-icon');
+          themeToggles.forEach(toggle => toggle.title = '切換到黑夜模式');
+        }
+      }
+      
+      // 切換主題
+      function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+      }
+      
+      // 初始化主題
+      setTheme(getInitialTheme());
+      
+      // 監聽系統主題變化
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        if (!localStorage.getItem('theme')) {
+          setTheme(e.matches ? 'dark' : 'light');
+        }
+      });
+      
+      // 綁定切換按鈕事件
+      themeToggles.forEach(toggle => toggle.addEventListener('click', toggleTheme));
+    });
+  </script>
+
   <!-- 頁面額外腳本出口 -->
   {% block extra_js %}<script defer src="{% static 'home_pi_web/js/base.js' %}"></script>{% endblock %}
 </body>
