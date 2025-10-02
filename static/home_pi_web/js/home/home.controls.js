@@ -31,7 +31,7 @@
     lightEl.setAttribute('aria-disabled', locked ? 'true' : 'false');
   }
 
-  // 處理電子鎖按鈕點擊
+  // 處理電子鎖按鈕點擊（舊版按鈕）
   document.addEventListener('click', async (evt) => {
     const el = evt.target.closest('.locker-btn');
     if (!el) return;
@@ -50,16 +50,16 @@
       const response = await post(url, fd);
       console.log('請求成功:', response);
       
-             // 觸發狀態卡片更新
-             setTimeout(() => {
-               if (window.HomeUI?.triggerStatusUpdate) {
-                 window.HomeUI.triggerStatusUpdate();
-               }
-               // 也嘗試初始化狀態卡片
-               if (window.initStatusCards) {
-                 window.initStatusCards();
-               }
-             }, 50); // 縮短延遲
+      // 觸發狀態卡片更新
+      setTimeout(() => {
+        if (window.HomeUI?.triggerStatusUpdate) {
+          window.HomeUI.triggerStatusUpdate();
+        }
+        // 也嘗試初始化狀態卡片
+        if (window.initStatusCards) {
+          window.initStatusCards();
+        }
+      }, 50); // 縮短延遲
     } catch (e) {
       console.error('請求失敗:', e);
       alert('操作失敗，請再試一次：' + e.message);
@@ -70,7 +70,60 @@
 
   document.addEventListener('change', async (evt) => {
     const el = evt.target;
-    if (!el.matches('.cap-toggle')) return;
+    if (!el.matches('.cap-toggle, .locker-toggle')) return;
+
+    // 電子鎖開關特殊處理
+    if (el.matches('.locker-toggle')) {
+      el.disabled = true; // 防止連點
+      // 電子鎖邏輯：checked = 開鎖，unchecked = 上鎖
+      const url = el.checked ? el.dataset.unlockUrl : el.dataset.lockUrl;
+      const fd = new FormData();
+      if (el.dataset.group) fd.append('group_id', el.dataset.group);
+      if (el.dataset.next !== undefined) fd.append('next', el.dataset.next);
+
+      try {
+        await post(url, fd);
+        
+        // 更新狀態文字和圖示（支援桌面版和手機版）
+        const statusContainers = document.querySelectorAll('#lockerCard .text-muted .lock-status-text');
+        const icons = document.querySelectorAll('#lockerCard .text-muted i');
+        
+        // 更新所有狀態文字
+        statusContainers.forEach(statusText => {
+          statusText.textContent = el.checked ? '已開鎖' : '已上鎖';
+        });
+        
+        // 更新所有圖示
+        icons.forEach(icon => {
+          icon.className = `bi bi-${el.checked ? 'unlock' : 'lock'} me-1`;
+        });
+        
+        // 同步其他開關狀態
+        const allToggles = document.querySelectorAll('#lockerCard .locker-toggle');
+        allToggles.forEach(toggle => {
+          if (toggle !== el) {
+            toggle.checked = el.checked;
+          }
+        });
+        
+        // 觸發狀態卡片更新
+        setTimeout(() => {
+          if (window.HomeUI?.triggerStatusUpdate) {
+            window.HomeUI.triggerStatusUpdate();
+          }
+          if (window.initStatusCards) {
+            window.initStatusCards();
+          }
+        }, 50);
+      } catch (e) {
+        const was = !el.checked;
+        el.checked = was;
+        alert('操作失敗，請再試一次：' + e.message);
+      } finally {
+        el.disabled = false;
+      }
+      return; // 電子鎖處理完畢，不執行下面的燈泡邏輯
+    }
 
     // 若手動燈對應自動已開，阻擋
     if (el.dataset.auto) {

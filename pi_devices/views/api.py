@@ -767,8 +767,6 @@ def api_device_status(request, device_id: int):
 @never_cache
 @login_required
 def api_cap_status(request, cap_id: int):
-    import time
-    start_time = time.time()
     
     cap = get_object_or_404(
         DeviceCapability.objects.select_related("device"), pk=cap_id
@@ -848,11 +846,6 @@ def api_cap_status(request, cap_id: int):
             run_at__gt=now
         ).order_by('run_at').first()
         
-        # 除錯訊息
-        logger.warning(
-            "[api_cap_status] 排程查詢: cap=%s, slug=%s, now=%s, unlock_schedule=%s, lock_schedule=%s",
-            cap.slug, cap.slug, now, unlock_schedule, lock_schedule
-        )
         
         if unlock_schedule:
             next_unlock = int(unlock_schedule.run_at.timestamp())
@@ -878,11 +871,6 @@ def api_cap_status(request, cap_id: int):
             run_at__gt=now
         ).order_by('run_at').first()
         
-        # 除錯訊息
-        logger.warning(
-            "[api_cap_status] 燈光排程查詢: cap=%s, slug=%s, now=%s, on_schedule=%s, off_schedule=%s",
-            cap.slug, cap.slug, now, on_schedule, off_schedule
-        )
         
         if on_schedule:
             next_on = int(on_schedule.run_at.timestamp())
@@ -909,17 +897,6 @@ def api_cap_status(request, cap_id: int):
         resp_data["next_on"] = next_on
         resp_data["next_off"] = next_off
 
-    # ★ DEBUG 輸出
-    logger.warning(
-        "[api_cap_status] cap=%s cached_state=%s → resp=%s",
-        cap.slug,
-        json.dumps(st, ensure_ascii=False),
-        json.dumps(resp_data, ensure_ascii=False),
-    )
-
-    # 記錄處理時間
-    processing_time = time.time() - start_time
-    print(f"api_cap_status 處理時間: {processing_time:.3f}秒")
     
     resp = JsonResponse(resp_data)
     resp["Cache-Control"] = "no-store"

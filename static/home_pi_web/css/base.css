@@ -54,6 +54,18 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-success), transparent 75%);
 }
 
+/* 黑暗模式下的 sideBar 狀態點 */
+[data-theme="dark"] #sideBar .status-dot,
+[data-theme="dark"] #sideBarGroups .status-dot {
+  background: #ff6b6b !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.5), 0 0 12px rgba(255, 107, 107, 0.6), 0 0 20px rgba(255, 107, 107, 0.3) !important;
+}
+[data-theme="dark"] #sideBar .status-dot.on,
+[data-theme="dark"] #sideBarGroups .status-dot.on {
+  background: #51cf66 !important;
+  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.5), 0 0 12px rgba(81, 207, 102, 0.6), 0 0 20px rgba(81, 207, 102, 0.3) !important;
+}
+
 /* 次要資訊一點行高 */
 #sideBar .device-sub,
 #sideBarGroups .device-sub {
@@ -223,10 +235,30 @@ button[aria-expanded='true'] .toggle-icon {
 
 /* 手機尺寸優化 (小於 768px) */
 @media (max-width: 767.98px) {
-  /* Navbar 高度調整 */
-  .navbar {
-    min-height: 56px;
-    padding: 0.5rem 0;
+  /* Navbar 高度調整 - 手機版毛玻璃效果（參考 carousel） */
+  html:not([data-theme="dark"]) .navbar.navbar-expand-lg.navbar-dark,
+  html:not([data-theme="dark"]) .navbar {
+    min-height: 56px !important;
+    padding: 0.5rem 0 !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+    
+    /* 手機版毛玻璃陰影 - 參考 carousel 樣式 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  [data-theme="dark"] .navbar {
+    min-height: 56px !important;
+    padding: 0.5rem 0 !important;
+    background: rgba(30, 41, 59, 0.8) !important;
+    backdrop-filter: blur(15px) saturate(160%);
+    -webkit-backdrop-filter: blur(15px) saturate(160%);
+    border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+    z-index: 1030 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   }
   
   /* Brand 字體大小 */
@@ -242,8 +274,21 @@ button[aria-expanded='true'] .toggle-icon {
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
   
-  /* 收合後的選單項目 */
-  .navbar-collapse {
+  /* 收合後的選單項目 - 手機版毛玻璃 */
+  html:not([data-theme="dark"]) .navbar-collapse {
+    margin-top: 0.5rem !important;
+    padding: 0.75rem !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(148, 163, 184, 0.3) !important;
+    border-radius: 8px !important;
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  }
+  
+  [data-theme="dark"] .navbar-collapse {
     margin-top: 0.5rem;
     padding-top: 0.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -315,10 +360,117 @@ button[aria-expanded='true'] .toggle-icon {
     font-size: 0.6rem;
     padding: 0.2rem 0.4rem;
   }
+  
+  /* 手機版 navbar 圖標優化 */
+  .navbar-nav .nav-link i {
+    font-size: 1.1rem;
+  }
+  
+  .navbar-text i {
+    font-size: 1rem;
+  }
+  
+  /* 手機版左側黑夜模式切換按鈕 - 與漢堡按鈕大小一致 */
+  .mobile-theme-toggle {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 1.25rem !important;
+    border-radius: 0.375rem !important;
+    transition: all 0.3s ease !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    line-height: 1 !important;
+  }
+  
+  /* 手機版主題切換按鈕內的圖標 */
+  .mobile-theme-toggle .theme-icon {
+    font-size: 1.4rem !important;
+  }
+  
+  .mobile-theme-toggle:hover {
+    transform: scale(1.05) !important;
+  }
+  
+  /* 手機版漢堡按鈕大小與主題切換按鈕一致 */
+  .navbar-toggler {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 1.25rem !important;
+    border-radius: 0.375rem !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    line-height: 1 !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .navbar-toggler:hover {
+    transform: scale(1.05) !important;
+  }
+  
+  /* 手機版歡迎區域內的登出按鈕 */
+  .mobile-logout-btn {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  /* 手機版通知圖標特殊處理 - 白色雲朵 */
+  #notifDropdown i.bi-cloud-fill {
+    color: #ffffff !important;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  }
+  
+  /* 手機版通知下拉選單防跑版 - 由響應式媒體查詢處理 */
+  
+  /* 手機版 collapse 內歡迎區域 */
+  .navbar-mobile-greeting {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1rem !important;
+    margin: 0.5rem 0 !important;
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .mobile-greeting-icon {
+    color: #fbbf24 !important;
+    filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.4));
+    font-size: 1.1rem !important;
+  }
+  
+  .mobile-greeting-text {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.95rem !important;
+  }
 }
 
 /* 超小螢幕 (小於 576px) */
 @media (max-width: 575.98px) {
+  html:not([data-theme="dark"]) .navbar {
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+    
+    /* 超小螢幕毛玻璃陰影 - 參考 carousel 樣式 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  [data-theme="dark"] .navbar {
+    background: rgba(30, 41, 59, 0.85) !important;
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+    z-index: 1030 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+  
   .navbar-brand {
     font-size: 0.95rem;
   }
@@ -356,12 +508,106 @@ button[aria-expanded='true'] .toggle-icon {
     padding: 0.2rem 0.4rem !important;
     font-size: 0.8rem;
   }
+  
+  /* 超小螢幕圖標優化 */
+  .navbar-nav .nav-link i {
+    font-size: 1rem;
+  }
+  
+  .navbar-text i {
+    font-size: 0.9rem;
+  }
+  
+  /* 超小螢幕通知圖標 - 白色雲朵 */
+  #notifDropdown i.bi-cloud-fill {
+    color: #ffffff !important;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  }
+  
+  /* 超小螢幕歡迎圖標 */
+  .navbar-text i.bi-sun-fill {
+    color: #fbbf24 !important;
+    filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.4));
+  }
+  
+  /* 超小螢幕文字截斷優化 */
+  .navbar-text {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* 超小螢幕手機版黑夜切換按鈕 - 與漢堡按鈕大小一致 */
+  .mobile-theme-toggle {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 1.1rem !important;
+    min-width: 40px !important;
+    height: 40px !important;
+  }
+  
+  /* 超小螢幕主題切換按鈕內的圖標 */
+  .mobile-theme-toggle .theme-icon {
+    font-size: 1.25rem !important;
+  }
+  
+  /* 超小螢幕漢堡按鈕大小與主題切換按鈕一致 */
+  .navbar-toggler {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 1.1rem !important;
+    min-width: 40px !important;
+    height: 40px !important;
+  }
+  
+  /* 超小螢幕手機版登出按鈕 */
+  .mobile-logout-btn {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  /* 超小螢幕手機版歡迎區域優化 */
+  .navbar-mobile-greeting {
+    padding: 0.6rem 0.8rem !important;
+    margin: 0.4rem 0 !important;
+  }
+  
+  /* 超小螢幕通知下拉選單防跑版 - 由響應式媒體查詢處理 */
+  
+  .mobile-greeting-text {
+    font-size: 0.85rem !important;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .mobile-greeting-icon {
+    font-size: 1rem !important;
+  }
 }
 
 /* 橫向手機 (landscape) 優化 */
 @media (max-width: 767.98px) and (orientation: landscape) {
-  .navbar {
+  html:not([data-theme="dark"]) .navbar {
     min-height: 48px;
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+    
+    /* 橫向手機毛玻璃陰影 - 參考 carousel 樣式 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  [data-theme="dark"] .navbar {
+    min-height: 48px !important;
+    background: rgba(30, 41, 59, 0.82) !important;
+    backdrop-filter: blur(16px) saturate(170%);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+    z-index: 1030 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   }
   
   .navbar-brand {
@@ -396,114 +642,293 @@ button[aria-expanded='true'] .toggle-icon {
    SweetAlert2 黑夜模式修復
    ========================= */
 
-/* 強制覆蓋 SweetAlert2 的背景色 */
-.swal2-dark-popup {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+/* 確保所有 SweetAlert2 元素都有最高的 z-index 和正確的背景 */
+.swal2-container,
+.swal2-popup,
+.swal2-backdrop {
+  z-index: 2147483647 !important;
+}
+
+.swal2-backdrop {
+  z-index: 2147483646 !important;
+}
+
+/* SweetAlert 毛玻璃背景 - 僅白天模式 */
+html:not([data-theme="dark"]) body .swal2-popup,
+html:not([data-theme="dark"]) .swal2-popup {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  color: #545454 !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  z-index: 2147483647 !important;
+  width: auto !important;
+  max-width: 32rem !important;
+  min-width: 20rem !important;
+  padding: 1.25rem !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.swal2-container {
+  background-color: initial !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2147483647 !important;
+}
+
+/* 白天模式 SweetAlert 按鈕樣式 */
+html:not([data-theme="dark"]) .swal2-confirm {
+  background-color: #3085d6 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  border: none !important;
+}
+
+html:not([data-theme="dark"]) .swal2-cancel {
+  background-color: #aaa !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  border: none !important;
+}
+
+html:not([data-theme="dark"]) .swal2-deny {
+  background-color: #dc3741 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  border: none !important;
+}
+
+/* 白天模式 SweetAlert 標題和內容 */
+html:not([data-theme="dark"]) .swal2-title {
+  color: #595959 !important;
+  font-family: inherit !important;
+  font-size: 1.875rem !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  text-align: center !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+}
+
+html:not([data-theme="dark"]) .swal2-content {
+  color: #545454 !important;
+  font-family: inherit !important;
+  font-size: 1.125rem !important;
+  font-weight: normal !important;
+  text-shadow: none !important;
+  text-align: center !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+  line-height: 1.5 !important;
+}
+
+/* SweetAlert backdrop z-index */
+.swal2-backdrop {
+  z-index: 2147483646 !important;
+}
+
+/* 黑夜模式下的 SweetAlert2 毛玻璃背景 */
+html[data-theme="dark"] body .swal2-popup,
+html[data-theme="dark"] .swal2-popup {
+  background: rgba(30, 41, 59, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
   color: #f1f5f9 !important;
-  border: 1px solid #475569 !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(59, 130, 246, 0.1) !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  z-index: 2147483647 !important;
+  width: auto !important;
+  max-width: 32rem !important;
+  min-width: 20rem !important;
+  padding: 1.25rem !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 
-.swal2-dark-backdrop {
-  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%) !important;
-  backdrop-filter: blur(8px) !important;
-}
-
-.swal2-light-popup {
-  background-color: #fff !important;
-  color: #333 !important;
-  border: 1px solid #e5e7eb !important;
-}
-
-.swal2-light-backdrop {
-  background-color: rgba(0, 0, 0, 0.4) !important;
-}
-
-/* 黑夜模式下的 SweetAlert2 元素 */
-[data-theme="dark"] .swal2-popup {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+html[data-theme="dark"] body .swal2-title,
+html[data-theme="dark"] .swal2-title {
   color: #f1f5f9 !important;
-  border: 1px solid #475569 !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(59, 130, 246, 0.1) !important;
+  font-family: inherit !important;
+  font-size: 1.875rem !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  text-align: center !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
 }
 
-[data-theme="dark"] .swal2-backdrop {
-  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%) !important;
-  backdrop-filter: blur(8px) !important;
-}
-
-[data-theme="dark"] .swal2-title {
-  color: #f1f5f9 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
-}
-
-[data-theme="dark"] .swal2-content {
+html[data-theme="dark"] body .swal2-content,
+html[data-theme="dark"] .swal2-content {
   color: #cbd5e1 !important;
+  font-family: inherit !important;
+  font-size: 1.125rem !important;
+  font-weight: normal !important;
+  text-shadow: none !important;
+  text-align: center !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+  line-height: 1.5 !important;
 }
 
-[data-theme="dark"] .swal2-confirm {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-  border: 1px solid #3b82f6 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+/* 黑夜模式下的 SweetAlert 按鈕樣式 */
+html[data-theme="dark"] body .swal2-confirm,
+html[data-theme="dark"] .swal2-confirm {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  border: none !important;
 }
 
-[data-theme="dark"] .swal2-confirm:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
-  transform: translateY(-1px) !important;
+html[data-theme="dark"] body .swal2-cancel,
+html[data-theme="dark"] .swal2-cancel {
+  background-color: #6b7280 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  border: none !important;
 }
 
-[data-theme="dark"] .swal2-cancel {
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
-  border: 1px solid #64748b !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+html[data-theme="dark"] body .swal2-deny,
+html[data-theme="dark"] .swal2-deny {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  border: none !important;
 }
 
-[data-theme="dark"] .swal2-cancel:hover {
-  background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
-  box-shadow: 0 6px 16px rgba(100, 116, 139, 0.4) !important;
-  transform: translateY(-1px) !important;
+/* 黑夜模式下的 SweetAlert 容器樣式 */
+html[data-theme="dark"] .swal2-container {
+  background-color: initial !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2147483647 !important;
 }
 
-[data-theme="dark"] .swal2-close {
-  color: #f1f5f9 !important;
-  background-color: rgba(71, 85, 105, 0.2) !important;
-  border-radius: 50% !important;
-  transition: all 0.2s ease !important;
+/* 強制隱藏 SweetAlert 成功動畫殘留元素 */
+.swal2-success-circular-line-left,
+.swal2-success-circular-line-right,
+.swal2-success-fix {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-[data-theme="dark"] .swal2-close:hover {
-  background-color: rgba(71, 85, 105, 0.4) !important;
-  transform: scale(1.1) !important;
+.swal2-success .swal2-success-ring {
+  animation: none !important;
 }
 
-/* 科技感圖示效果 */
-[data-theme="dark"] .swal2-icon {
-  border-color: #475569 !important;
+.swal2-success .swal2-success-fix {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-[data-theme="dark"] .swal2-icon.swal2-success {
-  border-color: #10b981 !important;
-  color: #10b981 !important;
+.swal2-success .swal2-success-circular-line-left {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-[data-theme="dark"] .swal2-icon.swal2-error {
-  border-color: #ef4444 !important;
-  color: #ef4444 !important;
+.swal2-success .swal2-success-circular-line-right {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-[data-theme="dark"] .swal2-icon.swal2-warning {
-  border-color: #f59e0b !important;
-  color: #f59e0b !important;
+/* 修復所有 SweetAlert 圖標動畫殘留 */
+.swal2-icon * {
+  animation: none !important;
+  transition: none !important;
 }
 
-[data-theme="dark"] .swal2-icon.swal2-info {
-  border-color: #3b82f6 !important;
-  color: #3b82f6 !important;
+.swal2-icon::before,
+.swal2-icon::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* 特別針對成功圖標的所有元素 */
+.swal2-success * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* 移除 SweetAlert 成功圖標的陰影和背影效果 */
+.swal2-success {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.swal2-success::before,
+.swal2-success::after {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.swal2-success .swal2-success-ring {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.swal2-success .swal2-success-fix {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.swal2-success .swal2-success-circular-line-left,
+.swal2-success .swal2-success-circular-line-right {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* 移除所有 SweetAlert 圖標的陰影效果 */
+.swal2-icon {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.swal2-icon * {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
 }
 
 /* =========================
@@ -522,6 +947,9 @@ button[aria-expanded='true'] .toggle-icon {
   --border-color: #dee2e6;
   --border-light: #e9ecef;
   
+  /* 主色調 */
+  --bs-primary: #6366f1;
+  
   /* 卡片和元件 */
   --card-bg: #ffffff;
   --card-border: #dee2e6;
@@ -534,11 +962,15 @@ button[aria-expanded='true'] .toggle-icon {
   --status-warning: #ffc107;
   --status-info: #17a2b8;
   
+  /* 覆蓋 Bootstrap 變數 */
+  --bs-secondary: var(--bg-secondary);
+  --bs-success: var(--status-online);
+  
   /* 工業風卡片顏色 */
-  --techno-bg-start: #f7f7f7;
-  --techno-bg-mid: #dcdcdc;
-  --techno-bg-end: #bcbcbc;
-  --techno-border: #a0a0a0;
+  --techno-bg-start: #e8e8e8;
+  --techno-bg-mid: #c8c8c8;
+  --techno-bg-end: #a8a8a8;
+  --techno-border: #888888;
   --techno-text: #1a1a1a;
   --techno-text-secondary: #2c2c2c;
   --techno-text-muted: #444;
@@ -568,17 +1000,24 @@ button[aria-expanded='true'] .toggle-icon {
   --border-color: #374151;
   --border-light: #4b5563;
   
+  /* 主色調 - 黑夜模式使用較柔和的紫色 */
+  --bs-primary: #8b5cf6;
+  
   /* 卡片和元件 - 更精緻的設計 */
   --card-bg: #1a1a1a;
   --card-border: #374151;
   --card-shadow: rgba(0, 0, 0, 0.4);
   --card-shadow-hover: rgba(0, 0, 0, 0.5);
   
-  /* 狀態顏色 - 更鮮豔的配色 */
-  --status-online: #10b981;
-  --status-offline: #ef4444;
-  --status-warning: #f59e0b;
-  --status-info: #3b82f6;
+  /* 狀態顏色 - 更亮的配色 */
+  --status-online: #51cf66;
+  --status-offline: #ff6b6b;
+  --status-warning: #ffd43b;
+  --status-info: #74c0fc;
+  
+  /* 覆蓋 Bootstrap 變數 */
+  --bs-secondary: var(--bg-secondary);
+  --bs-success: var(--status-online);
   
   /* 工業風卡片顏色（現代版） */
   --techno-bg-start: #1f2937;
@@ -614,6 +1053,9 @@ button[aria-expanded='true'] .toggle-icon {
     --text-muted: #808080;
     --border-color: #404040;
     --border-light: #333333;
+    
+    /* 主色調 */
+    --bs-primary: #8b5cf6;
     
     /* 卡片和元件 */
     --card-bg: #2d2d2d;
@@ -696,10 +1138,142 @@ footer {
    黑夜模式額外樣式優化
    ========================= */
 
-/* 黑夜模式下的 body 背景 */
+/* 白天模式藍天白雲背景 - 使用本地照片 + 漸層淡化 */
+html:not([data-theme="dark"]) body {
+  background: 
+    /* 由上至下的漸層淡化遮罩 */
+    linear-gradient(180deg, 
+      rgba(255, 255, 255, 0.1) 0%,     /* 頂部幾乎透明 */
+      rgba(255, 255, 255, 0.3) 50%,    /* 中間稍微淡化 */
+      rgba(255, 255, 255, 0.6) 100%    /* 底部較淡 */
+    ),
+    /* 本地藍天白雲照片 */
+    url('../images/sky-background.jpg');
+    
+  background-size: 
+    100% 100%,
+    cover;
+  background-position: 
+    center,
+    center;
+  background-repeat: 
+    no-repeat,
+    no-repeat;
+  background-attachment: 
+    fixed,
+    fixed;
+  
+  min-height: 100vh;
+  color: #333;
+}
+
+/* 黑夜模式下的 body 背景 - 使用星空照片 */
 [data-theme="dark"] body {
-  background-color: var(--bg-primary) !important;
+  background: 
+    /* 可選：在照片上添加微妙的星星閃爍效果 */
+    radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 75% 15%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 25% 80%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 65% 60%, rgba(255,255,255,0.8), transparent),
+    /* 黑色遮罩層 - 壓暗照片 */
+    linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+    /* 高畫質星空照片背景 */
+    url('../images/starry-night.jpg'),
+    /* 備用漸層背景（照片載入失敗時使用） */
+    linear-gradient(135deg, #050a1f 0%, #0a0a15 25%, #0d1020 50%, #060608 75%, #000000 100%);
+  background-size: 
+    100px 100px, 100px 100px, 100px 100px, 100px 100px, 100px 100px, 100px 100px, /* 星星 */
+    100% 100%, /* 黑色遮罩層 */
+    cover, /* 照片覆蓋整個背景，保持比例 */
+    100% 100%; /* 備用背景 */
+  background-position: 
+    0 0, 0 0, 0 0, 0 0, 0 0, 0 0, /* 星星位置 */
+    0 0, /* 黑色遮罩層位置 */
+    center center, /* 照片居中顯示 */
+    0 0; /* 備用背景 */
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+  background-attachment: scroll; /* 改為滾動，避免模糊 */
+  image-rendering: -webkit-optimize-contrast; /* Webkit 優化 */
+  image-rendering: crisp-edges; /* 邊緣銳化 */
+  image-rendering: high-quality; /* 高畫質渲染 */
+  -webkit-backface-visibility: hidden; /* 硬體加速 */
+  -webkit-transform: translateZ(0); /* 強制 GPU 加速 */
+  transform: translateZ(0); /* 強制 GPU 加速 */
+  will-change: background; /* 優化動畫效能 */
   color: var(--text-primary) !important;
+  animation: photoTwinkle 6s ease-in-out infinite alternate;
+}
+
+@keyframes photoTwinkle {
+  0% { 
+    background: 
+      radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 75% 15%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 25% 80%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 65% 60%, rgba(255,255,255,0.8), transparent),
+      linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+      url('../images/starry-night.jpg'),
+      linear-gradient(135deg, #050a1f 0%, #0a0a15 25%, #0d1020 50%, #060608 75%, #000000 100%);
+  }
+  100% { 
+    background: 
+      radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 75% 15%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 25% 80%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 65% 60%, rgba(255,255,255,0.6), transparent),
+      linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+      url('../images/starry-night.jpg'),
+      linear-gradient(135deg, #050a1f 0%, #0a0a15 25%, #0d1020 50%, #060608 75%, #000000 100%);
+  }
+}
+
+@keyframes twinkle {
+  0% { 
+    background: 
+      radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(2px 2px at 160px 30px, #ddd, transparent),
+      radial-gradient(1px 1px at 200px 90px, #fff, transparent),
+      radial-gradient(2px 2px at 240px 50px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 280px 10px, #eee, transparent),
+      radial-gradient(1px 1px at 320px 70px, rgba(255,255,255,0.9), transparent),
+      radial-gradient(2px 2px at 360px 40px, #fff, transparent),
+      radial-gradient(1px 1px at 400px 80px, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 440px 20px, #ddd, transparent),
+      radial-gradient(2px 2px at 480px 60px, #fff, transparent),
+      radial-gradient(1px 1px at 520px 90px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 560px 30px, #eee, transparent),
+      radial-gradient(2px 2px at 600px 70px, rgba(255,255,255,0.6), transparent),
+      linear-gradient(135deg, #0c1445 0%, #1a1a2e 25%, #16213e 50%, #0f0f23 75%, #000000 100%);
+  }
+  100% { 
+    background: 
+      radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.5), transparent),
+      radial-gradient(2px 2px at 40px 70px, #fff, transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 130px 80px, #eee, transparent),
+      radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 200px 90px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(2px 2px at 240px 50px, #fff, transparent),
+      radial-gradient(1px 1px at 280px 10px, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 320px 70px, #ddd, transparent),
+      radial-gradient(2px 2px at 360px 40px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 400px 80px, #fff, transparent),
+      radial-gradient(1px 1px at 440px 20px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(2px 2px at 480px 60px, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 520px 90px, #eee, transparent),
+      radial-gradient(1px 1px at 560px 30px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(2px 2px at 600px 70px, #fff, transparent),
+      linear-gradient(135deg, #0c1445 0%, #1a1a2e 25%, #16213e 50%, #0f0f23 75%, #000000 100%);
+  }
 }
 
 /* 確保所有頁面容器都有黑夜模式 */
@@ -751,12 +1325,74 @@ footer {
   color: inherit;
 }
 
-/* 強制黑夜模式背景 - 使用最高優先級 */
-html[data-theme="dark"] body.bg-body-tertiary {
-  background-color: var(--bg-primary) !important;
+/* 白天模式背景 - 藍天白雲照片 + 漸層淡化 */
+html:not([data-theme="dark"]) body.bg-body-tertiary {
+  background: 
+    /* 由上至下的漸層淡化遮罩 */
+    linear-gradient(180deg, 
+      rgba(255, 255, 255, 0.1) 0%,     /* 頂部幾乎透明 */
+      rgba(255, 255, 255, 0.3) 50%,    /* 中間稍微淡化 */
+      rgba(255, 255, 255, 0.6) 100%    /* 底部較淡 */
+    ),
+    /* 本地藍天白雲照片 */
+    url('../images/sky-background.jpg') !important;
+    
+  background-size: 
+    100% 100%,
+    cover !important;
+  background-position: 
+    center,
+    center !important;
+  background-repeat: 
+    no-repeat,
+    no-repeat !important;
+  background-attachment: 
+    fixed,
+    fixed !important;
+  
+  min-height: 100vh !important;
+  color: #333 !important;
 }
 
-html[data-theme="dark"] .bg-body-tertiary {
+/* 強制黑夜模式背景 - 但保留星空背景 */
+html[data-theme="dark"] body.bg-body-tertiary {
+  background: 
+    /* 可選：在照片上添加微妙的星星閃爍效果 */
+    radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 75% 15%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 25% 80%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 65% 60%, rgba(255,255,255,0.8), transparent),
+    /* 黑色遮罩層 - 壓暗照片 */
+    linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+    /* 高畫質星空照片背景 */
+    url('../images/starry-night.jpg'),
+    /* 備用漸層背景（照片載入失敗時使用） */
+    linear-gradient(135deg, #050a1f 0%, #0a0a15 25%, #0d1020 50%, #060608 75%, #000000 100%) !important;
+  background-size: 
+    100px 100px, 100px 100px, 100px 100px, 100px 100px, 100px 100px, 100px 100px, /* 星星 */
+    100% 100%, /* 黑色遮罩層 */
+    cover, /* 照片覆蓋整個背景，保持比例 */
+    100% 100% !important; /* 備用背景 */
+  background-position: 
+    0 0, 0 0, 0 0, 0 0, 0 0, 0 0, /* 星星位置 */
+    0 0, /* 黑色遮罩層位置 */
+    center center, /* 照片居中顯示 */
+    0 0 !important; /* 備用背景 */
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
+  background-attachment: scroll !important; /* 改為滾動，避免模糊 */
+  image-rendering: -webkit-optimize-contrast !important; /* Webkit 優化 */
+  image-rendering: crisp-edges !important; /* 邊緣銳化 */
+  image-rendering: high-quality !important; /* 高畫質渲染 */
+  -webkit-backface-visibility: hidden !important; /* 硬體加速 */
+  -webkit-transform: translateZ(0) !important; /* 強制 GPU 加速 */
+  transform: translateZ(0) !important; /* 強制 GPU 加速 */
+  will-change: background !important; /* 優化動畫效能 */
+  animation: photoTwinkle 6s ease-in-out infinite alternate !important;
+}
+
+html[data-theme="dark"] .bg-body-tertiary:not(body) {
   background-color: var(--bg-primary) !important;
 }
 
@@ -764,12 +1400,7 @@ html[data-theme="dark"] .bg-body-secondary {
   background-color: var(--bg-secondary) !important;
 }
 
-html[data-theme="dark"] .bg-body {
-  background-color: var(--bg-primary) !important;
-}
-
-/* 特別修復 body 元素 */
-html[data-theme="dark"] body {
+html[data-theme="dark"] .bg-body:not(body) {
   background-color: var(--bg-primary) !important;
 }
 
@@ -782,41 +1413,437 @@ html[data-theme="dark"] .bg-white {
   background-color: var(--card-bg) !important;
 }
 
-/* 最終強制修復 - 使用最高優先級 */
-html[data-theme="dark"] body,
-html[data-theme="dark"] body * {
+/* =========================
+   白天模式狀態卡片毛玻璃樣式
+   ========================= */
+
+/* 狀態卡片毛玻璃效果 - 參考 navbar 和登入卡片 */
+html:not([data-theme="dark"]) .techno-card {
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  
+  /* 移除金屬風格的內陰影和漸層 */
+  background-image: none !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  /* 移除會創建堆疊上下文的屬性 */
+  position: static !important;
+}
+
+html:not([data-theme="dark"]) .techno-card:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.15),
+    0 8px 20px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+/* 恢復白天模式的金屬高光效果 - 但降低 z-index */
+html:not([data-theme="dark"]) .techno-card::before {
+  display: block !important;
+  z-index: 1 !important;
+}
+
+/* 恢復白天模式的掃光效果 - 但降低 z-index */
+html:not([data-theme="dark"]) .techno-sweep::after {
+  display: block !important;
+  z-index: 1 !important;
+}
+
+/* 白天模式狀態卡片文字重新配色 */
+html:not([data-theme="dark"]) .techno-card .card-title {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  letter-spacing: 0.3px !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .card-text {
+  color: #334155 !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .text-muted {
+  color: #64748b !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 白天模式圖示重新配色 */
+html:not([data-theme="dark"]) .techno-card .card-title i {
+  color: #3b82f6 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  filter: drop-shadow(0 1px 2px rgba(59, 130, 246, 0.3)) !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .text-muted i {
+  color: #6366f1 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 白天模式 badge 毛玻璃樣式重新設計 */
+html:not([data-theme="dark"]) .techno-card .badge.bg-success {
+  background: rgba(34, 197, 94, 0.85) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(34, 197, 94, 0.4) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 
+    0 4px 12px rgba(34, 197, 94, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .badge.bg-secondary {
+  background: rgba(100, 116, 139, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(100, 116, 139, 0.4) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 
+    0 4px 12px rgba(100, 116, 139, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .badge:hover {
+  transform: scale(1.05) translateY(-1px) !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 
+    0 6px 16px rgba(34, 197, 94, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 白天模式 spinner 重新配色 */
+html:not([data-theme="dark"]) .techno-card .spinner-industrial {
+  background: conic-gradient(from 210deg,
+    rgba(99, 102, 241, 0.8) 0deg, 
+    rgba(139, 92, 246, 0.9) 40deg, 
+    rgba(59, 130, 246, 0.8) 120deg,
+    rgba(99, 102, 241, 0.6) 180deg, 
+    rgba(139, 92, 246, 0.9) 240deg, 
+    rgba(99, 102, 241, 0.8) 300deg, 
+    rgba(99, 102, 241, 0.8) 360deg) !important;
+  
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.4),
+    0 0 12px rgba(99, 102, 241, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .spinner-industrial::before {
+  background:
+    radial-gradient(closest-side, rgba(0, 0, 0, 0.08), transparent 60%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 60%, rgba(241, 245, 249, 0.7) 100%) !important;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .spinner-industrial::after {
+  background:
+    conic-gradient(from 0deg,
+      rgba(255, 255, 255, 0) 0deg,
+      rgba(255, 255, 255, 0.9) 30deg,
+      rgba(255, 255, 255, 0) 60deg,
+      rgba(255, 255, 255, 0) 360deg) !important;
+}
+
+/* 移除白天模式 badge 的掃光效果 */
+html:not([data-theme="dark"]) .techno-card .badge.sweep::after,
+html:not([data-theme="dark"]) .techno-card .badge.sweep::before {
+  display: none !important;
+}
+
+/* =========================
+   白天模式設備日誌表格毛玻璃樣式
+   ========================= */
+
+/* 設備日誌表格容器毛玻璃效果 - 覆蓋 Bootstrap table-dark */
+html:not([data-theme="dark"]) #deviceLogsTable,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  overflow: hidden !important;
+  color: inherit !important;
+}
+
+/* 表格標題行毛玻璃效果 - 覆蓋 Bootstrap table-dark */
+html:not([data-theme="dark"]) #deviceLogsTable thead,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark thead,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable thead {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+}
+
+html:not([data-theme="dark"]) #deviceLogsTable thead th,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark thead th,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable thead th {
+  background: transparent !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+  padding: 0.75rem !important;
+}
+
+/* 表格內容行 - 覆蓋 Bootstrap table-dark */
+html:not([data-theme="dark"]) #deviceLogsTable tbody tr,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark tbody tr,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable tbody tr {
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  transition: all 0.2s ease !important;
+}
+
+html:not([data-theme="dark"]) #deviceLogsTable tbody tr:nth-child(even),
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark tbody tr:nth-child(even),
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+html:not([data-theme="dark"]) #deviceLogsTable tbody tr:hover,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark tbody tr:hover,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable tbody tr:hover {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transform: scale(1.01) !important;
+}
+
+html:not([data-theme="dark"]) #deviceLogsTable tbody td,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark tbody td,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable tbody td {
+  background: transparent !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  padding: 0.6rem !important;
+}
+
+/* 狀態文字重新配色 - 覆蓋 Bootstrap table-dark */
+html:not([data-theme="dark"]) #deviceLogsTable .status-online,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark .status-online,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable .status-online {
+  color: #059669 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+html:not([data-theme="dark"]) #deviceLogsTable .status-offline,
+html:not([data-theme="dark"]) #deviceLogsTable.table-dark .status-offline,
+html:not([data-theme="dark"]) .table-dark#deviceLogsTable .status-offline {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+/* =========================
+   白天模式手風琴按鈕毛玻璃樣式
+   ========================= */
+
+/* 手風琴按鈕毛玻璃效果 */
+html:not([data-theme="dark"]) .accordion-btn {
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    0 3px 10px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  
+  /* 文字樣式 */
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0.875rem 1.25rem !important;
+}
+
+html:not([data-theme="dark"]) .accordion-btn:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 6px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  color: #111827 !important;
+}
+
+html:not([data-theme="dark"]) .accordion-btn:focus {
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow: 
+    0 0 0 3px rgba(99, 102, 241, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    0 3px 10px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  outline: none !important;
+}
+
+/* 手風琴按鈕展開狀態 */
+html:not([data-theme="dark"]) .accordion-btn:not(.collapsed) {
+  background: rgba(99, 102, 241, 0.15) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  color: #3730a3 !important;
+  box-shadow: 
+    0 8px 24px rgba(99, 102, 241, 0.15),
+    0 4px 12px rgba(99, 102, 241, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 手風琴按鈕內的圖示 */
+html:not([data-theme="dark"]) .accordion-btn .toggle-icon {
+  color: #6366f1 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.3s ease !important;
+  filter: drop-shadow(0 1px 2px rgba(99, 102, 241, 0.3)) !important;
+}
+
+html:not([data-theme="dark"]) .accordion-btn:hover .toggle-icon {
+  color: #4f46e5 !important;
+  transform: scale(1.1) !important;
+}
+
+html:not([data-theme="dark"]) .accordion-btn:not(.collapsed) .toggle-icon {
+  color: #3730a3 !important;
+  transform: rotate(180deg) !important;
+}
+
+/* =========================
+   白天模式 Collapse 容器毛玻璃樣式
+   ========================= */
+
+/* Collapse 容器毛玻璃效果 */
+html:not([data-theme="dark"]) #deviceLogsCollapse,
+html:not([data-theme="dark"]) .collapse {
+  background: rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  border-radius: 0 0 12px 12px !important;
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    0 3px 10px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  
+  margin-top: -1px !important; /* 與手風琴按鈕無縫連接 */
+  padding: 1rem !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Collapse 容器內的內容 */
+html:not([data-theme="dark"]) #deviceLogsCollapse .table-responsive,
+html:not([data-theme="dark"]) .collapse .table-responsive {
+  background: transparent !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+/* 確保 collapse 內的所有文字都有正確顏色 */
+html:not([data-theme="dark"]) #deviceLogsCollapse,
+html:not([data-theme="dark"]) #deviceLogsCollapse *,
+html:not([data-theme="dark"]) .collapse,
+html:not([data-theme="dark"]) .collapse * {
+  color: inherit !important;
+}
+
+/* =========================
+   白天模式 bg-dark 卡片毛玻璃樣式
+   ========================= */
+
+/* 覆蓋 Bootstrap bg-dark 卡片樣式 */
+html:not([data-theme="dark"]) .card.bg-dark,
+html:not([data-theme="dark"]) .bg-dark.card,
+html:not([data-theme="dark"]) .card-body.bg-dark {
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    0 3px 10px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  
+  /* 文字顏色重新設定 */
+  color: #1e293b !important;
+  transition: all 0.3s ease !important;
+}
+
+html:not([data-theme="dark"]) .card.bg-dark:hover,
+html:not([data-theme="dark"]) .bg-dark.card:hover,
+html:not([data-theme="dark"]) .card-body.bg-dark:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 6px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+/* 覆蓋 text-light 類別 */
+html:not([data-theme="dark"]) .text-light,
+html:not([data-theme="dark"]) .bg-dark .text-light,
+html:not([data-theme="dark"]) .card.bg-dark .text-light {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 覆蓋 border-secondary 類別 */
+html:not([data-theme="dark"]) .border-secondary,
+html:not([data-theme="dark"]) .bg-dark.border-secondary {
+  border-color: rgba(148, 163, 184, 0.4) !important;
+}
+
+/* 讓子元素背景透明以顯示藍天白雲，但排除特定元素（包含 SweetAlert） */
+html:not([data-theme="dark"]) body *:not(.card):not(.modal):not(.dropdown-menu):not(.offcanvas):not(.navbar):not(.btn):not(.form-control):not(.form-select):not(.form-check-input):not(.table):not(.list-group-item):not(.alert):not(.badge):not(.progress):not(.tooltip):not(.toast):not(.spinner-border):not(.spinner-grow):not(.carousel):not(.accordion):not(.nav-tabs):not(.nav-pills):not(.pagination):not(.breadcrumb):not(.input-group):not(.btn-group):not(.btn-toolbar):not(.swal2-popup):not(.swal2-container):not(.swal2-backdrop):not(.swal2-title):not(.swal2-content):not(.swal2-confirm):not(.swal2-cancel):not(.swal2-deny):not([class*="swal2"]) {
   background-color: transparent !important;
 }
 
-/* 但排除需要特定背景的元素 */
-html[data-theme="dark"] body .card,
-html[data-theme="dark"] body .modal,
-html[data-theme="dark"] body .dropdown-menu,
-html[data-theme="dark"] body .offcanvas,
-html[data-theme="dark"] body .navbar,
-html[data-theme="dark"] body .btn,
-html[data-theme="dark"] body .form-control,
-html[data-theme="dark"] body .form-select,
-html[data-theme="dark"] body .form-check-input,
-html[data-theme="dark"] body .table,
-html[data-theme="dark"] body .list-group-item,
-html[data-theme="dark"] body .alert,
-html[data-theme="dark"] body .badge,
-html[data-theme="dark"] body .progress,
-html[data-theme="dark"] body .tooltip,
-html[data-theme="dark"] body .toast,
-html[data-theme="dark"] body .spinner-border,
-html[data-theme="dark"] body .spinner-grow,
-html[data-theme="dark"] body .carousel,
-html[data-theme="dark"] body .accordion,
-html[data-theme="dark"] body .nav-tabs,
-html[data-theme="dark"] body .nav-pills,
-html[data-theme="dark"] body .pagination,
-html[data-theme="dark"] body .breadcrumb,
-html[data-theme="dark"] body .input-group,
-html[data-theme="dark"] body .btn-group,
-html[data-theme="dark"] body .btn-toolbar {
-  background-color: unset !important;
+/* 讓子元素背景透明以顯示星空，但排除 body 本身（包含 SweetAlert） */
+html[data-theme="dark"] body *:not(.card):not(.modal):not(.dropdown-menu):not(.offcanvas):not(.navbar):not(.btn):not(.form-control):not(.form-select):not(.form-check-input):not(.table):not(.list-group-item):not(.alert):not(.badge):not(.progress):not(.tooltip):not(.toast):not(.spinner-border):not(.spinner-grow):not(.carousel):not(.accordion):not(.nav-tabs):not(.nav-pills):not(.pagination):not(.breadcrumb):not(.input-group):not(.btn-group):not(.btn-toolbar):not(.swal2-popup):not(.swal2-container):not(.swal2-backdrop):not(.swal2-title):not(.swal2-content):not(.swal2-confirm):not(.swal2-cancel):not(.swal2-deny):not([class*="swal2"]) {
+  background-color: transparent !important;
 }
 
 /* 黑夜模式下的文字顏色覆蓋 */
@@ -841,45 +1868,11 @@ html[data-theme="dark"] body .btn-toolbar {
   border-color: var(--border-light) !important;
 }
 
-/* 使用更簡潔的方法修復白色背景問題 */
-[data-theme="dark"] body * {
-  background-color: inherit !important;
-}
-
-/* 但排除需要特定背景的元素 */
-[data-theme="dark"] body .card,
-[data-theme="dark"] body .modal,
-[data-theme="dark"] body .dropdown-menu,
-[data-theme="dark"] body .offcanvas,
-[data-theme="dark"] body .navbar,
-[data-theme="dark"] body .btn,
-[data-theme="dark"] body .form-control,
-[data-theme="dark"] body .form-select,
-[data-theme="dark"] body .form-check-input,
-[data-theme="dark"] body .table,
-[data-theme="dark"] body .list-group-item,
-[data-theme="dark"] body .alert,
-[data-theme="dark"] body .badge,
-[data-theme="dark"] body .progress,
-[data-theme="dark"] body .tooltip,
-[data-theme="dark"] body .toast,
-[data-theme="dark"] body .spinner-border,
-[data-theme="dark"] body .spinner-grow,
-[data-theme="dark"] body .carousel,
-[data-theme="dark"] body .accordion,
-[data-theme="dark"] body .nav-tabs,
-[data-theme="dark"] body .nav-pills,
-[data-theme="dark"] body .pagination,
-[data-theme="dark"] body .breadcrumb,
-[data-theme="dark"] body .input-group,
-[data-theme="dark"] body .btn-group,
-[data-theme="dark"] body .btn-toolbar {
-  background-color: unset !important;
-}
-
-/* 特別修復 main 元素的背景 */
+/* 確保容器背景透明以顯示星空 */
+[data-theme="dark"] .container,
+[data-theme="dark"] .container-fluid,
 [data-theme="dark"] main {
-  background-color: var(--bg-primary) !important;
+  background-color: transparent !important;
 }
 
 /* 修復所有可能的 Bootstrap 背景類別 */
@@ -912,9 +1905,6 @@ html[data-theme="dark"] body .btn-toolbar {
   background-color: var(--card-bg) !important;
 }
 
-[data-theme="dark"] .navbar {
-  background-color: var(--bg-secondary) !important;
-}
 
 [data-theme="dark"] .form-control {
   background-color: var(--bg-secondary) !important;
@@ -950,26 +1940,292 @@ html[data-theme="dark"] body .btn-toolbar {
 
 /* 這些樣式已經包含在上面，移除重複 */
 
-/* 黑夜模式下的 navbar 樣式 */
+/* 白天模式毛玻璃 navbar 樣式 - 參考 carousel-control-prev */
+.navbar:not([data-theme="dark"] .navbar) {
+  position: relative;
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+  z-index: 1030 !important; /* 提升 navbar z-index，確保高於輪播照片 */
+  
+  /* 毛玻璃陰影 - 參考 carousel 樣式 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 確保白天模式優先級 - 加強選擇器 */
+html:not([data-theme="dark"]) .navbar.navbar-expand-lg.navbar-dark,
+html:not([data-theme="dark"]) .navbar {
+  background: rgba(255, 255, 255, 0.4) !important;
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+  z-index: 1030 !important; /* 提升 navbar z-index，確保高於輪播照片 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+
+/* 白天模式毛玻璃 navbar 文字樣式 */
+html:not([data-theme="dark"]) .navbar .navbar-brand,
+html:not([data-theme="dark"]) .navbar .navbar-nav .nav-link,
+html:not([data-theme="dark"]) .navbar .navbar-text {
+  color: #1f2937 !important;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* 白天模式 navbar 圖標樣式 - 白色雲朵 */
+html:not([data-theme="dark"]) .navbar #notifDropdown i.bi-cloud-fill {
+  color: #ffffff !important;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+html:not([data-theme="dark"]) .navbar .navbar-text i.bi-sun-fill {
+  color: #f59e0b !important;
+  filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.4));
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+html:not([data-theme="dark"]) .navbar .navbar-nav .nav-link:hover {
+  color: #111827 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+/* 白天模式毛玻璃 navbar toggler 樣式 */
+html:not([data-theme="dark"]) .navbar .navbar-toggler {
+  border-color: rgba(31, 41, 55, 0.3) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not([data-theme="dark"]) .navbar .navbar-toggler:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+html:not([data-theme="dark"]) .navbar .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2831, 41, 55, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* 白天模式毛玻璃登出按鈕樣式 */
+html:not([data-theme="dark"]) .navbar .navbar-logout-btn {
+  color: #1f2937 !important;
+  border-color: rgba(31, 41, 55, 0.3) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 白天模式手機版黑夜切換按鈕樣式 */
+html:not([data-theme="dark"]) .navbar .mobile-theme-toggle {
+  color: #1f2937 !important;
+  border-color: rgba(31, 41, 55, 0.3) !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12) !important;
+}
+
+html:not([data-theme="dark"]) .navbar .mobile-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  border-color: rgba(31, 41, 55, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 白天模式手機版登出按鈕樣式 */
+html:not([data-theme="dark"]) .mobile-logout-btn {
+  color: #1f2937 !important;
+  border-color: rgba(31, 41, 55, 0.3) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not([data-theme="dark"]) .mobile-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-color: rgba(31, 41, 55, 0.5) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 白天模式漢堡按鈕樣式 */
+html:not([data-theme="dark"]) .navbar-toggler {
+  color: #1f2937 !important;
+  border-color: rgba(31, 41, 55, 0.3) !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12) !important;
+}
+
+html:not([data-theme="dark"]) .navbar-toggler:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  border-color: rgba(31, 41, 55, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+}
+
+html:not([data-theme="dark"]) .navbar .navbar-logout-btn:hover {
+  color: #111827 !important;
+  border-color: rgba(31, 41, 55, 0.5) !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 黑夜模式下的 navbar 毛玻璃樣式 */
 [data-theme="dark"] .navbar {
-  background-color: var(--bg-secondary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  position: relative !important; /* 與白天模式保持一致 */
+  background: rgba(30, 41, 59, 0.75) !important;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+  z-index: 1030 !important; /* 提升 navbar z-index，確保高於輪播照片 */
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.25),
+    0 1px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
 [data-theme="dark"] .navbar-dark {
-  background-color: var(--bg-secondary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
+  background: rgba(30, 41, 59, 0.75) !important;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
 }
 
 [data-theme="dark"] .navbar-dark .navbar-brand,
 [data-theme="dark"] .navbar-dark .navbar-nav .nav-link,
 [data-theme="dark"] .navbar-dark .navbar-text {
-  color: var(--text-primary) !important;
+  color: #ffffff !important;
 }
 
 [data-theme="dark"] .navbar-dark .navbar-nav .nav-link:hover {
-  color: var(--bs-primary) !important;
+  color: #e2e8f0 !important;
+}
+
+/* 黑夜模式 navbar 圖標樣式 - 白色雲朵 */
+[data-theme="dark"] .navbar #notifDropdown i.bi-cloud-fill {
+  color: #ffffff !important;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .navbar .navbar-text i.bi-sun-fill {
+  color: #fbbf24 !important;
+  filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.5));
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+/* 黑夜模式登出按鈕樣式 */
+[data-theme="dark"] .navbar .navbar-logout-btn {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  text-shadow: none;
+}
+
+[data-theme="dark"] .navbar .navbar-logout-btn:hover {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式手機版黑夜切換按鈕樣式 */
+[data-theme="dark"] .navbar .mobile-theme-toggle {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  text-shadow: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="dark"] .navbar .mobile-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 黑夜模式手機版登出按鈕樣式 */
+[data-theme="dark"] .mobile-logout-btn {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  text-shadow: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="dark"] .mobile-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 黑夜模式漢堡按鈕樣式 */
+[data-theme="dark"] .navbar-toggler {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="dark"] .navbar-toggler:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 黑夜模式手機版歡迎區域 */
+[data-theme="dark"] .navbar-mobile-greeting {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .mobile-greeting-icon {
+  color: #fbbf24 !important;
+  filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.5));
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+[data-theme="dark"] .mobile-greeting-text {
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+/* 確保導航列按鈕也是白色 */
+[data-theme="dark"] .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme="dark"] .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
 }
 
 [data-theme="dark"] .navbar-dark .navbar-toggler {
@@ -985,34 +2241,146 @@ html[data-theme="dark"] body .btn-toolbar {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28245, 245, 245, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
-/* 修復 navbar 的固定定位樣式 */
-[data-theme="dark"] .navbar.fixed-top {
-  background-color: var(--bg-secondary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+/* 修復 navbar 的固定定位金屬風樣式 */
+.navbar.fixed-top,
+.navbar.sticky-top {
+  background: linear-gradient(160deg, var(--techno-bg-start) 0%, var(--techno-bg-mid) 45%, var(--techno-bg-end) 100%) !important;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  border-bottom: 1px solid var(--techno-border) !important;
+  
+  /* 金屬立體陰影 */
+  box-shadow: 
+    0 4px 10px var(--card-shadow-hover),
+    inset 0 1px 1px rgba(255,255,255,0.6),
+    inset 0 -2px 4px rgba(0,0,0,0.2) !important;
 }
 
+[data-theme="dark"] .navbar.fixed-top,
 [data-theme="dark"] .navbar.sticky-top {
-  background-color: var(--bg-secondary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  background: rgba(30, 41, 59, 0.75) !important;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.25),
+    0 1px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
-/* 特別修復 navbar-dark bg-dark 的邊框問題 */
+/* 特別修復 navbar-dark bg-dark 的金屬風樣式 */
+.navbar.navbar-dark.bg-dark {
+  background: linear-gradient(160deg, var(--techno-bg-start) 0%, var(--techno-bg-mid) 45%, var(--techno-bg-end) 100%) !important;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  border-bottom: 1px solid var(--techno-border) !important;
+  
+  /* 金屬立體陰影 */
+  box-shadow: 
+    0 4px 10px var(--card-shadow-hover),
+    inset 0 1px 1px rgba(255,255,255,0.6),
+    inset 0 -2px 4px rgba(0,0,0,0.2) !important;
+}
+
 [data-theme="dark"] .navbar.navbar-dark.bg-dark {
-  background-color: var(--bg-secondary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  background: rgba(30, 41, 59, 0.75) !important;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.25),
+    0 1px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
-/* 確保 navbar 容器也有正確的樣式 */
-[data-theme="dark"] .navbar .container-fluid {
-  background-color: transparent;
+/* =========================
+   白天模式 navbar 內層毛玻璃樣式
+   ========================= */
+
+/* navbar 容器和 collapse 區域 */
+html:not([data-theme="dark"]) .navbar .container-fluid {
+  background-color: transparent !important;
 }
 
-/* 修復 navbar 的 collapse 區域 */
+/* 桌面版和手機版通用 navbar-collapse 毛玻璃樣式 */
+html:not([data-theme="dark"]) .navbar-collapse,
+html:not([data-theme="dark"]) .navbar .navbar-collapse,
+html:not([data-theme="dark"]) .navbar-expand-lg .navbar-collapse {
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-radius: 8px !important;
+  margin-top: 0.5rem !important;
+  padding: 0.75rem !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  box-shadow: 
+    0 6px 16px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* 桌面版時隱藏 navbar-collapse 的背景（因為不會展開） */
+@media (min-width: 992px) {
+  html:not([data-theme="dark"]) .navbar-collapse,
+  html:not([data-theme="dark"]) .navbar .navbar-collapse {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* 簡化的 navbar 佈局 - 恢復基本樣式 */
+  .navbar-nav.ms-auto {
+    align-items: center;
+  }
+  
+  /* 基本的通知下拉選單樣式 */
+  .navbar .dropdown-menu {
+    /* 移除所有 z-index 設定 */
+  }
+  
+  /* 移除所有卡片的 z-index 設定 */
+  
+  /* 移除所有子元素的 z-index 設定 */
+}
+
+/* navbar 內的下拉選單 - 基本樣式 */
+html:not([data-theme="dark"]) .navbar .dropdown-menu {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  border-radius: 10px !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  /* 移除 z-index 和 position 設定 */
+}
+
+html:not([data-theme="dark"]) .navbar .dropdown-item {
+  color: #1e293b !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+  margin: 2px 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+html:not([data-theme="dark"]) .navbar .dropdown-item:hover {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #3730a3 !important;
+  transform: translateX(2px) !important;
+}
+
+/* 黑夜模式保持透明 */
+[data-theme="dark"] .navbar .container-fluid,
 [data-theme="dark"] .navbar-collapse {
-  background-color: transparent;
+  background-color: transparent !important;
 }
 
 /* 黑夜模式下的 footer 樣式 */
@@ -1044,15 +2412,25 @@ html[data-theme="dark"] body .btn-toolbar {
   border-right: 1px solid var(--border-color);
 }
 
-/* Offcanvas 寬度設定 */
+/* Offcanvas 寬度設定與白底樣式 */
 .offcanvas {
   --bs-offcanvas-width: 320px;
+  background: #ffffff !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
+
 
 @media (max-width: 576px) {
   .offcanvas {
     --bs-offcanvas-width: 90vw;
   }
+}
+
+/* 白天模式 offcanvas-header 保持白底 */
+.offcanvas-header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  padding: 1rem 1.5rem;
 }
 
 [data-theme="dark"] .offcanvas-header {
@@ -1101,6 +2479,16 @@ html[data-theme="dark"] body .btn-toolbar {
 
 [data-theme="dark"] .modal-header .btn-close:hover {
   opacity: 1;
+}
+
+
+
+
+/* 白天模式 offcanvas-body 保持白底 */
+.offcanvas-body {
+  background-color: #ffffff !important;
+  color: #000000;
+  padding: 1.5rem;
 }
 
 [data-theme="dark"] .offcanvas-body {
@@ -1210,16 +2598,30 @@ html[data-theme="dark"] body .btn-toolbar {
 
 /* 黑夜模式下的表單選擇 */
 [data-theme="dark"] .form-select {
-  background-color: var(--bg-secondary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="dark"] .form-select:focus {
-  background-color: var(--bg-secondary);
-  border-color: var(--bs-primary);
-  color: var(--text-primary);
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* 修復下拉選單選項的背景 */
+[data-theme="dark"] .form-select option {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 確保所有選擇器都有正確的樣式 */
+[data-theme="dark"] select.form-select,
+[data-theme="dark"] select.form-control {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 /* 黑夜模式下的文字區域 */
@@ -1275,12 +2677,90 @@ html[data-theme="dark"] body .btn-toolbar {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  /* 移除 z-index 和 position 設定 */
 }
+
+/* 清理完成 */
+
+/* 基本設定 */
+
+/* 通知下拉選單 - 回到基本的 Bootstrap 行為 */
+.dropdown-menu[aria-labelledby="notifDropdown"],
+.dropdown-menu[aria-labelledby="notifDropdownDesktop"] {
+  min-width: 320px;
+}
+
+/* 桌面版通知下拉選單 - 遵循 Bootstrap 架構 */
+@media (min-width: 992px) {
+  /* 確保桌面版通知下拉選單有高優先級 - 但低於 SweetAlert */
+  .dropdown-menu[aria-labelledby="notifDropdownDesktop"] {
+    z-index: 2147483645 !important;
+    position: fixed !important;
+    top: 60px !important;
+    right: 20px !important;
+  }
+  
+  /* 強制重置輪播和所有可能干擾的元素 */
+  .carousel,
+  .carousel-container,
+  .carousel::before,
+  .carousel-item,
+  .carousel-item::after,
+  .carousel-control-prev,
+  .carousel-control-next,
+  .carousel-indicators,
+  .navbar-collapse,
+  .navbar-nav,
+  .container-fluid,
+  main,
+  .container,
+  .row,
+  .col,
+  .col-md-4,
+  .card,
+  .techno-card {
+    z-index: 1 !important;
+  }
+  
+  /* 特別針對輪播的堆疊上下文重置 - 保留 hover 效果 */
+  .carousel {
+    position: static !important;
+  }
+  
+  /* 恢復輪播的 hover transform 效果 */
+  .carousel:hover {
+    transform: translateY(-5px) !important;
+  }
+  
+  /* 恢復輪播的重要視覺效果 z-index */
+  .carousel::before {
+    z-index: 1 !important;
+  }
+  
+  .carousel-item::after {
+    z-index: 1 !important;
+  }
+  
+  /* 恢復輪播控制按鈕的 z-index */
+  .carousel-control-prev,
+  .carousel-control-next {
+    z-index: 10 !important;
+  }
+  
+  /* 恢復輪播指示器的 z-index */
+  .carousel-indicators {
+    z-index: 10 !important;
+  }
+}
+
+/* 移除所有 z-index 覆蓋樣式 */
 
 [data-theme="dark"] .dropdown-item {
   color: var(--text-primary) !important;
   background-color: transparent;
 }
+
+/* 清理完成 - 恢復到基本的 Bootstrap 下拉選單行為 */
 
 [data-theme="dark"] .dropdown-item:hover,
 [data-theme="dark"] .dropdown-item:focus {
@@ -1395,19 +2875,264 @@ html[data-theme="dark"] body .btn-toolbar {
 
 [data-theme="dark"] .bg-success {
   background-color: var(--status-online) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 [data-theme="dark"] .bg-danger {
   background-color: var(--status-offline) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 [data-theme="dark"] .bg-warning {
   background-color: var(--status-warning) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 [data-theme="dark"] .bg-info {
   background-color: var(--status-info) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
 }
+
+/* 黑暗模式下的電子鎖按鈕樣式 */
+[data-theme="dark"] .locker-btn.btn-outline-secondary {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+  border: 1px solid #64748b !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3) !important;
+}
+
+[data-theme="dark"] .locker-btn.btn-outline-secondary:hover {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4) !important;
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] .locker-btn.btn-outline-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: 1px solid #10b981 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="dark"] .locker-btn.btn-outline-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+  border-color: #059669 !important;
+}
+
+[data-theme="dark"] .locker-btn.btn-outline-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-theme="dark"] .locker-btn.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+  border-color: #2563eb !important;
+}
+
+/* 電子鎖按鈕狀態樣式 */
+.locker-btn.active-locked {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2), 0 2px 8px rgba(220, 38, 38, 0.3) !important;
+  position: relative !important;
+}
+
+.locker-btn.active-locked::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #dc2626, #f59e0b, #dc2626);
+  border-radius: 10px;
+  /* 移除 z-index */
+  animation: lockedGlow 2s ease-in-out infinite alternate;
+}
+
+.locker-btn.active-unlocked {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  border-color: #059669 !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2), 0 2px 8px rgba(5, 150, 105, 0.3) !important;
+  position: relative !important;
+}
+
+.locker-btn.active-unlocked::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #059669, #10b981, #059669);
+  border-radius: 10px;
+  /* 移除 z-index */
+  animation: unlockedGlow 2s ease-in-out infinite alternate;
+}
+
+/* 發光動畫 */
+@keyframes lockedGlow {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0.8; transform: scale(1.02); }
+}
+
+@keyframes unlockedGlow {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0.8; transform: scale(1.02); }
+}
+
+/* 黑暗模式下的狀態按鈕 */
+[data-theme="dark"] .locker-btn.active-locked {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3), 0 2px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+[data-theme="dark"] .locker-btn.active-locked::before {
+  background: linear-gradient(45deg, #ef4444, #fbbf24, #ef4444);
+}
+
+[data-theme="dark"] .locker-btn.active-unlocked {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3), 0 2px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+[data-theme="dark"] .locker-btn.active-unlocked::before {
+  background: linear-gradient(45deg, #10b981, #34d399, #10b981);
+}
+
+/* ===== 新版電子鎖開關樣式 - 協調配色 ===== */
+.locker-toggle {
+  width: 3rem;
+  height: 1.5rem;
+  border-radius: 1rem;
+  border: 2px solid #d1d5db;
+  background-color: #f3f4f6;
+  transition: all 0.3s ease;
+}
+
+.locker-toggle:checked {
+  background-color: #6366f1;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.locker-toggle:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* 電子鎖狀態文字 */
+.lock-status-text {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+/* 電子鎖表單對齊優化 */
+#lockerCard .col-md-5 {
+  display: flex;
+  align-items: center;
+}
+
+#lockerCard .form-check.form-switch {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+#lockerCard .form-check-label {
+  margin-bottom: 0;
+  padding-left: 0.5rem;
+}
+
+/* 電子鎖排程表單緊湊化 */
+#lockerCard form .col-12 {
+  margin-top: 0 !important;
+  padding-top: 0.25rem;
+}
+
+#lockerCard form .col-12 small {
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+#lockerCard form .text-success,
+#lockerCard form .text-danger {
+  margin-top: 0 !important;
+}
+
+/* 手機版電子鎖表單 - 簡化樣式 */
+@media (max-width: 767.98px) {
+  #lockerCard .card-body {
+    padding: 0.75rem !important;
+  }
+  
+  #lockerCard .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* 修復手機版時間輸入框樣式 */
+  #lockerCard input[type="datetime-local"] {
+    background-color: var(--bs-body-bg) !important;
+    border: 1px solid var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+  }
+  
+  /* 深色模式下的時間輸入框 */
+  [data-theme="dark"] #lockerCard input[type="datetime-local"] {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+    -webkit-color-scheme: dark;
+    color-scheme: dark;
+  }
+  
+  [data-theme="dark"] #lockerCard input[type="datetime-local"]:focus {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--bs-primary) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25) !important;
+  }
+  
+  /* 時間輸入框的內部元件 */
+  [data-theme="dark"] #lockerCard input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.8;
+  }
+  
+  [data-theme="dark"] #lockerCard input[type="datetime-local"]::-webkit-datetime-edit {
+    color: var(--text-primary) !important;
+  }
+  
+  [data-theme="dark"] #lockerCard input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
+    background-color: transparent !important;
+  }
+}
+
+
+
+/* 黑夜模式電子鎖樣式 */
+[data-theme="dark"] .locker-toggle {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+[data-theme="dark"] .locker-toggle:checked {
+  background-color: #8b5cf6;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+
 
 /* 黑夜模式下的按鈕樣式 - 現代配色 */
 [data-theme="dark"] .btn-primary {
@@ -1419,8 +3144,8 @@ html[data-theme="dark"] body .btn-toolbar {
 }
 
 [data-theme="dark"] .btn-primary:hover {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3);
   transform: translateY(-1px);
 }
 
@@ -1435,7 +3160,7 @@ html[data-theme="dark"] body .btn-toolbar {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   border-color: #6366f1;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
   transform: translateY(-1px);
 }
 
@@ -1448,8 +3173,8 @@ html[data-theme="dark"] body .btn-toolbar {
 }
 
 [data-theme="dark"] .btn-success:hover {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -1554,8 +3279,8 @@ html[data-theme="dark"] body .btn-toolbar {
 [data-theme="dark"] .device-list .btn:hover,
 [data-theme="dark"] .groups-scope .btn:hover,
 [data-theme="dark"] .groups-scope .d-grid .btn:hover {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -1629,8 +3354,8 @@ html[data-theme="dark"] body .btn-toolbar {
 
 [data-theme="dark"] .device-list .btn-primary:hover,
 [data-theme="dark"] .groups-scope .btn-primary:hover {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -1649,6 +3374,95 @@ html[data-theme="dark"] body .btn-toolbar {
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
   transform: translateY(-1px) !important;
+}
+
+/* =========================
+   登入頁面毛玻璃樣式
+   ========================= */
+
+/* 白天模式登入卡片毛玻璃樣式 - 參考 navbar */
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4:hover {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* 登入卡片內的文字樣式 */
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .card-body h1,
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .card-body .form-label,
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .card-body a {
+  color: #1f2937 !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .card-body a:hover {
+  color: #111827 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+/* 登入表單輸入框毛玻璃樣式 */
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .form-control {
+  background: rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  color: #1f2937 !important;
+  font-weight: 500;
+}
+
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .form-control:focus {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.15) !important;
+  color: #111827 !important;
+}
+
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .form-control::placeholder {
+  color: rgba(31, 41, 55, 0.6) !important;
+  font-weight: 500;
+}
+
+/* 登入按鈕毛玻璃樣式 */
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .btn-primary {
+  background: rgba(99, 102, 241, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(99, 102, 241, 0.4) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+}
+
+html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .btn-primary:hover {
+  background: rgba(99, 102, 241, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 黑夜模式保持原有樣式 */
+[data-theme="dark"] .card.shadow-sm.rounded-4 {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* 黑夜模式下的 btn-dark 修正 */
@@ -1713,11 +3527,13 @@ html[data-theme="dark"] body .btn-toolbar {
 }
 
 [data-theme="dark"] .device-list .status-dot {
-  background-color: var(--status-offline);
+  background-color: #ff6b6b !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.5), 0 0 12px rgba(255, 107, 107, 0.6), 0 0 20px rgba(255, 107, 107, 0.3) !important;
 }
 
 [data-theme="dark"] .device-list .status-dot.on {
-  background-color: var(--status-online);
+  background-color: #51cf66 !important;
+  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.5), 0 0 12px rgba(81, 207, 102, 0.6), 0 0 20px rgba(81, 207, 102, 0.3) !important;
 }
 
 [data-theme="dark"] .device-list .chev {
@@ -1742,11 +3558,13 @@ html[data-theme="dark"] body .btn-toolbar {
 }
 
 [data-theme="dark"] .groups-scope .status-dot {
-  background-color: var(--status-offline);
+  background-color: #ff6b6b !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.5), 0 0 12px rgba(255, 107, 107, 0.6), 0 0 20px rgba(255, 107, 107, 0.3) !important;
 }
 
 [data-theme="dark"] .groups-scope .status-dot.on {
-  background-color: var(--status-online);
+  background-color: #51cf66 !important;
+  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.5), 0 0 12px rgba(81, 207, 102, 0.6), 0 0 20px rgba(81, 207, 102, 0.3) !important;
 }
 
 [data-theme="dark"] .groups-scope .chev {
@@ -1980,6 +3798,327 @@ html[data-theme="dark"] body .btn-toolbar {
 }
 
 /* =========================
+   輪播照片樣式
+   ========================= */
+
+/* 桌機版輪播照片樣式 - 美化版 */
+.carousel-container {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+/* 白天模式輪播樣式 */
+.carousel {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.08),
+    0 8px 25px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  position: relative;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #4a5568;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.carousel:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.12),
+    0 12px 35px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.carousel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    rgba(255, 255, 255, 0.4) 0%, 
+    transparent 50%, 
+    rgba(255, 255, 255, 0.2) 100%);
+  /* 移除 z-index */
+  pointer-events: none;
+}
+
+.carousel-item {
+  height: 444px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  /* 移除 z-index */
+}
+
+/* 設定各個輪播項目的背景圖片 */
+#p1 {
+  background-image: url('../images/01.jpg');
+  animation: slideInFromLeft 1s ease-out;
+}
+
+#p2 {
+  background-image: url('../images/02.jpg');
+  animation: slideInFromRight 1s ease-out;
+}
+
+#p3 {
+  background-image: url('../images/03.jpg');
+  animation: slideInFromBottom 1s ease-out;
+}
+
+/* 輪播切換動畫 */
+@keyframes slideInFromLeft {
+  0% { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInFromRight {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* 白天模式輪播控制按鈕樣式 */
+.carousel-control-prev,
+.carousel-control-next {
+  width: 60px;
+  height: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 移除 z-index */
+}
+
+.carousel:hover .carousel-control-prev,
+.carousel:hover .carousel-control-next {
+  opacity: 1;
+}
+
+.carousel-control-prev {
+  left: 20px;
+}
+
+.carousel-control-next {
+  right: 20px;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(148, 163, 184, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+  filter: brightness(0.4) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* 白天模式金屬風輪播指示器 */
+.carousel-indicators {
+  bottom: 20px;
+  margin-bottom: 0;
+  /* 移除 z-index */
+}
+
+/* 移除輪播照片的 z-index 設定 */
+
+.carousel-indicators [data-bs-target] {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin: 0 8px;
+  position: relative;
+  cursor: pointer;
+  
+  /* 金屬按鈕背景 */
+  background: linear-gradient(145deg, var(--techno-bg-start), var(--techno-bg-mid));
+  border: 1px solid var(--techno-border);
+  
+  /* 金屬立體陰影 */
+  box-shadow: 
+    inset 0 1px 1px rgba(255,255,255,0.6),
+    inset 0 -1px 2px rgba(0,0,0,0.15),
+    0 2px 4px var(--card-shadow);
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-indicators [data-bs-target]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255,255,255,0.4) 0%,
+    rgba(255,255,255,0.1) 50%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.carousel-indicators [data-bs-target]:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 0 1px 1px rgba(255,255,255,0.7),
+    inset 0 -1px 2px rgba(0,0,0,0.2),
+    0 3px 6px var(--card-shadow-hover);
+}
+
+.carousel-indicators .active {
+  background: linear-gradient(145deg, var(--techno-bg-mid), var(--techno-bg-end));
+  border-color: var(--techno-accent);
+  transform: scale(1.15);
+  
+  /* 活躍狀態增強陰影 */
+  box-shadow: 
+    inset 0 1px 1px rgba(255,255,255,0.5),
+    inset 0 -2px 3px rgba(0,0,0,0.25),
+    0 0 8px rgba(99, 102, 241, 0.3),
+    0 2px 6px var(--card-shadow-hover);
+}
+
+.carousel-indicators .active::after {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(99, 102, 241, 0.3) 0%,
+    rgba(255,255,255,0.2) 40%,
+    transparent 70%
+  );
+}
+
+/* 黑夜模式下的輪播樣式 */
+[data-theme="dark"] .carousel {
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  border: 1px solid #2d3748;
+}
+
+[data-theme="dark"] .carousel:hover {
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.5),
+    0 12px 35px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .carousel::before {
+  background: linear-gradient(45deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    transparent 50%, 
+    rgba(255, 255, 255, 0.02) 100%);
+}
+
+[data-theme="dark"] .carousel-item::after {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+[data-theme="dark"] .carousel-control-prev,
+[data-theme="dark"] .carousel-control-next {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .carousel-control-prev:hover,
+[data-theme="dark"] .carousel-control-next:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 黑夜模式金屬風輪播指示器 */
+[data-theme="dark"] .carousel-indicators [data-bs-target] {
+  background: linear-gradient(145deg, var(--techno-bg-start), var(--techno-bg-mid));
+  border-color: var(--techno-border);
+  
+  /* 黑夜模式金屬陰影 */
+  box-shadow: 
+    inset 0 1px 1px rgba(255,255,255,0.1),
+    inset 0 -1px 2px rgba(0,0,0,0.3),
+    0 2px 4px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .carousel-indicators [data-bs-target]::after {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255,255,255,0.15) 0%,
+    rgba(255,255,255,0.05) 50%,
+    transparent 70%
+  );
+}
+
+[data-theme="dark"] .carousel-indicators [data-bs-target]:hover {
+  box-shadow: 
+    inset 0 1px 1px rgba(255,255,255,0.15),
+    inset 0 -1px 2px rgba(0,0,0,0.4),
+    0 3px 6px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .carousel-indicators .active {
+  background: linear-gradient(145deg, var(--techno-bg-mid), var(--techno-bg-end));
+  border-color: var(--techno-accent);
+  
+  /* 黑夜模式活躍狀態陰影 */
+  box-shadow: 
+    inset 0 1px 1px rgba(255,255,255,0.08),
+    inset 0 -2px 3px rgba(0,0,0,0.4),
+    0 0 8px rgba(139, 92, 246, 0.4),
+    0 2px 6px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .carousel-indicators .active::after {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(139, 92, 246, 0.2) 0%,
+    rgba(255,255,255,0.1) 40%,
+    transparent 70%
+  );
+}
+
+/* =========================
    手機版輪播照片隱藏
    ========================= */
 
@@ -2026,10 +4165,287 @@ html[data-theme="dark"] body .btn-toolbar {
    手機版畫面規劃
    ========================= */
 
-/* 手機版隱藏功能選擇器 */
+/* 狀態卡片通用樣式 */
+.techno-card .card-body {
+  padding: 1rem !important; /* 桌面版保持標準內距 */
+}
+
+/* 手機版裝置狀態記錄優化 */
 @media (max-width: 767.98px) {
+  /* 隱藏不需要的欄位 */
+  #deviceLogsTable th:nth-child(2), /* 狀態 - 離線時沒有意義 */
+  #deviceLogsTable td:nth-child(2),
+  #deviceLogsTable th:nth-child(3), /* IP */
+  #deviceLogsTable td:nth-child(3),
+  #deviceLogsTable th:nth-child(6), /* 溫度 */
+  #deviceLogsTable td:nth-child(6) {
+    display: none;
+  }
+  
+  /* 調整剩餘欄位寬度 */
+  #deviceLogsTable th:nth-child(1), /* 時間 */
+  #deviceLogsTable td:nth-child(1) {
+    width: 40%;
+    font-size: 0.75rem;
+  }
+  
+  #deviceLogsTable th:nth-child(4), /* CPU */
+  #deviceLogsTable td:nth-child(4),
+  #deviceLogsTable th:nth-child(5), /* 記憶體 */
+  #deviceLogsTable td:nth-child(5) {
+    width: 30%;
+    font-size: 0.8rem;
+  }
+  
+  /* 減少表格內距 */
+  #deviceLogsTable td,
+  #deviceLogsTable th {
+    padding: 0.4rem 0.3rem !important;
+  }
+  
+  /* 表格容器可橫向滾動 */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* =========================
+   手機版背景圖片優化
+   ========================= */
+
+/* 手機版白天模式背景優化 */
+@media (max-width: 767.98px) {
+  html:not([data-theme="dark"]) body {
+    background: 
+      /* 手機版漸層淡化遮罩 - 更強的淡化效果 */
+      linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.2) 0%,     /* 頂部更透明 */
+        rgba(255, 255, 255, 0.4) 50%,    /* 中間適中 */
+        rgba(255, 255, 255, 0.7) 100%    /* 底部更淡 */
+      ),
+      /* 藍天白雲照片 */
+      url('../images/sky-background.jpg') !important;
+      
+    background-size: 
+      100% 100%,
+      cover !important;
+    background-position: 
+      center,
+      center !important;
+    background-repeat: 
+      no-repeat,
+      no-repeat !important;
+    background-attachment: 
+      scroll,  /* 手機版使用 scroll 避免效能問題 */
+      scroll !important;
+    
+    min-height: 100vh !important;
+    color: #333 !important;
+  }
+  
+  /* 手機版黑夜模式背景優化 */
+  [data-theme="dark"] body {
+    background: 
+      /* 手機版星星效果 - 減少數量提升效能 */
+      radial-gradient(1px 1px at 20% 25%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 80% 35%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 45% 75%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 25% 85%, rgba(255,255,255,0.4), transparent),
+      /* 手機版黑色遮罩層 - 稍微加強 */
+      linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+      /* 星空照片背景 */
+      url('../images/starry-night.jpg'),
+      /* 備用漸層背景 */
+      linear-gradient(135deg, #050a1f 0%, #0a0a15 25%, #0d1020 50%, #060608 75%, #000000 100%) !important;
+    background-size: 
+      80px 80px, 80px 80px, 80px 80px, 80px 80px, /* 手機版星星較小 */
+      100% 100%, /* 黑色遮罩層 */
+      cover, /* 照片覆蓋整個背景 */
+      100% 100% !important; /* 備用背景 */
+    background-position: 
+      0 0, 0 0, 0 0, 0 0, /* 星星位置 */
+      0 0, /* 黑色遮罩層位置 */
+      center center, /* 照片居中顯示 */
+      0 0 !important; /* 備用背景 */
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
+    background-attachment: scroll !important; /* 手機版使用 scroll */
+    
+    /* 手機版優化渲染 */
+    image-rendering: auto !important; /* 手機版使用自動渲染 */
+    will-change: auto !important; /* 減少 GPU 負擔 */
+    animation: none !important; /* 手機版關閉動畫節省電池 */
+    
+    color: var(--text-primary) !important;
+    min-height: 100vh !important;
+  }
+}
+
+/* 手機版全面佈局優化 */
+@media (max-width: 767.98px) {
+  /* 減少手機版 body 和 main 的上方間距 */
+  body {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
+  main {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
+  /* 調整手機版容器邊距和內距 - 大幅壓縮 */
+  .container.my-5 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-top: 0.5rem !important;
+  }
+  
+  /* 確保標題沒有上邊距 */
+  .container.my-5 h4:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  
+  /* 手機版標題和提示文字同一水平 */
+  .container h4.mb-3 {
+    margin-bottom: 0 !important;
+    display: inline-block !important;
+    margin-right: 0.75rem !important;
+    vertical-align: baseline !important;
+    font-size: 1.1rem !important; /* 稍微縮小標題 */
+  }
+  
+  #formPlaceholder.mb-3 {
+    margin-bottom: 0 !important;
+    display: inline-block !important;
+    vertical-align: baseline !important;
+    font-size: 0.85rem !important;
+  }
+  
+  /* 手機版標題容器調整 */
+  .container h4.mb-3 + #formPlaceholder {
+    display: inline-block !important;
+  }
+  
   .desktop-only {
     display: none !important;
+  }
+  
+  /* 手機版隱藏選擇器標籤 */
+  label[for="groupSelect"],
+  label[for="deviceSelect"] {
+    display: none !important;
+  }
+  
+  /* 壓縮選擇器間距 */
+  .row.g-3.align-items-end {
+    --bs-gutter-y: 0.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* 壓縮表單容器間距 */
+  #ajaxMsg.mt-3 {
+    margin-top: 0.75rem !important;
+  }
+  
+  #capForms.mt-4 {
+    margin-top: 0.5rem !important;
+  }
+  
+  /* 統一狀態卡片間距 - 縮小上下距離 */
+  .row.g-3 {
+    --bs-gutter-x: 1rem !important;
+    --bs-gutter-y: 0.5rem !important;
+  }
+  
+  .row.g-3 .col-md-4 {
+    margin-bottom: 0.25rem !important;
+  }
+  
+  /* 確保所有狀態卡片高度一致 */
+  .techno-card {
+    min-height: 140px !important;
+  }
+  
+  .techno-card .card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    padding: 0.75rem 1rem !important; /* 減少上下內距，從預設的 1rem 改為 0.75rem */
+  }
+  
+  /* 手機版電子鎖按鈕優化 */
+  .locker-btn {
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.8rem !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    min-width: 80px !important;
+  }
+  
+  .locker-btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  .locker-btn:active {
+    transform: translateY(0) !important;
+  }
+  
+  /* 手機版表單按鈕優化 */
+  .btn-sm {
+    font-size: 0.8rem !important;
+    padding: 0.35rem 0.7rem !important;
+  }
+  
+  /* 手機版電子鎖表單美化 */
+  
+  #lockerCard .row.align-items-start {
+    gap: 1.5rem !important;
+  }
+  
+  /* 手機版按鈕區域 */
+  #lockerCard .col-md-5 {
+    margin-bottom: 1.25rem !important;
+  }
+  
+  #lockerCard .col-md-5.d-flex {
+    gap: 0.75rem !important;
+    justify-content: center !important;
+  }
+  
+  /* 手機版排程表單區域 */
+  #lockerCard .col-md-7 form {
+    gap: 1rem !important;
+  }
+  
+  #lockerCard .col-auto {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  #lockerCard .form-label {
+    margin-bottom: 0.5rem !important;
+    font-weight: 500 !important;
+    color: var(--text-primary) !important;
+  }
+  
+  #lockerCard .form-control-sm {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.9rem !important;
+    border-radius: 6px !important;
+  }
+  
+  #lockerCard .col-12 {
+    margin-top: 1rem !important;
+  }
+  
+  #lockerCard .small {
+    line-height: 1.4 !important;
+    margin-bottom: 0.5rem !important;
   }
   
   /* 手機版提示文字樣式 */
@@ -2092,4 +4508,365 @@ html[data-theme="dark"] body .btn-toolbar {
   .desktop-only {
     display: block !important;
   }
+  
+  /* 桌機版隱藏「我的裝置控制」標題 */
+  .container h4.mb-3 {
+    display: none !important;
+  }
+  
+  /* 桌機版縮減選擇器容器間距 */
+  .container.my-5 {
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  /* 桌機版移除狀態卡片容器的上邊距 */
+  .status-cards-container.my-5 {
+    margin-top: 0 !important;
+  }
+  
+  /* 桌機版操作表單美化 */
+  #capForms .card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 
+      0 6px 24px rgba(0, 0, 0, 0.08),
+      0 2px 12px rgba(0, 0, 0, 0.04);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 0.75rem !important;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* 移除相機表單的下方間距 */
+  #capForms .card:has(.bi-camera-video) {
+    margin-bottom: 0 !important;
+  }
+  
+  #capForms .card-body {
+    padding: 1.25rem !important;
+  }
+  
+  #capForms .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2.5px;
+    background: linear-gradient(90deg, 
+      #ff0000 0%,    /* 紅 */
+      #ff8000 14%,   /* 橙 */
+      #ffff00 28%,   /* 黃 */
+      #80ff00 42%,   /* 黃綠 */
+      #00ff00 56%,   /* 綠 */
+      #00ff80 70%,   /* 青綠 */
+      #00ffff 84%,   /* 青 */
+      #8000ff 100%   /* 紫 */
+    );
+    z-index: 1 !important;
+  }
+  
+  #capForms .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.12),
+      0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+  
+  #capForms .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1rem !important;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    position: relative;
+  }
+  
+  #capForms .card-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+  }
+  
+  /* 左側控制區域 */
+  #capForms .col-md-5 {
+    padding-right: 1.5rem;
+    border-right: 2px solid #e2e8f0;
+  }
+  
+  /* 右側排程區域 */
+  #capForms .col-md-7 {
+    padding-left: 1.5rem;
+  }
+  
+  /* 開關樣式優化 */
+  #capForms .form-check-input {
+    width: 3rem;
+    height: 1.5rem;
+    border-radius: 1rem;
+    border: 2px solid #d1d5db;
+    background-color: #f3f4f6;
+    transition: all 0.3s ease;
+  }
+  
+  #capForms .form-check-input:checked {
+    background-color: #6366f1;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+  
+  #capForms .form-check-label {
+    font-weight: 500;
+    color: #374151;
+    margin-left: 0.5rem;
+  }
+  
+  /* 按鈕樣式優化 */
+  #capForms .btn {
+    border-radius: 10px;
+    font-weight: 500;
+    padding: 0.375rem 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    font-size: 0.875rem;
+  }
+  
+  #capForms .btn-outline-secondary {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-color: #cbd5e1;
+    color: #475569;
+  }
+  
+  #capForms .btn-outline-secondary:hover {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-color: #6366f1;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  }
+  
+  #capForms .btn-outline-success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #22c55e;
+    color: #16a34a;
+  }
+  
+  #capForms .btn-outline-success:hover {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-color: #22c55e;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+  }
+  
+  #capForms .btn-outline-primary {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #3b82f6;
+    color: #2563eb;
+  }
+  
+  #capForms .btn-outline-primary:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-color: #3b82f6;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  }
+  
+  #capForms .btn-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-color: #22c55e;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+  }
+  
+  #capForms .btn-success:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+  }
+  
+  /* 表單輸入框優化 */
+  #capForms .form-control {
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+    background-color: #f8fafc;
+    font-size: 0.875rem;
+  }
+  
+  #capForms .form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background-color: #ffffff;
+  }
+  
+  #capForms .form-label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+  }
+  
+  /* 排程表單網格優化 */
+  #capForms .row.gy-2.gx-2 {
+    margin: 0;
+  }
+  
+  #capForms .row.gy-2.gx-2 .col-auto {
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* 提示文字樣式 */
+  #capForms .text-muted {
+    color: #6b7280 !important;
+    font-size: 0.875rem;
+  }
+  
+  #capForms .text-success {
+    color: #16a34a !important;
+    font-weight: 500;
+  }
+  
+  #capForms .text-danger {
+    color: #dc2626 !important;
+    font-weight: 500;
+  }
+}
+
+/* 黑夜模式操作表單樣式 */
+[data-theme="dark"] #capForms .card {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+  border: 1px solid #475569 !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="dark"] #capForms .card::before {
+  background: linear-gradient(90deg, 
+    #ff4444 0%,    /* 紅 */
+    #ff8844 14%,   /* 橙 */
+    #ffff44 28%,   /* 黃 */
+    #88ff44 42%,   /* 黃綠 */
+    #44ff44 56%,   /* 綠 */
+    #44ff88 70%,   /* 青綠 */
+    #44ffff 84%,   /* 青 */
+    #8844ff 100%   /* 紫 */
+  ) !important;
+}
+
+[data-theme="dark"] #capForms .card:hover {
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] #capForms .card-title {
+  color: #f1f5f9 !important;
+  border-bottom-color: #475569 !important;
+}
+
+[data-theme="dark"] #capForms .card-title::after {
+  background: linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%) !important;
+}
+
+[data-theme="dark"] #capForms .col-md-5 {
+  border-right-color: #475569 !important;
+}
+
+[data-theme="dark"] #capForms .form-check-input {
+  background-color: #374151 !important;
+  border-color: #6b7280 !important;
+}
+
+[data-theme="dark"] #capForms .form-check-input:checked {
+  background-color: #8b5cf6 !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+}
+
+[data-theme="dark"] #capForms .form-check-label {
+  color: #d1d5db !important;
+}
+
+[data-theme="dark"] #capForms .btn-outline-secondary {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+  border-color: #6b7280 !important;
+  color: #d1d5db !important;
+}
+
+[data-theme="dark"] #capForms .btn-outline-secondary:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  border-color: #8b5cf6 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] #capForms .btn-outline-success {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 100%) !important;
+  border-color: #10b981 !important;
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] #capForms .btn-outline-success:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] #capForms .btn-outline-primary {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+  border-color: #3b82f6 !important;
+  color: #60a5fa !important;
+}
+
+[data-theme="dark"] #capForms .btn-outline-primary:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] #capForms .btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: #10b981 !important;
+}
+
+[data-theme="dark"] #capForms .btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+}
+
+[data-theme="dark"] #capForms .form-control {
+  background-color: #374151 !important;
+  border-color: #6b7280 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme="dark"] #capForms .form-control:focus {
+  background-color: #4b5563 !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] #capForms .form-label {
+  color: #d1d5db !important;
+}
+
+[data-theme="dark"] #capForms .text-muted {
+  color: #9ca3af !important;
+}
+
+[data-theme="dark"] #capForms .text-success {
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] #capForms .text-danger {
+  color: #f87171 !important;
 }

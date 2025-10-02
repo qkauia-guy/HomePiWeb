@@ -108,11 +108,20 @@
   </div>
 
   <!-- 導覽列 -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
+
+      <!-- 手機版左側：黑夜模式切換按鈕 -->
+      <div class="d-lg-none me-2">
+        <button class="btn btn-outline-secondary btn-sm theme-toggle mobile-theme-toggle" 
+                title="切換黑夜模式" aria-label="切換黑夜模式">
+          <i class="bi bi-sun-fill theme-icon"></i>
+        </button>
+      </div>
 
       <!-- Brand -->
       <a class="navbar-brand" href="/">🏠 HomePi</a>
+
 
       <!-- Toggler -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -122,6 +131,23 @@
 
       <!-- Collapsible -->
       <div class="collapse navbar-collapse" id="mainNavbar">
+
+        <!-- 手機版歡迎使用者（在 collapse 內最上方） -->
+        {% if request.user.is_authenticated %}
+        <div class="d-lg-none navbar-mobile-greeting mb-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-sun-fill me-2 mobile-greeting-icon"></i>
+              <span class="mobile-greeting-text">歡迎回來，{{ user.email }}</span>
+            </div>
+            <!-- 手機版登出按鈕 -->
+            <form action="{% url 'logout' %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-secondary btn-sm mobile-logout-btn">登出</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
 
         <!-- Left menu -->
         {% if request.user.is_authenticated %}
@@ -153,11 +179,11 @@
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
 
           {% if request.user.is_authenticated %}
-            <!-- Notifications -->
-            <li class="nav-item dropdown me-lg-2">
+            <!-- 手機版 Notifications -->
+            <li class="nav-item dropdown me-lg-2 d-lg-none">
               <a class="nav-link position-relative" href="#" id="notifDropdown" role="button"
                  data-bs-toggle="dropdown" aria-expanded="false">
-                🔔 通知
+                <i class="bi bi-cloud-fill me-1"></i><span>通知</span>
                 {% with total=notif_total_unread|default:0 %}
                   {% if total %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -167,7 +193,7 @@
                   {% endif %}
                 {% endwith %}
               </a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start" aria-labelledby="notifDropdown" style="min-width: 320px;">
+              <ul class="dropdown-menu" aria-labelledby="notifDropdown" style="min-width: 320px;">
                 <li class="dropdown-header d-flex justify-content-between align-items-center">
                   <span>最新通知</span>
                   <span class="ms-2">
@@ -203,22 +229,75 @@
               </ul>
             </li>
 
-            <!-- Greeting -->
-            <li class="nav-item me-lg-3">
-              <span class="navbar-text text-white">👋 歡迎回來 {{ user.email }}</span>
+            <!-- 桌面版 Greeting -->
+            <li class="nav-item me-lg-3 d-none d-lg-block">
+              <span class="navbar-text text-white">
+                <i class="bi bi-sun-fill me-1"></i>
+                <span>歡迎回來 {{ user.email }}</span>
+              </span>
             </li>
 
-            <!-- Logout -->
-            <li class="nav-item me-2">
+            <!-- 桌面版 Logout -->
+            <li class="nav-item me-2 d-none d-lg-block">
               <form action="{% url 'logout' %}" method="post" class="d-inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-outline-secondary text-white">登出</button>
+                <button type="submit" class="btn btn-outline-secondary navbar-logout-btn">登出</button>
               </form>
             </li>
 
-            <!-- 黑夜模式切換按鈕 -->
-            <li class="nav-item">
-              <button class="btn btn-outline-secondary btn-sm theme-toggle" 
+            <!-- 桌面版通知（恢復到正確的 Bootstrap 結構） -->
+            <li class="nav-item dropdown me-lg-2 d-none d-lg-block">
+              <a class="nav-link position-relative" href="#" id="notifDropdownDesktop" role="button"
+                 data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-cloud-fill me-1"></i><span>通知</span>
+                {% with total=notif_total_unread|default:0 %}
+                  {% if total %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {{ total }}
+                      <span class="visually-hidden">未讀通知</span>
+                    </span>
+                  {% endif %}
+                {% endwith %}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notifDropdownDesktop" style="min-width: 320px;">
+                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                  <span>最新通知</span>
+                  <span class="ms-2">
+                    <span class="badge bg-secondary">會員 {{ notif_member_unread|default:0 }}</span>
+                    <span class="badge bg-secondary">裝置 {{ notif_device_unread|default:0 }}</span>
+                  </span>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+
+                {% for n in notif_latest %}
+                  <li>
+                    <a class="dropdown-item d-flex justify-content-between align-items-start {% if not n.is_read %}fw-bold{% endif %}"
+                       href="{% url 'notifications_detail_redirect' n.id %}">
+                      <div class="me-2">
+                        <div class="small text-muted">{{ n.created_at|date:"Y-m-d H:i" }} · {{ n.get_kind_display }}</div>
+                        <div class="text-wrap">{{ n.title }}</div>
+                      </div>
+                      {% if not n.is_read %}<span class="badge bg-primary">新</span>{% endif %}
+                    </a>
+                  </li>
+                {% empty %}
+                  <li class="px-3 text-muted small">目前沒有通知</li>
+                {% endfor %}
+
+                <li><hr class="dropdown-divider"></li>
+                <li class="px-3 pb-2 d-flex gap-2">
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'notifications_list' %}">全部通知</a>
+                  <form action="{% url 'notifications_read_all' %}" method="post" class="ms-auto">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-primary">全部標為已讀</button>
+                  </form>
+                </li>
+              </ul>
+            </li>
+
+            <!-- 桌面版黑夜模式切換按鈕 -->
+            <li class="nav-item d-none d-lg-block">
+              <button class="btn btn-outline-secondary btn-sm theme-toggle desktop-theme-toggle" 
                       title="切換黑夜模式" aria-label="切換黑夜模式">
                 <i class="bi bi-sun-fill theme-icon"></i>
               </button>
@@ -230,9 +309,9 @@
               <a class="nav-link" href="{% url 'login' %}">登入</a>
             </li>
             
-            <!-- 黑夜模式切換按鈕（未登入狀態） -->
-            <li class="nav-item">
-              <button class="btn btn-outline-secondary btn-sm theme-toggle" 
+            <!-- 桌面版黑夜模式切換按鈕（未登入狀態） -->
+            <li class="nav-item d-none d-lg-block">
+              <button class="btn btn-outline-secondary btn-sm theme-toggle desktop-theme-toggle" 
                       title="切換黑夜模式" aria-label="切換黑夜模式">
                 <i class="bi bi-sun-fill theme-icon"></i>
               </button>
