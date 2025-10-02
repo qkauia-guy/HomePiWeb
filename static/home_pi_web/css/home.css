@@ -612,3 +612,70 @@ button[aria-expanded='true'] .toggle-icon {
 /* 快速尺寸調整（可選） */
 .spinner-industrial.sm { --size: .9rem;  --ring: 2.2px; --speed: 800ms; }
 .spinner-industrial.lg { --size: 1.3rem; --ring: 3px;   --speed: 1000ms; }
+
+/* =========================
+   黑暗模式毛玻璃效果覆蓋
+   ========================= */
+
+/* 黑暗模式下的 table-responsive 毛玻璃效果 - 極透明 */
+[data-theme="dark"] .table-responsive {
+  background: rgba(30, 41, 59, 0.05) !important;
+  backdrop-filter: blur(25px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  overflow: hidden !important;
+}
+
+/* 黑暗模式下的 deviceLogsTable 毛玻璃效果 - 極透明 */
+[data-theme="dark"] #deviceLogsTable {
+  background: rgba(30, 41, 59, 0.03) !important;
+  backdrop-filter: blur(22px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  box-shadow: 
+    0 6px 24px rgba(0, 0, 0, 0.25),
+    0 3px 12px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 黑暗模式下的表格行背景透明化 - 極透明 */
+[data-theme="dark"] #deviceLogsTable tbody tr:nth-child(even) {
+  background: rgba(30, 41, 59, 0.02) !important;
+}
+
+[data-theme="dark"] #deviceLogsTable tbody tr:hover {
+  background: rgba(30, 41, 59, 0.08) !important;
+  transform: scale(1.01);
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 黑暗模式下的表頭毛玻璃效果 - 極透明 */
+[data-theme="dark"] #deviceLogsTable thead {
+  background: rgba(30, 41, 59, 0.08) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 手機版黑暗模式毛玻璃效果 - 極透明 */
+@media (max-width: 767.98px) {
+  [data-theme="dark"] .table-responsive {
+    background: rgba(30, 41, 59, 0.08) !important;
+    backdrop-filter: blur(18px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 8px !important;
+  }
+  
+  [data-theme="dark"] #deviceLogsTable {
+    background: rgba(30, 41, 59, 0.05) !important;
+    backdrop-filter: blur(15px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(200%) !important;
+  }
+}
