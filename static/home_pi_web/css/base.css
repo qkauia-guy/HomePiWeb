@@ -62,8 +62,8 @@
 }
 [data-theme="dark"] #sideBar .status-dot.on,
 [data-theme="dark"] #sideBarGroups .status-dot.on {
-  background: #51cf66 !important;
-  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.5), 0 0 12px rgba(81, 207, 102, 0.6), 0 0 20px rgba(81, 207, 102, 0.3) !important;
+  background: #fbbf24 !important;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5), 0 0 12px rgba(251, 191, 36, 0.7), 0 0 20px rgba(251, 191, 36, 0.4) !important;
 }
 
 /* 次要資訊一點行高 */
@@ -253,12 +253,17 @@ button[aria-expanded='true'] .toggle-icon {
   [data-theme="dark"] .navbar {
     min-height: 56px !important;
     padding: 0.5rem 0 !important;
-    background: rgba(30, 41, 59, 0.8) !important;
-    backdrop-filter: blur(15px) saturate(160%);
-    -webkit-backdrop-filter: blur(15px) saturate(160%);
-    border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+    background: rgba(30, 41, 59, 0.1) !important; /* 更透明，讓星空更明顯 */
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
     z-index: 1030 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    
+    /* 增強手機版毛玻璃陰影效果 */
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.4),
+      0 2px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
   }
   
   /* Brand 字體大小 */
@@ -289,9 +294,15 @@ button[aria-expanded='true'] .toggle-icon {
   }
   
   [data-theme="dark"] .navbar-collapse {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.5rem !important;
+    padding: 0.75rem !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    
+    box-shadow: none !important;
   }
   
   .navbar-nav .nav-item {
@@ -436,7 +447,8 @@ button[aria-expanded='true'] .toggle-icon {
       inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   }
   
-  .mobile-greeting-icon {
+  /* 白天模式手機版歡迎圖標 */
+  html:not([data-theme="dark"]) .mobile-greeting-icon {
     color: #fbbf24 !important;
     filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.4));
     font-size: 1.1rem !important;
@@ -463,12 +475,17 @@ button[aria-expanded='true'] .toggle-icon {
   }
   
   [data-theme="dark"] .navbar {
-    background: rgba(30, 41, 59, 0.85) !important;
-    backdrop-filter: blur(12px) saturate(150%);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+    background: rgba(30, 41, 59, 0.1) !important; /* 更透明，讓星空更明顯 */
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
     z-index: 1030 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    
+    /* 增強超小螢幕毛玻璃陰影效果 */
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.4),
+      0 2px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
   }
   
   .navbar-brand {
@@ -525,10 +542,17 @@ button[aria-expanded='true'] .toggle-icon {
     text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
   }
   
-  /* 超小螢幕歡迎圖標 */
-  .navbar-text i.bi-sun-fill {
+  /* 超小螢幕歡迎圖標 - 白天模式 */
+  html:not([data-theme="dark"]) .navbar-text i.bi-sun-fill {
     color: #fbbf24 !important;
     filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.4));
+  }
+  
+  /* 超小螢幕歡迎圖標 - 黑夜模式改為月亮 */
+  [data-theme="dark"] .navbar-text i.bi-sun-fill {
+    visibility: hidden !important;
+    width: 0 !important;
+    margin: 0 !important;
   }
   
   /* 超小螢幕文字截斷優化 */
@@ -602,12 +626,17 @@ button[aria-expanded='true'] .toggle-icon {
   
   [data-theme="dark"] .navbar {
     min-height: 48px !important;
-    background: rgba(30, 41, 59, 0.82) !important;
-    backdrop-filter: blur(16px) saturate(170%);
-    -webkit-backdrop-filter: blur(16px) saturate(170%);
-    border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+    background: rgba(30, 41, 59, 0.1) !important; /* 更透明，讓星空更明顯 */
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
     z-index: 1030 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    
+    /* 增強橫向手機毛玻璃陰影效果 */
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.4),
+      0 2px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
   }
   
   .navbar-brand {
@@ -1010,7 +1039,7 @@ html[data-theme="dark"] .swal2-container {
   --card-shadow-hover: rgba(0, 0, 0, 0.5);
   
   /* 狀態顏色 - 更亮的配色 */
-  --status-online: #51cf66;
+  --status-online: #8b5cf6; /* 星光偏藍紫色 */
   --status-offline: #ff6b6b;
   --status-warning: #ffd43b;
   --status-info: #74c0fc;
@@ -1506,17 +1535,413 @@ html:not([data-theme="dark"]) .techno-card .badge.bg-success {
     inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
-html:not([data-theme="dark"]) .techno-card .badge.bg-secondary {
-  background: rgba(100, 116, 139, 0.8) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(100, 116, 139, 0.4) !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+/* 白天模式 badge.bg-secondary - 清新藍天風格 */
+html:not([data-theme="dark"]) .badge.bg-secondary {
+  background: linear-gradient(145deg, #e0f2fe 0%, #b3e5fc 50%, #81d4fa 100%) !important;
+  border: 1px solid #0277bd !important;
+  color: #01579b !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   box-shadow: 
-    0 4px 12px rgba(100, 116, 139, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    0 3px 8px rgba(2, 119, 189, 0.2),
+    0 1px 3px rgba(2, 119, 189, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+}
+
+html:not([data-theme="dark"]) .badge.bg-secondary:hover {
+  background: linear-gradient(145deg, #b3e5fc 0%, #81d4fa 50%, #4fc3f7 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 
+    0 4px 12px rgba(2, 119, 189, 0.3),
+    0 2px 6px rgba(2, 119, 189, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+html:not([data-theme="dark"]) .techno-card .badge.bg-secondary {
+  background: linear-gradient(145deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%) !important;
+  border: 1px solid #1976d2 !important;
+  color: #0d47a1 !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
+  box-shadow: 
+    0 4px 12px rgba(25, 118, 210, 0.25),
+    0 2px 6px rgba(25, 118, 210, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 白天模式 btn-outline-secondary - 清新灰藍風格 */
+html:not([data-theme="dark"]) .btn-outline-secondary {
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+  border: 2px solid #64748b !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 
+    0 2px 6px rgba(100, 116, 139, 0.15),
+    0 1px 3px rgba(100, 116, 139, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(6px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(110%) !important;
+  transition: all 0.3s ease !important;
+}
+
+html:not([data-theme="dark"]) .btn-outline-secondary:hover {
+  background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%) !important;
+  border-color: #475569 !important;
+  color: #1e293b !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 
+    0 4px 12px rgba(100, 116, 139, 0.25),
+    0 2px 6px rgba(100, 116, 139, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+/* 白天模式 btn-outline-primary - 清新藍色風格 */
+html:not([data-theme="dark"]) .btn-outline-primary {
+  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%) !important;
+  border: 2px solid #2563eb !important;
+  color: #1d4ed8 !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 
+    0 2px 6px rgba(37, 99, 235, 0.15),
+    0 1px 3px rgba(37, 99, 235, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(6px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(110%) !important;
+  transition: all 0.3s ease !important;
+}
+
+html:not([data-theme="dark"]) .btn-outline-primary:hover {
+  background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%) !important;
+  border-color: #1d4ed8 !important;
+  color: #1e40af !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 
+    0 4px 12px rgba(37, 99, 235, 0.25),
+    0 2px 6px rgba(37, 99, 235, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+/* 裝置狀態圖表 - 響應式顯示控制 */
+#deviceLogsChartCollapse {
+  display: block !important;
+}
+
+/* 手機版隱藏裝置狀態圖表 */
+@media (max-width: 767.98px) {
+  #deviceLogsChartCollapse,
+  button[data-bs-target="#deviceLogsChartCollapse"] {
+    display: none !important;
+  }
+}
+
+/* 平板版也隱藏 (可選) */
+@media (max-width: 991.98px) {
+  #deviceLogsChartCollapse,
+  button[data-bs-target="#deviceLogsChartCollapse"] {
+    display: none !important;
+  }
+}
+
+/* =========================
+   毛玻璃卡片樣式
+   ========================= */
+
+/* 毛玻璃卡片容器 */
+.glass-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* 白天模式毛玻璃卡片 */
+html:not([data-theme="dark"]) .glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 黑夜模式毛玻璃卡片 - 更透明 */
+[data-theme="dark"] .glass-card {
+  background: rgba(30, 41, 59, 0.05);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 毛玻璃卡片標頭 */
+.glass-header {
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html:not([data-theme="dark"]) .glass-header {
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .glass-header {
+  background: rgba(30, 41, 59, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-header .card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+html:not([data-theme="dark"]) .glass-header .card-title {
+  color: #1e293b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .glass-header .card-title {
+  color: #f1f5f9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 毛玻璃卡片內容 */
+.glass-body {
+  padding: 2rem;
+}
+
+html:not([data-theme="dark"]) .glass-body {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .glass-body {
+  background: rgba(30, 41, 59, 0.01);
+}
+
+/* 表單區域 */
+.glass-form .form-section {
+  margin-bottom: 1.5rem;
+}
+
+.glass-form .form-section p {
+  margin-bottom: 1.25rem;
+}
+
+.glass-form label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+html:not([data-theme="dark"]) .glass-form label {
+  color: #374151;
+}
+
+[data-theme="dark"] .glass-form label {
+  color: #d1d5db;
+}
+
+/* 表單控制項增強 */
+.glass-form .form-control,
+.glass-form .form-select {
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+html:not([data-theme="dark"]) .glass-form .form-control,
+html:not([data-theme="dark"]) .glass-form .form-select {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #374151;
+}
+
+html:not([data-theme="dark"]) .glass-form .form-control:focus,
+html:not([data-theme="dark"]) .glass-form .form-select:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="dark"] .glass-form .form-control,
+[data-theme="dark"] .glass-form .form-select {
+  background: rgba(30, 41, 59, 0.15);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .glass-form .form-control:focus,
+[data-theme="dark"] .glass-form .form-select:focus {
+  background: rgba(30, 41, 59, 0.25);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.08);
+}
+
+/* 按鈕群組 */
+.button-group {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html:not([data-theme="dark"]) .button-group {
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 卡片副標題 */
+.glass-header .card-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+html:not([data-theme="dark"]) .glass-header .card-subtitle {
+  color: #64748b !important;
+}
+
+[data-theme="dark"] .glass-header .card-subtitle {
+  color: #94a3b8 !important;
+}
+
+/* 表單提示文字 */
+.glass-form .form-text {
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  opacity: 0.8;
+}
+
+html:not([data-theme="dark"]) .glass-form .form-text {
+  color: #6b7280;
+}
+
+[data-theme="dark"] .glass-form .form-text {
+  color: #9ca3af;
+}
+
+/* 毛玻璃警告框 */
+.glass-alert {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+html:not([data-theme="dark"]) .glass-alert.alert-info {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+}
+
+[data-theme="dark"] .glass-alert.alert-info {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+
+.glass-alert .alert-heading {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.glass-alert ul {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.glass-alert ul li {
+  margin-bottom: 0.25rem;
+}
+
+/* 大尺寸表單控制項 */
+.glass-form .form-control-lg {
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  border-radius: 10px;
+}
+
+/* 響應式調整 */
+@media (max-width: 767.98px) {
+  .glass-card {
+    margin: 1rem;
+    border-radius: 12px;
+  }
+  
+  .glass-header {
+    padding: 1.25rem 1.5rem 0.75rem;
+  }
+  
+  .glass-header .card-title {
+    font-size: 1.25rem;
+  }
+  
+  .glass-header .card-subtitle {
+    font-size: 0.85rem;
+    margin-top: 0.5rem !important;
+  }
+  
+  .glass-body {
+    padding: 1.5rem;
+  }
+  
+  .glass-form .form-control-lg {
+    font-size: 1rem;
+    padding: 0.65rem 0.9rem;
+  }
+  
+  .button-group .d-flex {
+    flex-direction: column;
+    gap: 0.75rem !important;
+  }
+  
+  .button-group .btn {
+    width: 100%;
+  }
+  
+  .glass-alert {
+    margin-bottom: 1.5rem !important;
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .glass-alert .d-flex {
+    flex-direction: row !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  
+  .glass-alert .fas {
+    margin-bottom: 0 !important;
+    margin-right: 0.75rem !important;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+  }
+  
+  .glass-alert .alert-heading {
+    font-size: 0.85rem !important;
+    text-align: left !important;
+  }
+  
+  .glass-alert ul {
+    font-size: 0.8rem !important;
+    text-align: left !important;
+    margin-bottom: 0 !important;
+    padding-left: 1rem !important;
+  }
+  
+  .glass-alert .form-text {
+    font-size: 0.75rem !important;
+  }
 }
 
 html:not([data-theme="dark"]) .techno-card .badge:hover {
@@ -1841,8 +2266,8 @@ html:not([data-theme="dark"]) body *:not(.card):not(.modal):not(.dropdown-menu):
   background-color: transparent !important;
 }
 
-/* 讓子元素背景透明以顯示星空，但排除 body 本身（包含 SweetAlert） */
-html[data-theme="dark"] body *:not(.card):not(.modal):not(.dropdown-menu):not(.offcanvas):not(.navbar):not(.btn):not(.form-control):not(.form-select):not(.form-check-input):not(.table):not(.list-group-item):not(.alert):not(.badge):not(.progress):not(.tooltip):not(.toast):not(.spinner-border):not(.spinner-grow):not(.carousel):not(.accordion):not(.nav-tabs):not(.nav-pills):not(.pagination):not(.breadcrumb):not(.input-group):not(.btn-group):not(.btn-toolbar):not(.swal2-popup):not(.swal2-container):not(.swal2-backdrop):not(.swal2-title):not(.swal2-content):not(.swal2-confirm):not(.swal2-cancel):not(.swal2-deny):not([class*="swal2"]) {
+/* 讓子元素背景透明以顯示星空，但排除 body 本身（包含 SweetAlert 和 table-responsive） */
+html[data-theme="dark"] body *:not(.card):not(.modal):not(.dropdown-menu):not(.offcanvas):not(.navbar):not(.btn):not(.form-control):not(.form-select):not(.form-check-input):not(.table):not(.table-responsive):not(.list-group-item):not(.alert):not(.badge):not(.progress):not(.tooltip):not(.toast):not(.spinner-border):not(.spinner-grow):not(.carousel):not(.accordion):not(.nav-tabs):not(.nav-pills):not(.pagination):not(.breadcrumb):not(.input-group):not(.btn-group):not(.btn-toolbar):not(.swal2-popup):not(.swal2-container):not(.swal2-backdrop):not(.swal2-title):not(.swal2-content):not(.swal2-confirm):not(.swal2-cancel):not(.swal2-deny):not([class*="swal2"]) {
   background-color: transparent !important;
 }
 
@@ -1901,9 +2326,6 @@ html[data-theme="dark"] body *:not(.card):not(.modal):not(.dropdown-menu):not(.o
   background-color: var(--card-bg) !important;
 }
 
-[data-theme="dark"] .offcanvas {
-  background-color: var(--card-bg) !important;
-}
 
 
 [data-theme="dark"] .form-control {
@@ -2087,25 +2509,40 @@ html:not([data-theme="dark"]) .navbar .navbar-logout-btn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* 黑夜模式下的 navbar 毛玻璃樣式 */
+/* 黑夜模式下的 navbar 毛玻璃樣式 - 高優先級覆蓋 */
+html[data-theme="dark"] .navbar,
+html[data-theme="dark"] .navbar.navbar-expand-lg,
+html[data-theme="dark"] .navbar.navbar-dark,
 [data-theme="dark"] .navbar {
   position: relative !important; /* 與白天模式保持一致 */
-  background: rgba(30, 41, 59, 0.75) !important;
-  backdrop-filter: blur(15px) saturate(150%);
-  -webkit-backdrop-filter: blur(15px) saturate(150%);
-  border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+  background: rgba(30, 41, 59, 0.1) !important; /* 更透明，讓星空更明顯 */
+  background-color: rgba(30, 41, 59, 0.1) !important; /* 強制覆蓋 var(--bg-secondary) */
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important; /* 更透明的邊框 */
   z-index: 1030 !important; /* 提升 navbar z-index，確保高於輪播照片 */
+  
+  /* 增強毛玻璃陰影效果 - 參考白天模式 */
   box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.25),
-    0 1px 8px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 2px 12px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
+/* 黑夜模式下的 navbar-dark 毛玻璃樣式 - 高優先級覆蓋 */
+html[data-theme="dark"] .navbar-dark,
 [data-theme="dark"] .navbar-dark {
-  background: rgba(30, 41, 59, 0.75) !important;
-  backdrop-filter: blur(15px) saturate(150%);
-  -webkit-backdrop-filter: blur(15px) saturate(150%);
-  border-bottom: 1px solid rgba(71, 85, 105, 0.4) !important;
+  background: rgba(30, 41, 59, 0.2) !important; /* 與主要 navbar 保持一致 */
+  background-color: rgba(30, 41, 59, 0.2) !important; /* 強制覆蓋 var(--bg-secondary) */
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.2) !important;
+  
+  /* 增強毛玻璃陰影效果 */
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 2px 12px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
 [data-theme="dark"] .navbar-dark .navbar-brand,
@@ -2125,11 +2562,14 @@ html:not([data-theme="dark"]) .navbar .navbar-logout-btn:hover {
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
+/* 黑夜模式歡迎詞圖標 - 改為月亮 */
 [data-theme="dark"] .navbar .navbar-text i.bi-sun-fill {
-  color: #fbbf24 !important;
-  filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.5));
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+  /* 完全隱藏太陽圖標 */
+  visibility: hidden !important;
+  width: 0 !important;
+  margin: 0 !important;
 }
+
 
 /* 黑夜模式登出按鈕樣式 */
 [data-theme="dark"] .navbar .navbar-logout-btn {
@@ -2207,11 +2647,6 @@ html:not([data-theme="dark"]) .navbar .navbar-logout-btn:hover {
     inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
-[data-theme="dark"] .mobile-greeting-icon {
-  color: #fbbf24 !important;
-  filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.5));
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
-}
 
 [data-theme="dark"] .mobile-greeting-text {
   color: #f1f5f9 !important;
@@ -2405,18 +2840,31 @@ html:not([data-theme="dark"]) .navbar .dropdown-item:hover {
   color: var(--text-secondary) !important;
 }
 
-/* 黑夜模式下的 offcanvas - 實色背景 */
-[data-theme="dark"] .offcanvas {
-  background-color: var(--bg-secondary) !important;
-  color: var(--text-primary);
-  border-right: 1px solid var(--border-color);
+/* 黑夜模式下的 offcanvas - 毛玻璃效果 - 提高優先級 */
+html[data-theme="dark"] .offcanvas {
+  background: rgba(30, 41, 59, 0.15) !important;
+  background-color: rgba(30, 41, 59, 0.15) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  color: var(--text-primary) !important;
+  border-right: 1px solid rgba(71, 85, 105, 0.2) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Offcanvas 寬度設定與白底樣式 */
+/* Offcanvas 寬度設定與毛玻璃樣式 - 白天模式 */
 .offcanvas {
   --bs-offcanvas-width: 320px;
-  background: #ffffff !important;
-  border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-right: 1px solid rgba(148, 163, 184, 0.4) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 
@@ -2426,16 +2874,22 @@ html:not([data-theme="dark"]) .navbar .dropdown-item:hover {
   }
 }
 
-/* 白天模式 offcanvas-header 保持白底 */
+/* 白天模式 offcanvas-header 毛玻璃效果 */
 .offcanvas-header {
-  background-color: #ffffff !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
   padding: 1rem 1.5rem;
 }
 
-[data-theme="dark"] .offcanvas-header {
-  background-color: var(--bg-primary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
+/* 黑夜模式 offcanvas-header 毛玻璃效果 - 提高優先級 */
+html[data-theme="dark"] .offcanvas-header {
+  background: rgba(30, 41, 59, 0.2) !important;
+  background-color: rgba(30, 41, 59, 0.2) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
   padding: 1rem 1.5rem;
 }
 
@@ -2484,17 +2938,34 @@ html:not([data-theme="dark"]) .navbar .dropdown-item:hover {
 
 
 
-/* 白天模式 offcanvas-body 保持白底 */
+/* 白天模式 offcanvas-body 毛玻璃效果 */
 .offcanvas-body {
-  background-color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
   color: #000000;
   padding: 1.5rem;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-[data-theme="dark"] .offcanvas-body {
-  background-color: var(--bg-secondary) !important;
-  color: var(--text-primary);
+/* 黑夜模式 offcanvas-body 毛玻璃效果 - 提高優先級 */
+html[data-theme="dark"] .offcanvas-body,
+html[data-theme="dark"] #offcanvas-devices-body {
+  background: rgba(30, 41, 59, 0.12) !important;
+  background-color: rgba(30, 41, 59, 0.12) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.2) !important;
+  color: var(--text-primary) !important;
   padding: 1.5rem;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 /* 黑夜模式下的卡片樣式 */
@@ -2874,9 +3345,10 @@ html:not([data-theme="dark"]) .navbar .dropdown-item:hover {
 }
 
 [data-theme="dark"] .bg-success {
-  background-color: var(--status-online) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--border-color) !important;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.9) 0%, rgba(99, 102, 241, 0.95) 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(99, 102, 241, 0.5) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
 }
 
 [data-theme="dark"] .bg-danger {
@@ -3150,32 +3622,50 @@ html:not([data-theme="dark"]) .navbar .dropdown-item:hover {
 }
 
 [data-theme="dark"] .btn-outline-primary {
-  color: #6366f1;
-  border: 2px solid #6366f1;
-  background: transparent;
-  transition: all 0.3s ease;
+  background: rgba(30, 41, 59, 0.1) !important;
+  border: 2px solid transparent !important;
+  background-image: linear-gradient(rgba(30, 41, 59, 0.1), rgba(30, 41, 59, 0.1)), 
+                    linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important;
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(15px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
 }
 
 [data-theme="dark"] .btn-outline-primary:hover {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  border-color: #6366f1;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important;
+  border: 2px solid transparent !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(67, 56, 202, 0.6), 0 4px 16px rgba(109, 40, 217, 0.5) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7) !important;
 }
 
 [data-theme="dark"] .btn-success {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important;
   border: none !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(15px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+  box-shadow: 0 6px 20px rgba(67, 56, 202, 0.5), 0 3px 12px rgba(109, 40, 217, 0.4) !important;
   transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
 }
 
 [data-theme="dark"] .btn-success:hover {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3) !important;
-  transform: translateY(-1px) !important;
+  background: linear-gradient(135deg, #3730a3 0%, #581c87 100%) !important;
+  box-shadow: 0 10px 32px rgba(67, 56, 202, 0.7), 0 6px 20px rgba(109, 40, 217, 0.5) !important;
+  transform: translateY(-2px) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7) !important;
 }
 
 [data-theme="dark"] .btn-outline-success {
@@ -3532,8 +4022,8 @@ html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .btn-primary:hover {
 }
 
 [data-theme="dark"] .device-list .status-dot.on {
-  background-color: #51cf66 !important;
-  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.5), 0 0 12px rgba(81, 207, 102, 0.6), 0 0 20px rgba(81, 207, 102, 0.3) !important;
+  background-color: #fbbf24 !important;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5), 0 0 12px rgba(251, 191, 36, 0.7), 0 0 20px rgba(251, 191, 36, 0.4) !important;
 }
 
 [data-theme="dark"] .device-list .chev {
@@ -3563,8 +4053,8 @@ html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .btn-primary:hover {
 }
 
 [data-theme="dark"] .groups-scope .status-dot.on {
-  background-color: #51cf66 !important;
-  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.5), 0 0 12px rgba(81, 207, 102, 0.6), 0 0 20px rgba(81, 207, 102, 0.3) !important;
+  background-color: #fbbf24 !important;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5), 0 0 12px rgba(251, 191, 36, 0.7), 0 0 20px rgba(251, 191, 36, 0.4) !important;
 }
 
 [data-theme="dark"] .groups-scope .chev {
@@ -4281,6 +4771,74 @@ html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .btn-primary:hover {
   }
 }
 
+/* 超小螢幕背景圖片優化 (小於 576px) */
+@media (max-width: 575.98px) {
+  /* 超小螢幕白天模式背景優化 */
+  html:not([data-theme="dark"]) body {
+    background: 
+      /* 超小螢幕漸層淡化遮罩 - 更強的淡化效果 */
+      linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.3) 0%,     /* 頂部更透明 */
+        rgba(255, 255, 255, 0.5) 50%,    /* 中間適中 */
+        rgba(255, 255, 255, 0.8) 100%    /* 底部更淡 */
+      ),
+      /* 藍天白雲照片 */
+      url('../images/sky-background.jpg') !important;
+      
+    background-size: 
+      100% 100%,
+      cover !important;
+    background-position: 
+      center,
+      center !important;
+    background-repeat: 
+      no-repeat,
+      no-repeat !important;
+    background-attachment: 
+      scroll,  /* 超小螢幕使用 scroll 避免效能問題 */
+      scroll !important;
+    
+    min-height: 100vh !important;
+    color: #333 !important;
+  }
+  
+  /* 超小螢幕黑夜模式背景優化 */
+  [data-theme="dark"] body {
+    background: 
+      /* 超小螢幕星星效果 - 進一步減少數量 */
+      radial-gradient(0.8px 0.8px at 25% 30%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(0.8px 0.8px at 75% 40%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(0.8px 0.8px at 50% 70%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(0.8px 0.8px at 30% 80%, rgba(255,255,255,0.3), transparent),
+      /* 超小螢幕黑色遮罩層 - 加強 */
+      linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+      /* 星空照片背景 */
+      url('../images/starry-night.jpg'),
+      /* 備用漸層背景 */
+      linear-gradient(135deg, #050a1f 0%, #0a0a15 25%, #0d1020 50%, #060608 75%, #000000 100%) !important;
+    background-size: 
+      60px 60px, 60px 60px, 60px 60px, 60px 60px, /* 超小螢幕星星更小 */
+      100% 100%, /* 黑色遮罩層 */
+      cover, /* 照片覆蓋整個背景 */
+      100% 100% !important; /* 備用背景 */
+    background-position: 
+      0 0, 0 0, 0 0, 0 0, /* 星星位置 */
+      0 0, /* 黑色遮罩層位置 */
+      center center, /* 照片居中顯示 */
+      0 0 !important; /* 備用背景 */
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
+    background-attachment: scroll !important; /* 超小螢幕使用 scroll */
+    
+    /* 超小螢幕優化渲染 */
+    image-rendering: auto !important;
+    will-change: auto !important;
+    animation: none !important;
+    
+    color: var(--text-primary) !important;
+    min-height: 100vh !important;
+  }
+}
+
 /* 手機版全面佈局優化 */
 @media (max-width: 767.98px) {
   /* 減少手機版 body 和 main 的上方間距 */
@@ -4869,4 +5427,442 @@ html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .btn-primary:hover {
 
 [data-theme="dark"] #capForms .text-danger {
   color: #f87171 !important;
+}
+
+/* 強制覆蓋 offcanvas 黑夜模式毛玻璃效果 - 最高優先級 */
+html[data-theme="dark"] body .offcanvas,
+html[data-theme="dark"] .offcanvas.show,
+html[data-theme="dark"] .offcanvas {
+  background: rgba(30, 41, 59, 0.15) !important;
+  background-color: rgba(30, 41, 59, 0.15) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-right: 1px solid rgba(71, 85, 105, 0.2) !important;
+}
+
+html[data-theme="dark"] body .offcanvas-header,
+html[data-theme="dark"] .offcanvas-header {
+  background: rgba(30, 41, 59, 0.2) !important;
+  background-color: rgba(30, 41, 59, 0.2) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
+}
+
+html[data-theme="dark"] body .offcanvas-body,
+html[data-theme="dark"] .offcanvas-body,
+html[data-theme="dark"] #offcanvas-devices-body {
+  background: rgba(30, 41, 59, 0.12) !important;
+  background-color: rgba(30, 41, 59, 0.12) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: none !important;
+}
+
+/* 超強制覆蓋 navbar 黑夜模式 - 終極優先級 */
+html[data-theme="dark"] body .navbar.navbar-dark,
+html[data-theme="dark"] body .navbar.navbar-expand-lg,
+html[data-theme="dark"] body .navbar,
+html[data-theme="dark"] .navbar.navbar-dark.bg-dark,
+html[data-theme="dark"] .navbar.bg-dark,
+html[data-theme="dark"] nav.navbar {
+  background: rgba(30, 41, 59, 0.05) !important;
+  background-color: rgba(30, 41, 59, 0.05) !important;
+  backdrop-filter: blur(25px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  z-index: 1030 !important;
+}
+
+
+html[data-theme="dark"] body .navbar-collapse,
+html[data-theme="dark"] .navbar-collapse {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 黑夜模式狀態卡片毛玻璃效果 - 參考白天模式和 navbar */
+html[data-theme="dark"] .techno-card {
+  background: rgba(30, 41, 59, 0.15) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+html[data-theme="dark"] .techno-card:hover {
+  background: rgba(30, 41, 59, 0.25) !important;
+  backdrop-filter: blur(25px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+/* 黑夜模式狀態卡片 badge 毛玻璃效果 - 星光偏藍紫色 */
+html[data-theme="dark"] .techno-card .badge.bg-success {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.85) 0%, rgba(99, 102, 241, 0.9) 100%) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(99, 102, 241, 0.5) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 
+    0 4px 20px rgba(99, 102, 241, 0.5),
+    0 2px 12px rgba(139, 92, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+html[data-theme="dark"] .techno-card .badge.bg-secondary {
+  background: rgba(100, 116, 139, 0.7) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(100, 116, 139, 0.4) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 
+    0 4px 16px rgba(100, 116, 139, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 通知 badge 脈衝動畫效果 - 提高優先級 */
+.badge.bg-danger,
+.badge.rounded-pill.bg-danger,
+.position-absolute.badge.bg-danger {
+  animation: dangerPulse 2s ease-in-out infinite !important;
+}
+
+[data-theme="dark"] .badge.bg-danger,
+[data-theme="dark"] .badge.rounded-pill.bg-danger,
+[data-theme="dark"] .position-absolute.badge.bg-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  border: 1px solid rgba(220, 38, 38, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) !important;
+  box-shadow: 
+    0 0 20px rgba(220, 38, 38, 0.6),
+    0 0 40px rgba(220, 38, 38, 0.4),
+    0 4px 16px rgba(220, 38, 38, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* 白天模式綠色通知 badge 動畫效果 - 不破壞 Bootstrap 定位 */
+html:not([data-theme="dark"]) .badge.bg-danger,
+html:not([data-theme="dark"]) .badge.rounded-pill.bg-danger,
+html:not([data-theme="dark"]) .position-absolute.badge.bg-danger {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.6) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  animation: successPulse 2s ease-in-out infinite !important;
+  box-shadow: 
+    0 0 20px rgba(16, 185, 129, 0.5),
+    0 0 40px rgba(16, 185, 129, 0.3),
+    0 4px 16px rgba(16, 185, 129, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* 動畫關鍵幀 - 黑夜模式紅色脈衝 */
+@keyframes dangerPulse {
+  0%, 100% {
+    transform: scale(1) !important;
+    box-shadow: 
+      0 0 20px rgba(220, 38, 38, 0.6),
+      0 0 40px rgba(220, 38, 38, 0.4),
+      0 4px 16px rgba(220, 38, 38, 0.5) !important;
+  }
+  50% {
+    transform: scale(1.05) !important;
+    box-shadow: 
+      0 0 30px rgba(220, 38, 38, 0.8),
+      0 0 60px rgba(220, 38, 38, 0.6),
+      0 6px 20px rgba(220, 38, 38, 0.7) !important;
+  }
+}
+
+/* 動畫關鍵幀 - 白天模式綠色脈衝 + 高光效果 */
+@keyframes successPulse {
+  0% {
+    transform: scale(1) !important;
+    box-shadow: 
+      0 0 20px rgba(16, 185, 129, 0.5),
+      0 0 40px rgba(16, 185, 129, 0.3),
+      0 4px 16px rgba(16, 185, 129, 0.4),
+      inset 2px -2px 4px rgba(255, 255, 255, 0.4) !important;
+  }
+  25% {
+    transform: scale(1.02) !important;
+    box-shadow: 
+      0 0 25px rgba(16, 185, 129, 0.6),
+      0 0 50px rgba(16, 185, 129, 0.4),
+      0 5px 18px rgba(16, 185, 129, 0.5),
+      inset -2px 2px 6px rgba(255, 255, 255, 0.6) !important;
+  }
+  50% {
+    transform: scale(1.05) !important;
+    box-shadow: 
+      0 0 30px rgba(16, 185, 129, 0.7),
+      0 0 60px rgba(16, 185, 129, 0.5),
+      0 6px 20px rgba(16, 185, 129, 0.6),
+      inset 3px -3px 8px rgba(255, 255, 255, 0.8) !important;
+  }
+  75% {
+    transform: scale(1.02) !important;
+    box-shadow: 
+      0 0 25px rgba(16, 185, 129, 0.6),
+      0 0 50px rgba(16, 185, 129, 0.4),
+      0 5px 18px rgba(16, 185, 129, 0.5),
+      inset -3px 3px 6px rgba(255, 255, 255, 0.6) !important;
+  }
+  100% {
+    transform: scale(1) !important;
+    box-shadow: 
+      0 0 20px rgba(16, 185, 129, 0.5),
+      0 0 40px rgba(16, 185, 129, 0.3),
+      0 4px 16px rgba(16, 185, 129, 0.4),
+      inset 2px -2px 4px rgba(255, 255, 255, 0.4) !important;
+  }
+}
+
+
+/* 桌機版 navbar 字體大小優化 */
+@media (min-width: 768px) {
+  .navbar-brand {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+  }
+  
+  .navbar-nav .nav-link {
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+    padding: 0.6rem 1.2rem !important;
+  }
+  
+  .navbar-text {
+    font-size: 1.2rem !important;
+    font-weight: 500 !important;
+  }
+  
+  .navbar-nav .btn {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    padding: 0.6rem 1.4rem !important;
+  }
+  
+  .dropdown-menu {
+    font-size: 1.1rem !important;
+  }
+  
+  .dropdown-item {
+    font-size: 1.1rem !important;
+    padding: 0.6rem 1.4rem !important;
+  }
+}
+
+/* 大螢幕 (≥ 1200px) 進一步增大字體 */
+@media (min-width: 1200px) {
+  .navbar-brand {
+    font-size: 2rem !important;
+  }
+  
+  .navbar-nav .nav-link {
+    font-size: 1.4rem !important;
+    padding: 0.7rem 1.4rem !important;
+  }
+  
+  .navbar-text {
+    font-size: 1.3rem !important;
+  }
+  
+  .navbar-nav .btn {
+    font-size: 1.3rem !important;
+    padding: 0.7rem 1.6rem !important;
+  }
+  
+  .dropdown-menu {
+    font-size: 1.2rem !important;
+  }
+  
+  .dropdown-item {
+    font-size: 1.2rem !important;
+    padding: 0.7rem 1.6rem !important;
+  }
+}
+
+/* 黑夜模式 table-responsive 毛玻璃效果 - 可見透明 */
+html[data-theme="dark"] body .table-responsive {
+  background: rgba(30, 41, 59, 0.12) !important;
+  background-color: rgba(30, 41, 59, 0.12) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.25) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  overflow: hidden !important;
+}
+
+html[data-theme="dark"] body #deviceLogsCollapse .table-responsive,
+html[data-theme="dark"] body .collapse .table-responsive {
+  background: rgba(30, 41, 59, 0.1) !important;
+  background-color: rgba(30, 41, 59, 0.1) !important;
+  backdrop-filter: blur(18px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.2) !important;
+  border-radius: 8px !important;
+  box-shadow: 
+    0 6px 24px rgba(0, 0, 0, 0.12),
+    0 3px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+/* 手機版 table-responsive 毛玻璃效果優化 */
+@media (max-width: 767.98px) {
+  html[data-theme="dark"] body .table-responsive {
+    background: rgba(30, 41, 59, 0.15) !important;
+    background-color: rgba(30, 41, 59, 0.15) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+    border: 1px solid rgba(71, 85, 105, 0.3) !important;
+    border-radius: 8px !important;
+    box-shadow: 
+      0 6px 24px rgba(0, 0, 0, 0.18),
+      0 3px 12px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    overflow: hidden !important;
+    margin: 0.5rem 0 !important;
+  }
+
+  html[data-theme="dark"] body #deviceLogsCollapse .table-responsive,
+  html[data-theme="dark"] body .collapse .table-responsive {
+    background: rgba(30, 41, 59, 0.12) !important;
+    background-color: rgba(30, 41, 59, 0.12) !important;
+    backdrop-filter: blur(12px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+    border: 1px solid rgba(71, 85, 105, 0.25) !important;
+    border-radius: 6px !important;
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.15),
+      0 2px 8px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    margin: 0.25rem 0 !important;
+  }
+}
+
+/* navbar 連結 hover 展開效果 */
+@media (min-width: 768px) {
+  .nav-link[data-bs-toggle="offcanvas"] {
+    position: relative !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .nav-link[data-bs-toggle="offcanvas"]:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  [data-theme="dark"] .nav-link[data-bs-toggle="offcanvas"]:hover {
+    background: rgba(139, 92, 246, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+  }
+}
+
+/* 手機版強制覆蓋 - 確保毛玻璃效果在所有裝置上生效 */
+@media (max-width: 767.98px) {
+  /* 手機版 navbar 黑夜模式強制覆蓋 */
+  html[data-theme="dark"] body .navbar,
+  html[data-theme="dark"] .navbar.navbar-expand-lg,
+  html[data-theme="dark"] .navbar.navbar-dark,
+  html[data-theme="dark"] .navbar {
+    background: rgba(30, 41, 59, 0.1) !important;
+    background-color: rgba(30, 41, 59, 0.1) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
+    min-height: 56px !important;
+    padding: 0.5rem 0 !important;
+  }
+  
+  /* 手機版 offcanvas 黑夜模式強制覆蓋 */
+  html[data-theme="dark"] body .offcanvas,
+  html[data-theme="dark"] .offcanvas {
+    background: rgba(30, 41, 59, 0.15) !important;
+    background-color: rgba(30, 41, 59, 0.15) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-right: 1px solid rgba(71, 85, 105, 0.2) !important;
+  }
+  
+  html[data-theme="dark"] body .offcanvas-body,
+  html[data-theme="dark"] .offcanvas-body {
+    background: rgba(30, 41, 59, 0.12) !important;
+    background-color: rgba(30, 41, 59, 0.12) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  }
+  
+  /* 手機版 techno-card 黑夜模式強制覆蓋 */
+  html[data-theme="dark"] body .techno-card,
+  html[data-theme="dark"] .techno-card {
+    background: rgba(30, 41, 59, 0.15) !important;
+    background-color: rgba(30, 41, 59, 0.15) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(71, 85, 105, 0.3) !important;
+    min-height: 140px !important;
+  }
+  
+  html[data-theme="dark"] body .techno-card:hover,
+  html[data-theme="dark"] .techno-card:hover {
+    background: rgba(30, 41, 59, 0.25) !important;
+    backdrop-filter: blur(25px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+    transform: translateY(-2px) !important; /* 手機版減少上浮距離 */
+  }
+}
+
+/* 超小螢幕強制覆蓋 */
+@media (max-width: 575.98px) {
+  /* 超小螢幕 navbar 黑夜模式強制覆蓋 */
+  html[data-theme="dark"] body .navbar,
+  html[data-theme="dark"] .navbar {
+    background: rgba(30, 41, 59, 0.1) !important;
+    background-color: rgba(30, 41, 59, 0.1) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
+  }
+  
+  /* 超小螢幕 offcanvas 寬度調整 */
+  html[data-theme="dark"] .offcanvas {
+    --bs-offcanvas-width: 90vw !important;
+    background: rgba(30, 41, 59, 0.15) !important;
+    background-color: rgba(30, 41, 59, 0.15) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  }
 }

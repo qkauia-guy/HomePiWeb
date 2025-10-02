@@ -22,9 +22,12 @@
       background-color: transparent !important;
     }
     html[data-theme="dark"] .navbar {
-      background-color: var(--bg-secondary) !important;
-      border-bottom: 1px solid var(--border-color) !important;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+      background: rgba(30, 41, 59, 0.05) !important;
+      background-color: rgba(30, 41, 59, 0.05) !important;
+      backdrop-filter: blur(25px) saturate(200%) !important;
+      -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
     }
     html[data-theme="dark"] footer {
       background-color: var(--bg-secondary) !important;
@@ -413,6 +416,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// navbar offcanvas hover 展開功能 (僅桌機版)
+document.addEventListener('DOMContentLoaded', function() {
+  // 只在桌機版啟用 hover 展開
+  if (window.innerWidth >= 768) {
+    const offcanvasLinks = document.querySelectorAll('.nav-link[data-bs-toggle="offcanvas"]');
+    let hoverTimer = null;
+    let currentOffcanvas = null;
+    
+    offcanvasLinks.forEach(link => {
+      const targetId = link.getAttribute('data-bs-target');
+      const offcanvasElement = document.querySelector(targetId);
+      
+      if (offcanvasElement) {
+        const bsOffcanvas = new bootstrap.Offcanvas(offcanvasElement);
+        
+        // 滑鼠進入連結時
+        link.addEventListener('mouseenter', function() {
+          clearTimeout(hoverTimer);
+          
+          // 如果有其他 offcanvas 開啟，先關閉
+          if (currentOffcanvas && currentOffcanvas !== bsOffcanvas) {
+            currentOffcanvas.hide();
+          }
+          
+          // 延遲 150ms 展開，快速響應
+          hoverTimer = setTimeout(() => {
+            bsOffcanvas.show();
+            currentOffcanvas = bsOffcanvas;
+          }, 150);
+        });
+        
+        // 滑鼠離開連結時取消展開
+        link.addEventListener('mouseleave', function() {
+          clearTimeout(hoverTimer);
+        });
+        
+        // 滑鼠進入 offcanvas 時保持開啟
+        offcanvasElement.addEventListener('mouseenter', function() {
+          clearTimeout(hoverTimer);
+        });
+        
+        // 滑鼠離開 offcanvas 時關閉
+        offcanvasElement.addEventListener('mouseleave', function() {
+          hoverTimer = setTimeout(() => {
+            bsOffcanvas.hide();
+            if (currentOffcanvas === bsOffcanvas) {
+              currentOffcanvas = null;
+            }
+          }, 150);
+        });
+      }
+    });
+  }
+});
 </script>
   <!-- 黑夜模式 JavaScript -->
   <script>
@@ -440,9 +498,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (theme === 'dark') {
           themeIcons.forEach(icon => icon.className = 'bi bi-moon-fill theme-icon');
           themeToggles.forEach(toggle => toggle.title = '切換到淺色模式');
+          // 更新歡迎詞圖標為月亮
+          document.querySelectorAll('.navbar-text i').forEach(icon => {
+            if (icon.classList.contains('bi-sun-fill')) {
+              icon.className = 'bi bi-moon-fill me-1';
+            }
+          });
+          document.querySelectorAll('.mobile-greeting-icon').forEach(icon => {
+            icon.className = 'bi bi-moon-fill me-2 mobile-greeting-icon';
+          });
         } else {
           themeIcons.forEach(icon => icon.className = 'bi bi-sun-fill theme-icon');
           themeToggles.forEach(toggle => toggle.title = '切換到黑夜模式');
+          // 更新歡迎詞圖標為太陽
+          document.querySelectorAll('.navbar-text i').forEach(icon => {
+            if (icon.classList.contains('bi-moon-fill')) {
+              icon.className = 'bi bi-sun-fill me-1';
+            }
+          });
+          document.querySelectorAll('.mobile-greeting-icon').forEach(icon => {
+            icon.className = 'bi bi-sun-fill me-2 mobile-greeting-icon';
+          });
         }
       }
       
