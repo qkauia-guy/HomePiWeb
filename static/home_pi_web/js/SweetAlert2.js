@@ -1,10 +1,6 @@
-// 使用全局配置函數（如果存在）
+// SweetAlert2 配置函數
 function getSwalConfig(icon, title, html, confirmButtonText = '確定') {
-  if (window.getSwalConfig) {
-    return window.getSwalConfig(icon, title, html, confirmButtonText);
-  }
-  
-  // 備援配置
+  // 取得當前主題
   const theme = document.documentElement.getAttribute('data-theme') || 
                 document.body.getAttribute('data-theme') || 
                 (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -14,8 +10,7 @@ function getSwalConfig(icon, title, html, confirmButtonText = '確定') {
     title,
     html,
     confirmButtonText,
-    colorScheme: theme,
-    background: theme === 'dark' ? '#1a1a1a' : '#fff',
+    // 移除 background 設定，讓 CSS 的毛玻璃效果生效
     color: theme === 'dark' ? '#f5f5f5' : '#333',
     confirmButtonColor: theme === 'dark' ? '#6366f1' : '#007bff',
     cancelButtonColor: theme === 'dark' ? '#6b7280' : '#6c757d',

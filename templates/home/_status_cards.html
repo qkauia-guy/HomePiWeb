@@ -1,259 +1,4 @@
-<!-- 建議：在 <head> 放這行（若尚未引入 Bootstrap Icons） -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
-<style>
-/* ===== 工業風金屬科技卡片 ===== */
-.techno-card {
-  position: relative;
-  background: linear-gradient(160deg, var(--techno-bg-start) 0%, var(--techno-bg-mid) 45%, var(--techno-bg-end) 100%);
-  border: 1px solid var(--techno-border);
-  border-radius: 12px;
-  overflow: hidden;
-
-  /* 更重的金屬立體陰影 */
-  box-shadow:
-    0 4px 10px var(--card-shadow-hover),
-    inset 0 1px 1px rgba(255,255,255,0.6),
-    inset 0 -2px 4px rgba(0,0,0,0.2);
-
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.techno-card:hover {
-  transform: translateY(-6px);
-  box-shadow:
-    0 8px 20px rgba(0,0,0,0.4),
-    inset 0 1px 1px rgba(255,255,255,0.7),
-    inset 0 -3px 6px rgba(0,0,0,0.25);
-}
-
-/* 基礎高光反光 */
-.techno-card::before {
-  content: "";
-  position: absolute;
-  inset: -40% -40%;
-  background: radial-gradient(
-    ellipse at 20% 10%,
-    rgba(255,255,255,0.6) 0%,
-    rgba(255,255,255,0.25) 40%,
-    transparent 70%
-  );
-  transform: rotate(15deg);
-  pointer-events: none;
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
-}
-.techno-card:hover::before { opacity: 0.8; }
-
-/* ===== 掃光動畫（卡片表面） ===== */
-.techno-sweep::after {
-  content: "";
-  position: absolute;
-  top: -20%;
-  left: -60%;
-  width: 50%;
-  height: 140%;
-  pointer-events: none;
-  background: linear-gradient(
-    75deg,
-    rgba(255,255,255,0.0) 0%,
-    rgba(255,255,255,0.08) 25%,
-    rgba(255,255,255,0.55) 50%,
-    rgba(255,255,255,0.08) 75%,
-    rgba(255,255,255,0.0) 100%
-  );
-  filter: blur(2px);
-  transform: skewX(-15deg) rotate(5deg);
-  opacity: 0;
-}
-
-.techno-sweep:hover::after {
-  animation: sweep-gleam 1.4s ease-out forwards;
-  opacity: 1;
-}
-
-.techno-sweep.sweep-auto::after {
-  animation: sweep-gleam 3.5s linear infinite;
-  opacity: 1;
-}
-
-@keyframes sweep-gleam {
-  0%   { left: -70%; opacity: 0; }
-  15%  { opacity: 0.9; }
-  50%  { opacity: 1; }
-  100% { left: 130%; opacity: 0; }
-}
-
-/* ===== 文字與細節 ===== */
-.techno-card .card-title {
-  font-weight: 700;
-  color: var(--techno-text);
-  letter-spacing: 0.6px;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-}
-.techno-card .card-title i { color: var(--techno-accent); }
-.techno-card .card-text { color: var(--techno-text-secondary); }
-.techno-card .small { color: var(--techno-text-muted) !important; }
-
-/* ===== 右上狀態列：修正排列與對齊 ===== */
-.status-bar {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  line-height: 1; /* 避免 baseline 差異導致跑位 */
-}
-
-/* ===== 基礎金屬感 Badge ===== */
-.badge {
-  position: relative;
-  display: inline-block;
-  font-weight: 600;
-  border: 1px solid var(--border-color);
-  color: var(--techno-text) !important;
-
-  /* 銀色金屬漸層（會被不同狀態覆蓋） */
-  background: linear-gradient(145deg, var(--techno-bg-start), var(--techno-bg-mid));
-
-  /* 立體感：上亮、下暗 */
-  box-shadow:
-    inset 0 2px 3px rgba(255,255,255,0.8),
-    inset 0 -2px 3px rgba(0,0,0,0.2),
-    0 2px 4px var(--card-shadow);
-
-  text-shadow: 0 1px 0 rgba(255,255,255,0.7);
-  overflow: hidden;  /* 保證反光不溢出 */
-}
-
-/* ===== Badge 高光層 ===== */
-.badge::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(255,255,255,0.6) 0%,
-    rgba(255,255,255,0.15) 50%,
-    rgba(255,255,255,0.0) 100%
-  );
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-/* ===== 狀態顏色（高光版） ===== */
-.badge.bg-success {
-  background: linear-gradient(145deg, var(--status-online), color-mix(in srgb, var(--status-online) 20%, #000));
-  border-color: var(--border-color);
-  color: var(--text-primary) !important;
-}
-.badge.bg-secondary {
-  background: linear-gradient(145deg, var(--techno-bg-start), var(--techno-bg-end));
-  border-color: var(--border-color);
-  color: var(--techno-text) !important;
-}
-
-/* ===== Badge 掃光動畫（可選） ===== */
-.badge.sweep::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -60%;
-  width: 50%;
-  height: 200%;
-  background: linear-gradient(
-    75deg,
-    rgba(255,255,255,0.0) 0%,
-    rgba(255,255,255,0.4) 45%,
-    rgba(255,255,255,0.0) 100%
-  );
-  transform: skewX(-20deg);
-  opacity: 0;
-  border-radius: inherit;
-}
-.badge.sweep:hover::before {
-  animation: badge-sweep 1.2s ease-out forwards;
-  opacity: 1;
-}
-@keyframes badge-sweep {
-  0%   { left: -70%; opacity: 0; }
-  20%  { opacity: 0.9; }
-  50%  { opacity: 1; }
-  100% { left: 120%; opacity: 0; }
-}
-
-/* ===== 工業風金屬轉圈圈（含冷光外暈） ===== */
-.spinner-industrial {
-  --size: 1.05rem;          /* 大小可調：.sm / .lg 可覆蓋 */
-  --ring: 2.5px;            /* 外圈厚度 */
-  --speed: 900ms;
-
-  position: relative;
-  display: inline-block;
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  vertical-align: middle;
-
-  /* 金屬外圈（拉絲 + 高光） */
-  background:
-    conic-gradient(from 210deg,
-      var(--techno-bg-start) 0deg, var(--techno-bg-mid) 40deg, var(--techno-bg-end) 120deg,
-      var(--techno-border) 180deg, var(--techno-bg-mid) 240deg, var(--techno-bg-start) 300deg, var(--techno-bg-start) 360deg);
-
-  /* 冷光外暈（更科技）：外擴藍青微光 + 陰影 */
-  box-shadow:
-    0 0 0 1px var(--techno-border),
-    0 0 10px rgba(125, 172, 203, 0.35),
-    0 2px 6px var(--card-shadow),
-    inset 0 1px 1px rgba(255,255,255,.8),
-    inset 0 -2px 4px rgba(0,0,0,.20);
-
-  overflow: hidden;
-}
-
-/* 內孔：讓外圈成甜甜圈 */
-.spinner-industrial::before {
-  content: "";
-  position: absolute;
-  inset: var(--ring);
-  border-radius: 50%;
-  background:
-    radial-gradient(closest-side, rgba(0,0,0,.12), transparent 60%),
-    linear-gradient(145deg, var(--techno-bg-start) 0%, var(--techno-bg-mid) 60%, var(--techno-bg-end) 100%);
-  box-shadow:
-    inset 0 1px 1px rgba(255,255,255,.75),
-    inset 0 -2px 3px rgba(0,0,0,.15);
-}
-
-/* 旋轉亮帶（掃光感） */
-.spinner-industrial::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-
-  /* 只顯示外圈：用遮罩形成甜甜圈 */
-  -webkit-mask: radial-gradient(circle, transparent calc(50% - var(--ring)), #000 calc(50% - var(--ring) + 1px));
-          mask: radial-gradient(circle, transparent calc(50% - var(--ring)), #000 calc(50% - var(--ring) + 1px));
-
-  background:
-    conic-gradient(from 0deg,
-      rgba(255,255,255,0) 0deg,
-      rgba(255,255,255,.85) 30deg,
-      rgba(255,255,255,0) 60deg,
-      rgba(255,255,255,0) 360deg);
-  filter: blur(.4px);
-  animation: spin-sweep var(--speed) linear infinite;
-}
-
-/* 旋轉動畫 */
-@keyframes spin-sweep {
-  to { transform: rotate(360deg); }
-}
-
-/* 快速尺寸調整（可選） */
-.spinner-industrial.sm { --size: .9rem;  --ring: 2.2px; --speed: 800ms; }
-.spinner-industrial.lg { --size: 1.3rem; --ring: 3px;   --speed: 1000ms; }
-</style>
+<!-- 工業風金屬科技卡片樣式已整合到 home.css 中 -->
 
 <div class="row g-3">
   <!-- 空調 -->
@@ -265,6 +10,10 @@
           <span class="badge h6 bg-success px-3 py-1 rounded-pill sweep mt-1">啟動</span>
         </h5>
         <p class="card-text fs-6 mb-0">目前溫度： <strong>26.5&#8451;</strong></p>
+        <div class="small text-muted mt-2">
+          <i class="bi bi-thermometer me-1"></i> 設定溫度： <span>24&#8451;</span><br>
+          <i class="bi bi-fan me-1"></i> 風速： <span>自動</span>
+        </div>
       </div>
     </div>
   </div>
@@ -276,7 +25,7 @@
          data-cap-id=""
          data-group-id="{{ group_id|default:'' }}"
          data-capability="light">
-      <div class="card-body pb-4">
+      <div class="card-body">
         <h5 class="card-title d-flex align-items-center justify-content-between">
           <span><i class="bi bi-lightbulb me-2"></i> 燈光</span>
           <span class="status-bar">
@@ -285,7 +34,7 @@
             <span id="lightSpinner" class="spinner-industrial d-none mb-1" aria-label="loading"></span>
           </span>
         </h5>
-        <p id="lightText" class="card-text fs-6 mb-0">請先從上方選擇「燈光」能力</p>
+        <p id="lightText" class="card-text fs-6 mb-0">點擊操作</p>
         <div class="small text-muted mt-2">
           <i class="bi bi-clock-history me-1"></i> 下次開燈： <span id="schedOnText"> 未排程 </span><br>
           <i class="bi bi-clock me-1"></i> 下次關燈： <span id="schedOffText"> 未排程 </span>
@@ -301,7 +50,7 @@
          data-cap-id=""
          data-group-id="{{ group_id|default:'' }}"
          data-capability="locker">
-      <div class="card-body pb-4">
+      <div class="card-body">
         <h5 class="card-title d-flex align-items-center justify-content-between">
           <span><i class="bi bi-door-closed me-2"></i> 電子鎖</span>
           <span class="status-bar">
@@ -310,9 +59,8 @@
             <span id="lockerSpinner" class="spinner-industrial d-none mb-1" aria-label="loading"></span>
           </span>
         </h5>
-        <p id="lockerText" class="card-text fs-6 mb-0">請先從上方選擇「電子鎖」能力</p>
+        <p id="lockerText" class="card-text fs-6 mb-0">點擊操作</p>
         <div class="small text-muted mt-2">
-          <i class="bi bi-shield-check me-1"></i> 狀態： <span id="lockerStatusText"> 未連接 </span><br>
           <i class="bi bi-clock-history me-1"></i> 下次開鎖： <span id="lockerSchedOnText"> 未排程 </span><br>
           <i class="bi bi-clock me-1"></i> 下次上鎖： <span id="lockerSchedOffText"> 未排程 </span>
         </div>

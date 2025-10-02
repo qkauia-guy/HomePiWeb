@@ -67,6 +67,41 @@
     return true;
   }
 
+  // 初始化按鈕狀態樣式
+  function initButtonStyles(capId, isLocked) {
+    if (!capId) return;
+    
+    const lockBtn = document.getElementById(`lockBtn-${capId}`);
+    const unlockBtn = document.getElementById(`unlockBtn-${capId}`);
+    const toggleBtn = document.getElementById(`toggleBtn-${capId}`);
+
+    // 上鎖按鈕：只有在已上鎖時才發光
+    if (lockBtn) {
+      lockBtn.classList.remove('active-locked', 'active-unlocked');
+      if (isLocked) {
+        lockBtn.classList.add('active-locked');
+      }
+    }
+
+    // 開鎖按鈕：只有在已開鎖時才發光
+    if (unlockBtn) {
+      unlockBtn.classList.remove('active-locked', 'active-unlocked');
+      if (!isLocked) {
+        unlockBtn.classList.add('active-unlocked');
+      }
+    }
+
+    // 切換按鈕：根據當前狀態顯示對應顏色
+    if (toggleBtn) {
+      toggleBtn.classList.remove('active-locked', 'active-unlocked');
+      if (isLocked) {
+        toggleBtn.classList.add('active-locked');
+      } else {
+        toggleBtn.classList.add('active-unlocked');
+      }
+    }
+  }
+
   // 渲染卡片（尊重 hold）
   function renderLocker(card, state) {
     console.log('[Locker] 渲染狀態:', state);
@@ -136,6 +171,9 @@
         if (lockBtn) lockBtn.disabled = false;
         if (unlockBtn) unlockBtn.disabled = false;
         if (toggleBtn) toggleBtn.disabled = false;
+        
+        // 更新按鈕樣式
+        initButtonStyles(capId, isLocked);
       }
     }
   }
@@ -144,7 +182,12 @@
   // 帶競態保護的拉狀態
   async function fetchLockerState(card) {
     const url = card.dataset.statusUrl;
-    if (!url) return;
+    if (!url) {
+      console.log('[Locker] 沒有狀態 URL，跳過更新');
+      return;
+    }
+    
+    console.log('[Locker] 開始更新狀態，URL:', url);
 
     // 取消上一筆還在路上的請求
     if (_lockerFetchController) _lockerFetchController.abort();
@@ -166,10 +209,24 @@
     } catch (error) {
       console.error('電子鎖狀態更新失敗:', error);
       card.querySelector('#lockerSpinner')?.classList.add('d-none');
-      // 更新狀態文字顯示錯誤
+      
+      // 更詳細的錯誤處理
       const text = card.querySelector('#lockerText');
       if (text) {
-        text.textContent = '連線失敗，請檢查網路';
+        if (error.name === 'AbortError') {
+          // 請求被取消，不顯示錯誤
+          return;
+        } else if (error.message.includes('HTTP_401')) {
+          text.textContent = '請重新登入';
+        } else if (error.message.includes('HTTP_403')) {
+          text.textContent = '無權限存取此裝置';
+        } else if (error.message.includes('HTTP_404')) {
+          text.textContent = '裝置不存在';
+        } else if (error.message.includes('HTTP_')) {
+          text.textContent = `伺服器錯誤 (${error.message})`;
+        } else {
+          text.textContent = '連線失敗，請檢查網路';
+        }
       }
       return;
     }
@@ -192,7 +249,11 @@
       // 如果 API 回傳失敗，顯示錯誤狀態
       const text = card.querySelector('#lockerText');
       if (text) {
-        text.textContent = '狀態更新失敗';
+        if (data && data.error) {
+          text.textContent = `錯誤: ${data.error}`;
+        } else {
+          text.textContent = '狀態更新失敗';
+        }
       }
     }
   }
@@ -337,6 +398,10 @@
             stopLockerPoll();
             stopLockerPoll = null;
           }
+          
+          // 立即初始化按鈕樣式（使用裝置狀態中的鎖定狀態）
+          const isLocked = !!(data.capabilities.locker.status && data.capabilities.locker.status.locked);
+          initButtonStyles(lockerCap.id, isLocked);
           
           // 開始輪詢
           stopLockerPoll = startLockerPolling(lockerCard);

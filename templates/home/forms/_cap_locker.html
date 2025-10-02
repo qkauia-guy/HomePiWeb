@@ -2,79 +2,129 @@
   <div class="card-body">
     <h5 class="card-title mb-3">{{ device.label }}｜{{ cap.name }}</h5>
 
-    <div class="row align-items-start">
-      
-      <!-- 左邊：電子鎖控制按鈕 -->
-      <div class="col-md-5 d-flex flex-wrap gap-3">
-        {# 上鎖按鈕 #}
-        <button
-          class="btn btn-outline-secondary locker-btn"
-          id="lockBtn-{{ cap.id }}"
-          data-action="lock"
-          data-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='lock' %}"
-          data-group="{{ group_id }}"
-        >
-          <i class="bi bi-lock me-1"></i> 上鎖
-        </button>
-
-        {# 開鎖按鈕 #}
-        <button
-          class="btn btn-outline-success locker-btn"
-          id="unlockBtn-{{ cap.id }}"
-          data-action="unlock"
-          data-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='unlock' %}"
-          data-group="{{ group_id }}"
-        >
-          <i class="bi bi-unlock me-1"></i> 開鎖
-        </button>
-
-        {# 切換按鈕 #}
-        <button
-          class="btn btn-outline-primary locker-btn"
-          id="toggleBtn-{{ cap.id }}"
-          data-action="toggle"
-          data-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='toggle' %}"
-          data-group="{{ group_id }}"
-        >
-          <i class="bi bi-arrow-repeat me-1"></i> 切換
-        </button>
+    <!-- 手機版：緊湊單行佈局 -->
+    <div class="d-block d-md-none">
+      <!-- 第一行：開關和狀態 -->
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="form-check form-switch mb-0">
+          <input
+            class="form-check-input locker-toggle"
+            type="checkbox"
+            role="switch"
+            id="lockerSwitch-mobile-{{ cap.id }}"
+            data-lock-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='lock' %}"
+            data-unlock-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='unlock' %}"
+            data-group="{{ group_id }}"
+            {% if not cap.meta.locked %}checked{% endif %}
+          >
+          <label class="form-check-label" for="lockerSwitch-mobile-{{ cap.id }}">電子鎖</label>
+        </div>
+        <div class="text-muted small mt-2">
+          <i class="bi bi-{% if cap.meta.locked %}lock{% else %}unlock{% endif %} me-1"></i>
+          <span class="lock-status-text">
+            {% if cap.meta.locked %}已上鎖{% else %}已開鎖{% endif %}
+          </span>
+        </div>
       </div>
+      
+      <!-- 第二行：排程表單 -->
+      <form
+        id="schedForm-mobile-{{ cap.id }}"
+        class="d-flex flex-wrap align-items-end gap-1"
+        data-create-url="{% url 'create_schedule' %}"
+        data-upcoming-url="{% url 'upcoming_schedules' device_id=device.id %}"
+        data-slug="{{ cap.slug }}"
+      >
+        {% csrf_token %}
+        <input type="hidden" name="device_id" value="{{ device.id }}">
+        <input type="hidden" name="slug" value="{{ cap.slug }}">
+        <input type="hidden" name="on_action" value="locker_unlock">
+        <input type="hidden" name="off_action" value="locker_lock">
 
-      <!-- 右邊：排程表單 -->
-      <div class="col-md-7">
-        <form
-          id="schedForm-{{ cap.id }}"
-          class="row gy-2 gx-2 align-items-end"
-          data-create-url="{% url 'create_schedule' %}"
-          data-upcoming-url="{% url 'upcoming_schedules' device_id=device.id %}"
-          data-slug="{{ cap.slug }}"
-        >
-          {% csrf_token %}
-          <input type="hidden" name="device_id" value="{{ device.id }}">
-          <input type="hidden" name="slug" value="{{ cap.slug }}">
-          <input type="hidden" name="on_action" value="locker_unlock">
-          <input type="hidden" name="off_action" value="locker_lock">
+        <div style="flex: 0 0 40%; max-width: 40%;">
+          <label class="form-label mb-1" style="font-size: 0.7rem;">開鎖時間</label>
+          <input type="datetime-local" name="on_at_local" class="form-control form-control-sm" style="font-size: 0.75rem; padding: 0.3rem 0.4rem;">
+        </div>
 
-          <div class="col-auto">
-            <label class="form-label mb-1">開鎖時間</label>
-            <input type="datetime-local" name="on_at_local" class="form-control form-control-sm">
+        <div style="flex: 0 0 40%; max-width: 40%;">
+          <label class="form-label mb-1" style="font-size: 0.7rem;">上鎖時間</label>
+          <input type="datetime-local" name="off_at_local" class="form-control form-control-sm" style="font-size: 0.75rem; padding: 0.3rem 0.4rem;">
+        </div>
+
+        <div class="flex-shrink-0 mb-1">
+          <button type="button" class="btn btn-success btn-sm" data-submit-both="#schedForm-mobile-{{ cap.id }}" style="font-size: 0.7rem; padding: 0.35rem 0.6rem;">排程</button>
+        </div>
+        
+        <div class="w-100 mt-2">
+          <small class="text-muted" style="font-size: 0.65rem;">時間使用你的瀏覽器時區（後端自動轉 UTC 存）。</small>
+          <div class="text-success small d-none mt-1" id="schedMsg-mobile-{{ cap.id }}" style="font-size: 0.65rem;"></div>
+          <div class="text-danger small d-none mt-1" id="schedErr-mobile-{{ cap.id }}" style="font-size: 0.65rem;"></div>
+        </div>
+      </form>
+    </div>
+
+    <!-- 桌面版：原有佈局 -->
+    <div class="d-none d-md-block">
+      <div class="row align-items-start">
+        <!-- 左邊：電子鎖開關控制 -->
+        <div class="col-md-5 d-flex align-items-center gap-3">
+          <div class="form-check form-switch mb-0">
+            <input
+              class="form-check-input locker-toggle"
+              type="checkbox"
+              role="switch"
+              id="lockerSwitch-{{ cap.id }}"
+              data-lock-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='lock' %}"
+              data-unlock-url="{% url 'capability_action' device_id=device.id cap_id=cap.id action='unlock' %}"
+              data-group="{{ group_id }}"
+              {% if not cap.meta.locked %}checked{% endif %}
+            >
+            <label class="form-check-label" for="lockerSwitch-{{ cap.id }}">電子鎖</label>
           </div>
-
-          <div class="col-auto">
-            <label class="form-label mb-1">上鎖時間</label>
-            <input type="datetime-local" name="off_at_local" class="form-control form-control-sm">
+          <div class="text-muted small">
+            <i class="bi bi-{% if cap.meta.locked %}lock{% else %}unlock{% endif %} me-1"></i>
+            <span class="lock-status-text">
+              {% if cap.meta.locked %}已上鎖{% else %}已開鎖{% endif %}
+            </span>
           </div>
+        </div>
 
-          <div class="col-auto d-flex gap-2">
-            <button type="button" class="btn btn-success btn-sm" data-submit-both="#schedForm-{{ cap.id }}">排程時間</button>
-          </div>
+        <!-- 右邊：排程表單 -->
+        <div class="col-md-7">
+          <form
+            id="schedForm-{{ cap.id }}"
+            class="row gy-1 gx-2 align-items-end"
+            data-create-url="{% url 'create_schedule' %}"
+            data-upcoming-url="{% url 'upcoming_schedules' device_id=device.id %}"
+            data-slug="{{ cap.slug }}"
+          >
+            {% csrf_token %}
+            <input type="hidden" name="device_id" value="{{ device.id }}">
+            <input type="hidden" name="slug" value="{{ cap.slug }}">
+            <input type="hidden" name="on_action" value="locker_unlock">
+            <input type="hidden" name="off_action" value="locker_lock">
 
-          <div class="col-12">
-            <small class="text-muted">時間使用你的瀏覽器時區（後端自動轉 UTC 存）。</small>
-            <div class="text-success small d-none mt-1" id="schedMsg-{{ cap.id }}"></div>
-            <div class="text-danger small d-none mt-1" id="schedErr-{{ cap.id }}"></div>
-          </div>
-        </form>
+            <div class="col-auto">
+              <label class="form-label mb-1 small">開鎖時間</label>
+              <input type="datetime-local" name="on_at_local" class="form-control form-control-sm">
+            </div>
+
+            <div class="col-auto">
+              <label class="form-label mb-1 small">上鎖時間</label>
+              <input type="datetime-local" name="off_at_local" class="form-control form-control-sm">
+            </div>
+
+            <div class="col-auto d-flex gap-2">
+              <button type="button" class="btn btn-success btn-sm" data-submit-both="#schedForm-{{ cap.id }}">排程時間</button>
+            </div>
+
+            <div class="col-12 mt-0">
+              <small class="text-muted d-block mb-1">時間使用你的瀏覽器時區（後端自動轉 UTC 存）。</small>
+              <div class="text-success small d-none" id="schedMsg-{{ cap.id }}"></div>
+              <div class="text-danger small d-none" id="schedErr-{{ cap.id }}"></div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
