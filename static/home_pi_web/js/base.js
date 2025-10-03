@@ -252,6 +252,147 @@
   // 頁面載入時檢查是否需要打開 offcanvas
   document.addEventListener('DOMContentLoaded', openOffcanvasIfNeeded);
 
+  // ===== 裝置編輯 SweetAlert 功能 =====
+  function openDeviceEditModal(deviceId, currentName, serialNumber) {
+    // 檢查是否為黑暗模式
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+    
+    Swal.fire({
+      title: '<i class="fas fa-edit me-2"></i>編輯裝置',
+      html: `
+        <div class="text-start">
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="fas fa-microchip me-1"></i>
+              序號：${serialNumber}
+            </label>
+          </div>
+          <div class="mb-3">
+            <label for="device-name" class="form-label">
+              <i class="fas fa-tag me-2"></i>
+              裝置名稱
+            </label>
+            <input type="text" 
+                   id="device-name" 
+                   class="form-control" 
+                   value="${currentName || ''}"
+                   placeholder="請輸入裝置名稱">
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i>
+              留空則顯示序號。
+            </div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-save me-2"></i>儲存',
+      cancelButtonText: '<i class="fas fa-times me-2"></i>取消',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#6c757d',
+      width: '400px',
+      // 毛玻璃背景樣式
+      background: isDarkMode ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+      backdrop: `
+        ${isDarkMode ? 'blur(20px) saturate(180%)' : 'blur(10px)'}
+      `,
+      customClass: {
+        popup: 'swal2-popup-glass',
+        title: 'swal2-title-glass',
+        content: 'swal2-content-glass',
+        confirmButton: 'swal2-confirm-glass',
+        cancelButton: 'swal2-cancel-glass'
+      },
+      preConfirm: () => {
+        const name = document.getElementById('device-name').value.trim();
+        
+        return {
+          name: name
+        };
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        saveDeviceEdit(deviceId, result.value);
+      }
+    });
+  }
+
+  function saveDeviceEdit(deviceId, data) {
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', getCsrf());
+    formData.append('display_name', data.name);
+    
+    fetch(`/devices/${deviceId}/edit/`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': getCsrf(),
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: '儲存成功！',
+          text: '裝置資訊已更新',
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
+          // 重新載入頁面以更新顯示
+          window.location.reload();
+        });
+      } else {
+        console.error('儲存失敗:', data);
+        Swal.fire({
+          icon: 'error',
+          title: '儲存失敗',
+          text: data.message || '請稍後再試',
+          footer: data.debug ? '<small>詳細錯誤請查看控制台</small>' : ''
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: '儲存失敗',
+        text: '網路錯誤，請稍後再試'
+      });
+    });
+  }
+
+  // 綁定裝置項目點擊事件
+  document.addEventListener('DOMContentLoaded', function() {
+    // 使用事件委派處理動態載入的內容
+    document.addEventListener('click', function(event) {
+      const deviceItem = event.target.closest('.device-item');
+      if (deviceItem) {
+        const href = deviceItem.getAttribute('href');
+        
+        // 檢查是否為編輯頁面連結
+        if (href && href.includes('/edit/')) {
+          event.preventDefault();
+          
+          // 從 href 中提取裝置 ID
+          const deviceId = href.match(/\/devices\/(\d+)\/edit\//)?.[1];
+          if (!deviceId) return;
+          
+          // 獲取當前裝置名稱
+          const nameElement = deviceItem.querySelector('.fw-semibold');
+          const currentName = nameElement ? nameElement.textContent.trim() : '';
+          
+          // 獲取序號（從 IP 或其他地方，這裡先使用裝置 ID）
+          const serialElement = deviceItem.querySelector('.text-monospace');
+          const serialNumber = serialElement ? serialElement.textContent.trim() : `PI-${deviceId}`;
+          
+          // 打開編輯模態框
+          openDeviceEditModal(deviceId, currentName, serialNumber);
+        }
+      }
+    });
+  });
+
   // ===== 導出到全域（給其他頁用）=====
   window.App = Object.assign(window.App || {}, {
     getCsrf,
