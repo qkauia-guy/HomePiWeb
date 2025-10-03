@@ -347,7 +347,7 @@ button[aria-expanded='true'] .toggle-icon {
 
 /* ===== 工業風金屬科技卡片 ===== */
 .techno-card {
-  /* 移除 position: relative 以避免創建堆疊上下文 */
+  position: relative; /* 恢復 position: relative 以支援掃光動畫定位 */
   background: linear-gradient(160deg, var(--techno-bg-start) 0%, var(--techno-bg-mid) 45%, var(--techno-bg-end) 100%);
   border: 1px solid var(--techno-border);
   border-radius: 12px;
@@ -370,10 +370,10 @@ button[aria-expanded='true'] .toggle-icon {
     inset 0 -3px 6px rgba(0,0,0,0.25);
 }
 
-/* 基礎高光反光 - 移除 position: absolute 以避免堆疊上下文 */
+/* 基礎高光反光 */
 .techno-card::before {
   content: "";
-  /* position: absolute 已移除 */
+  position: absolute;
   inset: -40% -40%;
   background: radial-gradient(
     ellipse at 20% 10%,
@@ -385,13 +385,14 @@ button[aria-expanded='true'] .toggle-icon {
   pointer-events: none;
   opacity: 0.5;
   transition: opacity 0.3s ease;
+  z-index: 1;
 }
 .techno-card:hover::before { opacity: 0.8; }
 
-/* ===== 掃光動畫（卡片表面） - 移除 position: absolute ===== */
+/* ===== 掃光動畫（卡片表面） ===== */
 .techno-sweep::after {
   content: "";
-  /* position: absolute 已移除 */
+  position: absolute;
   top: -20%;
   left: -60%;
   width: 50%;
@@ -408,6 +409,7 @@ button[aria-expanded='true'] .toggle-icon {
   filter: blur(2px);
   transform: skewX(-15deg) rotate(5deg);
   opacity: 0;
+  z-index: 100;
 }
 
 .techno-sweep:hover::after {
