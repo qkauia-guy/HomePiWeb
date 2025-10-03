@@ -67,7 +67,7 @@ def register_view(request):
             device.save(update_fields=["user", "is_bound"])
             request.session.pop("pending_device_bind", None)
             messages.success(request, f"已將裝置 {device.serial_number} 綁定到你的帳號")
-            return redirect("my_devices")
+            return redirect("home")
 
         # GET：顯示綁定確認頁
         return render(request, "pi_devices/device_bind.html", {"device": device})
@@ -130,9 +130,13 @@ def login_view(request):
             if nxt and url_has_allowed_host_and_scheme(
                 nxt, allowed_hosts={request.get_host()}
             ):
-                return redirect(nxt)
+                # 清理 URL 中的 hash 片段（如 #sideBar）
+                from urllib.parse import urlparse, urlunparse
+                parsed = urlparse(nxt)
+                clean_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, parsed.query, ''))
+                return redirect(clean_url)
 
-            # 沒帶 next 就回預設頁（你可改成 group_list）
+            # 沒帶 next 就回預設頁
             return redirect("home")
         else:
             messages.error(request, "帳號或密碼不正確，請再試一次。")

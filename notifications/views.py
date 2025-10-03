@@ -284,14 +284,14 @@ def _event_redirect_url(n: Notification) -> str | None:
 
     # --- 裝置類 ---
     if ev in {"device_bound", "device_unbound", "device_renamed", "device_ip_changed"}:
-        # 你有裝置詳情頁可換成 'device_detail'；沒有就回「我的裝置」
-        return reverse("my_devices")
+        # 你有裝置詳情頁可換成 'device_detail'；沒有就回主頁
+        return reverse("home")
 
     # 預設：若通知帶 group，導群組；若有 device 但沒群組，導我的裝置
     if n.group_id:
         return reverse("group_detail", args=[n.group_id])
     if n.device_id:
-        return reverse("my_devices")
+        return reverse("home")
 
     # 若有 target 指到群組或裝置也可兜
     try:
@@ -300,7 +300,7 @@ def _event_redirect_url(n: Notification) -> str | None:
             if m in ("group", "groups.group"):
                 return reverse("group_detail", args=[n.target.pk])
             if m in ("device", "pi_devices.device"):
-                return reverse("my_devices")
+                return reverse("home")
     except Exception:
         pass
 
@@ -318,7 +318,11 @@ def notification_go(request, pk: int):
 
     url = _event_redirect_url(n)
     if url:
-        return redirect(url)
+        # 清理 URL 中的 hash 片段（如 #sideBar）
+        from urllib.parse import urlparse, urlunparse
+        parsed = urlparse(url)
+        clean_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, parsed.query, ''))
+        return redirect(clean_url)
 
     messages.info(request, "找不到對應的詳細頁，已將通知標記為已讀。")
     return redirect("notifications_list")  # 你的通知列表頁路由名

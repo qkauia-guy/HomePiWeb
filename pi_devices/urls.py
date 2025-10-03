@@ -6,7 +6,6 @@ from .views import capability as capability_views
 
 urlpatterns = [
     # 使用者側（Device）
-    path("my-devices/", device_views.my_devices, name="my_devices"),
     path("devices/bind/", device_views.device_bind, name="device_bind"),
     path("devices/<int:pk>/unbind/", device_views.device_unbind, name="device_unbind"),
     path("devices/<int:pk>/edit/", device_views.device_edit, name="device_edit"),
