@@ -110,7 +110,10 @@
           {# 群長固定第一列 #}
           <tr>
             <td>
-              <div class="fw-semibold">{{ group.owner.email }}</div>
+              <div class="fw-semibold">
+                <span class="d-none d-md-inline">{{ group.owner.email }}</span>
+                <span class="d-inline d-md-none">{{ group.owner.email|slice:":8" }}...</span>
+              </div>
               <div class="small text-secondary">（群長）</div>
             </td>
             <td><span class="badge text-bg-info">OWNER</span></td>
@@ -124,7 +127,7 @@
               {% endif %}
             </td>
             <td class="text-end">
-              <span class="text-secondary">（群長不可退出 / 不可被移除）</span>
+              <span class="text-secondary">（群長不可退出）</span>
             </td>
           </tr>
 
@@ -132,7 +135,10 @@
           {% for ms in memberships %}
           <tr>
             <td>
-              <div class="fw-semibold">{{ ms.user.email }}</div>
+              <div class="fw-semibold">
+                <span class="d-none d-md-inline">{{ ms.user.email }}</span>
+                <span class="d-inline d-md-none">{{ ms.user.email|slice:":8" }}...</span>
+              </div>
               <div class="small text-secondary">加入：{{ ms.joined_at|date:"Y-m-d H:i" }}</div>
             </td>
 
@@ -209,7 +215,7 @@
                         action="{% url 'member_remove' group.id ms.id %}"
                         onsubmit="return confirm('確定要移除此成員嗎？');">
                     {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-danger" type="submit">移除</button>
+                    <button class="btn btn-sm btn-outline-danger" type="submit">移除此成員</button>
                   </form>
                 {% endif %}
               </div>
