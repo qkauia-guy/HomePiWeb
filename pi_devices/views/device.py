@@ -119,12 +119,6 @@ def offcanvas_list(request):
 
 
 @login_required
-def my_devices(request):
-    devices = request.user.devices.all().order_by("-created_at")
-    return render(request, "pi_devices/my_devices.html", {"devices": devices})
-
-
-@login_required
 @transaction.atomic
 def device_edit(request, pk):
     device = get_object_or_404(Device, pk=pk)
@@ -202,7 +196,7 @@ def device_bind(request):
                     messages.error(
                         request, "此設備剛剛已被綁定，請再確認序號與驗證碼。"
                     )
-                    return redirect("my_devices")
+                    return redirect("home")
                 device.user = request.user
                 device.is_bound = True
                 device.save(update_fields=["user", "is_bound"])
@@ -212,7 +206,7 @@ def device_bind(request):
                     )
                 )
             messages.success(request, f"綁定成功！({device.serial_number})")
-            return redirect("my_devices")
+            return redirect("home")
     else:
         initial = {}
         if request.GET.get("serial"):
@@ -305,7 +299,7 @@ def device_light_action(request, device_id, action):
         )
 
     next_url = request.POST.get("next") or request.META.get(
-        "HTTP_REFERER", "my_devices"
+        "HTTP_REFERER", "home"
     )
     messages.success(request, f"已送出 {action} 指令")
     return redirect(next_url)

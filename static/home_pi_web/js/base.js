@@ -99,7 +99,8 @@
           : dest.pathname === GROUP_CREATE_PATH
           ? 'group_required'
           : 'redirect';
-      err.redirect = dest.pathname;
+      // 清理 URL 中的 hash 片段
+      err.redirect = dest.pathname + dest.search;
       throw err;
     }
     if (!resp.ok) {
@@ -215,6 +216,42 @@
     }
   });
 
+  // ===== URL 清理工具 =====
+  function cleanUrl(url) {
+    try {
+      const parsed = new URL(url, window.location.origin);
+      return parsed.pathname + parsed.search;
+    } catch {
+      return url;
+    }
+  }
+
+  // ===== 自動打開 offcanvas 功能 =====
+  function openOffcanvasIfNeeded() {
+    // 檢查 URL 中是否有 #sideBar 或 #sideBarGroups
+    const hash = window.location.hash;
+    if (hash === '#sideBar') {
+      const offcanvas = document.getElementById('sideBar');
+      if (offcanvas) {
+        const bsOffcanvas = new bootstrap.Offcanvas(offcanvas);
+        bsOffcanvas.show();
+        // 清理 URL
+        history.replaceState(null, null, window.location.pathname + window.location.search);
+      }
+    } else if (hash === '#sideBarGroups') {
+      const offcanvas = document.getElementById('sideBarGroups');
+      if (offcanvas) {
+        const bsOffcanvas = new bootstrap.Offcanvas(offcanvas);
+        bsOffcanvas.show();
+        // 清理 URL
+        history.replaceState(null, null, window.location.pathname + window.location.search);
+      }
+    }
+  }
+
+  // 頁面載入時檢查是否需要打開 offcanvas
+  document.addEventListener('DOMContentLoaded', openOffcanvasIfNeeded);
+
   // ===== 導出到全域（給其他頁用）=====
   window.App = Object.assign(window.App || {}, {
     getCsrf,
@@ -222,6 +259,8 @@
     fetchText,
     postForm,
     showMessagesFromJson,
+    cleanUrl,
+    openOffcanvasIfNeeded,
     paths: { LOGIN_PATH, GROUP_CREATE_PATH },
   });
 })();

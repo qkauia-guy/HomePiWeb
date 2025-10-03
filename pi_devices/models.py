@@ -94,12 +94,12 @@ class Device(models.Model):
         return f"{self.name()} (SN: {self.serial_number}, Bound: {self.is_bound})"
 
     def get_absolute_url(self):
-        # 若有裝置詳情頁就導去那；沒有就退到「我的裝置」列表。
+        # 若有裝置詳情頁就導去那；沒有就退到主頁。
         try:
             # 目前應該沒有這頁面
             return reverse("/", kwargs={"device_id": self.pk})
         except NoReverseMatch:
-            return reverse("my_devices")
+            return reverse("home")
 
     @property
     def label(self):

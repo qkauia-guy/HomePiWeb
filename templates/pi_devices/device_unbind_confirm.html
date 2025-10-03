@@ -36,6 +36,6 @@
 <form method="post">
   {% csrf_token %}
   <button type="submit" class="btn btn-danger">確認解除</button>
-  <a href="{% url 'my_devices' %}" class="btn btn-outline-secondary ms-2">取消</a>
+  <a href="{% url 'home' %}" class="btn btn-outline-secondary ms-2">取消</a>
 </form>
 {% endblock %}
