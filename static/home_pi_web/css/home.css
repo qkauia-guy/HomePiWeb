@@ -2,11 +2,6 @@
    作用範圍同時支援 #sideBar 與 #sideBarGroups
 -------------------------------------------------------- */
 
-/* 容器寬度限制（延用你原本的） */
-#sideBar .offcanvas-body,
-#sideBarGroups .offcanvas-body {
-  max-width: 420px;
-}
 
 /* 清單容器（Flex + gap） */
 #sideBar .device-list,
@@ -218,17 +213,6 @@
   text-shadow: 0 0 6px rgba(224, 123, 57, 0.7);
 }
 
-/* 手機時更緊湊（延用你原本設定） */
-@media (max-width: 576px) {
-  #sideBar .offcanvas-body,
-  #sideBarGroups .offcanvas-body {
-    max-width: 92vw;
-  }
-  #sideBar .device-item,
-  #sideBarGroups .device-item {
-    padding: 0.65rem 0.85rem;
-  }
-}
 
 /* 動畫減量（系統偏好） */
 @media (prefers-reduced-motion: reduce) {

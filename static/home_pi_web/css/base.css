@@ -4,6 +4,7 @@
   max-width: 420px;
 }
 
+
 /* 清單容器（用 gap 模擬 list-group 的間距） */
 #sideBar .device-list,
 #sideBarGroups .device-list {
@@ -14,27 +15,64 @@
   padding: 0;
 }
 
-/* 單一項目卡片化 */
-#sideBar .device-item,
-#sideBarGroups .device-item {
-  border: 1px solid var(--bs-border-color);
+/* 單一項目卡片化 - 白天模式毛玻璃效果 */
+html:not([data-theme="dark"]) #sideBar .device-item,
+html:not([data-theme="dark"]) #sideBarGroups .device-item {
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--bs-body-bg);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
   display: flex;
   align-items: center;
   justify-content: space-between;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
   text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* hover/active 效果 */
-#sideBar .device-item:hover,
-#sideBar .device-item:focus,
-#sideBarGroups .device-item:hover,
-#sideBarGroups .device-item:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+/* 單一項目卡片化 - 黑夜模式毛玻璃效果 */
+html[data-theme="dark"] #sideBar .device-item,
+html[data-theme="dark"] #sideBarGroups .device-item {
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(30, 41, 59, 0.3);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* hover/active 效果 - 白天模式 */
+html:not([data-theme="dark"]) #sideBar .device-item:hover,
+html:not([data-theme="dark"]) #sideBar .device-item:focus,
+html:not([data-theme="dark"]) #sideBarGroups .device-item:hover,
+html:not([data-theme="dark"]) #sideBarGroups .device-item:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* hover/active 效果 - 黑夜模式 */
+html[data-theme="dark"] #sideBar .device-item:hover,
+html[data-theme="dark"] #sideBar .device-item:focus,
+html[data-theme="dark"] #sideBarGroups .device-item:hover,
+html[data-theme="dark"] #sideBarGroups .device-item:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
   text-decoration: none;
 }
@@ -83,12 +121,69 @@
 @media (max-width: 576px) {
   #sideBar .offcanvas-body,
   #sideBarGroups .offcanvas-body {
-    max-width: 92vw;
+    max-width: none !important;      /* 移除最大寬度限制 */
+    width: 100% !important;          /* 使用全寬 */
   }
   #sideBar .device-item,
   #sideBarGroups .device-item {
-    padding: 0.65rem 0.85rem;
+    padding: 0.75rem 1rem;           /* 增加內距 */
   }
+  
+  /* 手機版絕對定位 - 只針對圖標和箭頭 */
+  .device-item {
+    position: relative !important;
+    padding: 1rem 3rem !important;    /* 上下增加padding，左右為圖標箭頭留空間 */
+  }
+  
+  /* 狀態點絕對定位 - 使用更具體的選擇器覆蓋 group_items.css */
+  .offcanvas-body .device-item .status-dot,
+  .groups-scope .device-item .status-dot,
+  #sideBar .device-item .status-dot,
+  #sideBarGroups .device-item .status-dot {
+    position: absolute !important;
+    left: 0.75rem !important;         /* 稍微往左移，避免重疊 */
+    top: calc(50% - 2px) !important;  /* 往上移2px，與箭頭一致 */
+    transform: translateY(-50%) !important;
+    width: 0.7rem !important;         /* 稍微縮小 */
+    height: 0.7rem !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;             /* 清除任何 margin */
+    display: block !important;        /* 確保顯示 */
+  }
+  
+  /* 箭頭絕對定位 - 使用更具體的選擇器覆蓋 group_items.css */
+  .offcanvas-body .device-item .chev,
+  .groups-scope .device-item .chev,
+  #sideBar .device-item .chev,
+  #sideBarGroups .device-item .chev {
+    position: absolute !important;
+    right: 1rem !important;
+    top: calc(50% - 2px) !important;  /* 往上移2px */
+    transform: translateY(-50%) !important;
+    font-size: 1.5rem !important;
+    opacity: 0.6 !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;             /* 清除任何 margin */
+    display: block !important;        /* 確保顯示 */
+  }
+  
+  /* 文字內容區域 - 水平置中 */
+  .device-item .d-flex.align-items-center.gap-3 {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: center !important;  /* 水平置中 */
+    text-align: center !important;       /* 文字置中 */
+  }
+  
+  .device-item .d-flex.align-items-center.gap-3 > div {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;       /* 文字置中 */
+  }
+  
 }
 
 /* =========================
@@ -1874,12 +1969,23 @@ html:not([data-theme="dark"]) .glass-alert.alert-info {
 /* 響應式調整 */
 @media (max-width: 767.98px) {
   .glass-card {
-    margin: 1rem;
-    border-radius: 12px;
+    margin: 0;                     /* 完全移除所有邊距 */
+    border-radius: 0;              /* 移除圓角，讓卡片貼邊 */
+    width: 100vw;                  /* 全螢幕寬度 */
+    position: relative;            /* 相對定位 */
+    left: 50%;                     /* 向左偏移 50% */
+    right: 50%;                    /* 向右偏移 50% */
+    margin-left: -50vw;            /* 向左偏移視窗寬度的 50% */
+    margin-right: -50vw;           /* 向右偏移視窗寬度的 50% */
+    border-radius: 0;              /* 移除圓角 */
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.05); /* 調整陰影 */
   }
   
   .glass-header {
     padding: 1.25rem 1.5rem 0.75rem;
+    border-radius: 0;              /* 移除標題圓角 */
   }
   
   .glass-header .card-title {
@@ -1893,6 +1999,29 @@ html:not([data-theme="dark"]) .glass-alert.alert-info {
   
   .glass-body {
     padding: 1.5rem;
+    border-radius: 0;              /* 移除內容圓角 */
+  }
+  
+  /* 手機版卡片邊框調整 */
+  .glass-card {
+    border-left: none !important;   /* 移除左邊框 */
+    border-right: none !important;  /* 移除右邊框 */
+  }
+  
+  /* 白天模式手機版卡片邊框 */
+  html:not([data-theme="dark"]) .glass-card {
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  /* 黑夜模式手機版卡片邊框 */
+  [data-theme="dark"] .glass-card {
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
   }
   
   .glass-form .form-control-lg {
@@ -1907,6 +2036,17 @@ html:not([data-theme="dark"]) .glass-alert.alert-info {
   
   .button-group .btn {
     width: 100%;
+  }
+  
+  /* 手機版按鈕大小調整 */
+  .button-group .btn-lg {
+    font-size: 0.9rem !important;
+    padding: 0.5rem 1rem !important;
+  }
+  
+  .glass-card .btn-lg {
+    font-size: 0.9rem !important;
+    padding: 0.5rem 1rem !important;
   }
   
   .glass-alert {
@@ -1941,6 +2081,788 @@ html:not([data-theme="dark"]) .glass-alert.alert-info {
   
   .glass-alert .form-text {
     font-size: 0.75rem !important;
+  }
+}
+
+/* =========================
+   群組詳情頁面樣式
+   ========================= */
+
+/* 區域標題 */
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+html:not([data-theme="dark"]) .section-title {
+  color: #1e293b;
+}
+
+[data-theme="dark"] .section-title {
+  color: #f1f5f9;
+}
+
+/* 區域分隔線 */
+.section-divider {
+  border: none;
+  height: 1px;
+  margin: 2rem 0;
+  opacity: 0.3;
+}
+
+html:not([data-theme="dark"]) .section-divider {
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+}
+
+[data-theme="dark"] .section-divider {
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+/* 毛玻璃表格 */
+.glass-table {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html:not([data-theme="dark"]) .glass-table {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme="dark"] .glass-table {
+  background: rgba(30, 41, 59, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.glass-table .table {
+  margin-bottom: 0;
+}
+
+.glass-table thead th {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 1rem 0.75rem;
+  border-radius: 0;
+}
+
+.glass-table thead th:first-child {
+  border-top-left-radius: 20px;
+}
+
+.glass-table thead th:last-child {
+  border-top-right-radius: 20px;
+}
+
+html:not([data-theme="dark"]) .glass-table thead th {
+  background: rgba(255, 255, 255, 0.8);
+  color: #374151;
+}
+
+[data-theme="dark"] .glass-table thead th {
+  background: rgba(30, 41, 59, 0.1);
+  color: #f8fafc;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.glass-table tbody td {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+  position: relative;
+  border-radius: 0;
+}
+
+.glass-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 20px;
+}
+
+.glass-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 20px;
+}
+
+/* 表格行毛玻璃效果 */
+html:not([data-theme="dark"]) .glass-table tbody tr {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 2px;
+  border-radius: 8px;
+}
+
+html:not([data-theme="dark"]) .glass-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .glass-table tbody tr {
+  background: rgba(30, 41, 59, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 2px;
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .glass-table tbody tr:hover {
+  background: rgba(30, 41, 59, 0.15);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 表格單元格毛玻璃效果 */
+html:not([data-theme="dark"]) .glass-table tbody td {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html:not([data-theme="dark"]) .glass-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] .glass-table tbody td {
+  background: rgba(30, 41, 59, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .glass-table tbody tr:hover td {
+  background: rgba(30, 41, 59, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #f1f5f9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* 黑夜模式表格內特殊元素文字配色 */
+[data-theme="dark"] .glass-table .fw-semibold {
+  color: #f8fafc !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .glass-table .small {
+  color: #cbd5e1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .glass-table .text-secondary {
+  color: #94a3b8 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .glass-table .badge {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  border-radius: 12px !important;
+}
+
+[data-theme="dark"] .glass-table .btn {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border-radius: 10px !important;
+}
+
+/* 白天模式表格內標籤和按鈕配色 */
+html:not([data-theme="dark"]) .glass-table .badge {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px !important;
+}
+
+/* 白天模式 Badge 配色 */
+html:not([data-theme="dark"]) .glass-table .badge.text-bg-info {
+  background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  color: #1e40af !important;
+  border-color: #3b82f6 !important;
+  border-radius: 12px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .badge.text-bg-secondary {
+  background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  color: #475569 !important;
+  border-color: #64748b !important;
+  border-radius: 12px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .badge.bg-success-subtle {
+  background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%) !important;
+  color: #166534 !important;
+  border-color: #22c55e !important;
+  border-radius: 12px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .badge.bg-secondary-subtle {
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  color: #64748b !important;
+  border-color: #94a3b8 !important;
+  border-radius: 12px !important;
+}
+
+/* 白天模式按鈕配色 */
+html:not([data-theme="dark"]) .glass-table .btn {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-width: 1px;
+  font-weight: 500;
+  border-radius: 10px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-outline-danger {
+  background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%) !important;
+  border-color: #ef4444 !important;
+  color: #dc2626 !important;
+  border-radius: 10px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-outline-danger:hover {
+  background: linear-gradient(145deg, #fee2e2 0%, #fecaca 100%) !important;
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-outline-primary {
+  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%) !important;
+  border-color: #3b82f6 !important;
+  color: #2563eb !important;
+  border-radius: 10px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-outline-primary:hover {
+  background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border-color: #2563eb !important;
+  color: #1d4ed8 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-outline-secondary {
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  border-color: #64748b !important;
+  color: #475569 !important;
+  border-radius: 10px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-outline-secondary:hover {
+  background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+  border-color: #475569 !important;
+  color: #334155 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-primary {
+  background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%) !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-radius: 10px !important;
+}
+
+html:not([data-theme="dark"]) .glass-table .btn-primary:hover {
+  background: linear-gradient(145deg, #2563eb 0%, #1d4ed8 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* 表格單元格內部高光 */
+html:not([data-theme="dark"]) .glass-table tbody td::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: 6px;
+}
+
+[data-theme="dark"] .glass-table tbody td::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: 6px;
+}
+
+/* 空狀態 */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  opacity: 0.7;
+}
+
+.empty-state i {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* 可掛入裝置區域 */
+.attachable-devices {
+  margin-bottom: 1rem;
+}
+
+.device-item {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+html:not([data-theme="dark"]) .device-item {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html:not([data-theme="dark"]) .device-item:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .device-item {
+  background: rgba(30, 41, 59, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .device-item:hover {
+  background: rgba(30, 41, 59, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 響應式調整 */
+@media (max-width: 767.98px) {
+  .section-title {
+    font-size: 1.1rem;
+  }
+  
+  /* 手機版表格樣式優化 */
+  .glass-table {
+    font-size: 0.85rem;
+    border-radius: 16px;
+    margin: 0.5rem 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .glass-table .table {
+    min-width: 600px; /* 確保表格有最小寬度 */
+    margin-bottom: 0;
+  }
+  
+  .glass-table thead th {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  
+  .glass-table tbody td {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  
+  /* 手機版表格行圓角調整 */
+  .glass-table tbody tr {
+    border-radius: 6px;
+    margin-bottom: 1px;
+  }
+  
+  /* 手機版表格單元格圓角調整 */
+  .glass-table tbody td::before {
+    border-radius: 4px;
+  }
+  
+  /* 手機版標籤和按鈕調整 */
+  .glass-table .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px !important;
+  }
+  
+  .glass-table .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px !important;
+  }
+  
+  .device-item {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.5rem;                    /* 從 1rem 減少到 0.5rem */
+    padding: 0.75rem 1rem;          /* 減少內距 */
+    margin-bottom: 0.5rem;          /* 減少底部間距 */
+  }
+  
+  .device-item .ms-3 {
+    margin-left: 0 !important;
+    width: 100%;
+    margin-top: 0 !important;       /* 移除頂部間距 */
+    margin-bottom: 0 !important;    /* 移除底部間距 */
+  }
+  
+  .device-item .btn {
+    width: 100%;
+    margin-top: 0.25rem !important; /* 減少按鈕頂部間距 */
+  }
+  
+  /* 手機版裝置項目內容優化 */
+  .device-item .d-flex {
+    gap: 0.5rem !important;         /* 減少內容間距 */
+  }
+  
+  .device-item .flex-grow-1 {
+    min-width: 0;                   /* 允許內容收縮 */
+  }
+  
+  /* 手機版裝置項目文字優化 */
+  .device-item h6 {
+    font-size: 0.9rem !important;   /* 減少標題字體 */
+    margin-bottom: 0.25rem !important; /* 減少標題底部間距 */
+  }
+  
+  .device-item .small {
+    font-size: 0.75rem !important;  /* 減少副標題字體 */
+    margin-bottom: 0 !important;    /* 移除副標題底部間距 */
+  }
+  
+  .empty-state {
+    padding: 1.5rem 1rem;           /* 減少空白狀態內距 */
+  }
+  
+  .empty-state i {
+    font-size: 1.5rem !important;
+  }
+  
+  /* 手機版群組裝置列表優化 */
+  .attachable-devices {
+    gap: 0.5rem !important;         /* 減少裝置列表間距 */
+  }
+  
+  .attachable-devices .row {
+    margin: 0 !important;           /* 移除行間距 */
+  }
+  
+  .attachable-devices .col-md-6 {
+    padding: 0.25rem !important;    /* 減少列間距 */
+  }
+  
+  /* 手機版區塊標題優化 */
+  .section-header {
+    margin-bottom: 1rem !important; /* 減少區塊標題底部間距 */
+  }
+  
+  .section-title {
+    margin-bottom: 0.5rem !important; /* 減少標題底部間距 */
+  }
+  
+  .section-divider {
+    margin: 0.75rem 0 !important;   /* 減少分隔線間距 */
+  }
+  
+  /* 手機版表格容器優化 */
+  .table-responsive {
+    border-radius: 16px;
+    margin: 0.5rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 手機版表格滾動條樣式 */
+  .table-responsive::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+  
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+  }
+  
+  .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  
+  /* 手機版表格標題行固定 */
+  .glass-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  /* 手機版表格行間距調整 */
+  .glass-table tbody tr {
+    margin-bottom: 1px;
+  }
+  
+  /* 手機版表格最後一行圓角 */
+  .glass-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 16px;
+  }
+  
+  .glass-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 16px;
+  }
+}
+
+/* 超小屏幕手機版表格優化 */
+@media (max-width: 575.98px) {
+  .glass-table {
+    font-size: 0.8rem;
+    border-radius: 12px;
+    margin: 0.25rem 0;
+  }
+  
+  .glass-table .table {
+    min-width: 500px;
+  }
+  
+  .glass-table thead th {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.75rem;
+  }
+  
+  .glass-table tbody td {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.75rem;
+  }
+  
+  .glass-table .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px !important;
+  }
+  
+  .glass-table .btn {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px !important;
+  }
+  
+  /* 超小屏幕表格行圓角 */
+  .glass-table tbody tr {
+    border-radius: 4px;
+  }
+  
+  .glass-table tbody td::before {
+    border-radius: 3px;
+  }
+  
+  /* 超小屏幕表格最後一行圓角 */
+  .glass-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+  }
+  
+  .glass-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+  }
+  
+  /* 超小屏幕裝置項目優化 */
+  .device-item {
+    gap: 0.25rem !important;         /* 進一步減少間距 */
+    padding: 0.5rem 0.75rem !important; /* 進一步減少內距 */
+    margin-bottom: 0.25rem !important; /* 進一步減少底部間距 */
+  }
+  
+  .device-item .btn {
+    margin-top: 0.15rem !important;  /* 進一步減少按鈕頂部間距 */
+    padding: 0.25rem 0.5rem !important; /* 減少按鈕內距 */
+  }
+  
+  .device-item .d-flex {
+    gap: 0.25rem !important;         /* 進一步減少內容間距 */
+  }
+  
+  .device-item h6 {
+    font-size: 0.85rem !important;   /* 進一步減少標題字體 */
+    margin-bottom: 0.15rem !important; /* 進一步減少標題底部間距 */
+  }
+  
+  .device-item .small {
+    font-size: 0.7rem !important;    /* 進一步減少副標題字體 */
+  }
+  
+  /* 超小屏幕群組裝置列表進一步優化 */
+  .attachable-devices {
+    gap: 0.25rem !important;         /* 進一步減少裝置列表間距 */
+  }
+  
+  .attachable-devices .col-md-6 {
+    padding: 0.15rem !important;     /* 進一步減少列間距 */
+  }
+  
+  .section-header {
+    margin-bottom: 0.75rem !important; /* 進一步減少區塊標題底部間距 */
+  }
+  
+  .section-title {
+    margin-bottom: 0.25rem !important; /* 進一步減少標題底部間距 */
+  }
+  
+  .section-divider {
+    margin: 0.5rem 0 !important;     /* 進一步減少分隔線間距 */
+  }
+  
+  .empty-state {
+    padding: 1rem 0.75rem !important; /* 進一步減少空白狀態內距 */
+  }
+  
+  /* 超小屏幕 offcanvas-body 進一步修復 */
+  .offcanvas-body {
+    padding: 1rem !important;         /* 適中的內距 */
+    font-size: 0.9rem !important;     /* 稍微減少字體大小 */
+  }
+  
+  .offcanvas-body .device-item {
+    padding: 0.5rem 0.75rem !important; /* 進一步減少裝置項目內距 */
+    font-size: 0.85rem !important;     /* 減少裝置項目字體 */
+  }
+  
+  .offcanvas-body h6 {
+    font-size: 0.9rem !important;     /* 減少標題字體 */
+    margin-bottom: 0.25rem !important; /* 減少標題底部間距 */
+  }
+  
+  .offcanvas-body .small {
+    font-size: 0.75rem !important;    /* 減少副標題字體 */
+  }
+  
+  .offcanvas-body .btn {
+    font-size: 0.8rem !important;     /* 減少按鈕字體 */
+    padding: 0.4rem 0.8rem !important; /* 減少按鈕內距 */
+  }
+  
+  /* 超小屏幕 offcanvas-body flex 布局進一步修復 */
+  .offcanvas-body .device-item {
+    align-items: flex-start !important; /* 確保頂部對齊 */
+  }
+  
+  .offcanvas-body .device-item .d-flex {
+    gap: 0.5rem !important;           /* 進一步減少間距 */
+    align-items: flex-start !important; /* 確保頂部對齊 */
+  }
+  
+  /* 超小屏幕 offcanvas-body 狀態點 - 更具體選擇器 */
+  .offcanvas-body .d-flex .status-dot {
+    margin-top: 0.2rem !important;    /* 微調狀態點位置 */
+    width: 0.5rem !important;         /* 稍微減少狀態點大小 */
+    height: 0.5rem !important;
+    flex-shrink: 0 !important;        /* 防止狀態點被壓縮 */
+    border-radius: 50% !important;    /* 確保圓形 */
+    display: block !important;        /* 確保顯示 */
+    position: relative !important;    /* 確保定位 */
+  }
+  
+  /* 超小屏幕 offcanvas-body 狀態點顏色修復 */
+  .offcanvas-body .status-dot.on {
+    background: var(--bs-success) !important; /* 確保在線狀態顏色 */
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-success), transparent 75%) !important;
+  }
+  
+  .offcanvas-body .status-dot:not(.on) {
+    background: var(--bs-secondary) !important; /* 確保離線狀態顏色 */
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-secondary), transparent 75%) !important;
+  }
+  
+  .offcanvas-body .fw-semibold {
+    font-size: 0.85rem !important;    /* 減少標題字體 */
+    margin-bottom: 0.1rem !important; /* 進一步減少間距 */
+    line-height: 1.1 !important;      /* 更緊湊的行高 */
+  }
+  
+  .offcanvas-body .device-sub {
+    font-size: 0.75rem !important;    /* 進一步減少副標題字體 */
+    line-height: 1.2 !important;      /* 更緊湊的行高 */
+  }
+  
+  .offcanvas-body .text-monospace {
+    font-size: 0.7rem !important;     /* 減少 IP 字體 */
+  }
+  
+  .offcanvas-body .text-success {
+    font-size: 0.7rem !important;     /* 減少狀態字體 */
+  }
+  
+  /* 超小屏幕 offcanvas-body chevron 箭頭修復 */
+  .offcanvas-body .device-item .chev {
+    font-size: 0.9rem !important;     /* 進一步減少箭頭大小 */
+    opacity: 0.6 !important;          /* 調整透明度 */
+    flex-shrink: 0 !important;        /* 防止箭頭被壓縮 */
+    margin-top: 0.2rem !important;    /* 微調垂直位置 */
+    display: flex !important;         /* 確保正確顯示 */
+    align-items: center !important;   /* 垂直居中 */
+    justify-content: center !important; /* 水平居中 */
+  }
+  
+  /* 超小屏幕卡片也跳脫 container */
+  .glass-card {
+    margin: 0 !important;             /* 完全移除所有邊距 */
+    border-radius: 0 !important;      /* 確保無圓角 */
+    width: 100vw !important;          /* 全螢幕寬度 */
+    position: relative !important;    /* 相對定位 */
+    left: 50% !important;             /* 向左偏移 50% */
+    right: 50% !important;            /* 向右偏移 50% */
+    margin-left: -50vw !important;    /* 向左偏移視窗寬度的 50% */
+    margin-right: -50vw !important;   /* 向右偏移視窗寬度的 50% */
+  box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.08),
+      0 1px 4px rgba(0, 0, 0, 0.04) !important; /* 更輕的陰影 */
+  }
+  
+  .glass-header {
+    padding: 1rem 1.25rem 0.5rem !important; /* 進一步減少內距 */
+    border-radius: 0 !important;      /* 確保無圓角 */
+  }
+  
+  .glass-body {
+    padding: 1.25rem !important;      /* 進一步減少內距 */
+    border-radius: 0 !important;      /* 確保無圓角 */
+  }
+  
+  /* 超小屏幕容器也移除 my 邊距 */
+  .container.my-5,
+  .container.mt-4,
+  .container-fluid.py-4,
+  .container-fluid,
+  .py-4,
+  .pt-4,
+  .pb-4 {
+    margin-top: 0 !important;         /* 移除頂部邊距 */
+    margin-bottom: 0 !important;      /* 移除底部邊距 */
+    padding-left: 0.25rem !important; /* 進一步減少左右內距 */
+    padding-right: 0.25rem !important;
+    padding-top: 0 !important;        /* 移除頂部內距 */
+    padding-bottom: 0 !important;     /* 移除底部內距 */
   }
 }
 
@@ -4853,12 +5775,19 @@ html:not([data-theme="dark"]) .card.shadow-sm.rounded-4 .btn-primary:hover {
   }
   
   /* 調整手機版容器邊距和內距 - 大幅壓縮 */
-  .container.my-5 {
-    margin-top: 0.5rem !important;
-    margin-bottom: 0.75rem !important;
+  .container.my-5,
+  .container.mt-4,
+  .container-fluid.py-4,
+  .container-fluid,
+  .py-4,
+  .pt-4,
+  .pb-4 {
+    margin-top: 0 !important;        /* 移除頂部邊距 */
+    margin-bottom: 0 !important;     /* 移除底部邊距 */
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
-    padding-top: 0.5rem !important;
+    padding-top: 0 !important;       /* 移除頂部內距 */
+    padding-bottom: 0 !important;    /* 移除底部內距 */
   }
   
   /* 確保標題沒有上邊距 */
@@ -5649,23 +6578,23 @@ html:not([data-theme="dark"]) .position-absolute.badge.bg-danger {
 /* 桌機版 navbar 字體大小優化 */
 @media (min-width: 768px) {
   .navbar-brand {
-    font-size: 1.8rem !important;
+    font-size: 1.5rem !important;
     font-weight: 700 !important;
   }
   
   .navbar-nav .nav-link {
-    font-size: 1.3rem !important;
+    font-size: 1.1rem !important;
     font-weight: 600 !important;
     padding: 0.6rem 1.2rem !important;
   }
   
   .navbar-text {
-    font-size: 1.2rem !important;
+    font-size: 1rem !important;
     font-weight: 500 !important;
   }
   
   .navbar-nav .btn {
-    font-size: 1.2rem !important;
+    font-size: 1rem !important;
     font-weight: 600 !important;
     padding: 0.6rem 1.4rem !important;
   }
@@ -5683,20 +6612,20 @@ html:not([data-theme="dark"]) .position-absolute.badge.bg-danger {
 /* 大螢幕 (≥ 1200px) 進一步增大字體 */
 @media (min-width: 1200px) {
   .navbar-brand {
-    font-size: 2rem !important;
+    font-size: 1.7rem !important;
   }
   
   .navbar-nav .nav-link {
-    font-size: 1.4rem !important;
+    font-size: 1.2rem !important;
     padding: 0.7rem 1.4rem !important;
   }
   
   .navbar-text {
-    font-size: 1.3rem !important;
+    font-size: 1.1rem !important;
   }
   
   .navbar-nav .btn {
-    font-size: 1.3rem !important;
+    font-size: 1.1rem !important;
     padding: 0.7rem 1.6rem !important;
   }
   
@@ -5807,23 +6736,9 @@ html[data-theme="dark"] body .collapse .table-responsive {
     padding: 0.5rem 0 !important;
   }
   
-  /* 手機版 offcanvas 黑夜模式強制覆蓋 */
-  html[data-theme="dark"] body .offcanvas,
-  html[data-theme="dark"] .offcanvas {
-    background: rgba(30, 41, 59, 0.15) !important;
-    background-color: rgba(30, 41, 59, 0.15) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    border-right: 1px solid rgba(71, 85, 105, 0.2) !important;
-  }
   
-  html[data-theme="dark"] body .offcanvas-body,
-  html[data-theme="dark"] .offcanvas-body {
-    background: rgba(30, 41, 59, 0.12) !important;
-    background-color: rgba(30, 41, 59, 0.12) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  }
+  
+  
   
   /* 手機版 techno-card 黑夜模式強制覆蓋 */
   html[data-theme="dark"] body .techno-card,
@@ -5857,12 +6772,4 @@ html[data-theme="dark"] body .collapse .table-responsive {
     border-bottom: 1px solid rgba(71, 85, 105, 0.15) !important;
   }
   
-  /* 超小螢幕 offcanvas 寬度調整 */
-  html[data-theme="dark"] .offcanvas {
-    --bs-offcanvas-width: 90vw !important;
-    background: rgba(30, 41, 59, 0.15) !important;
-    background-color: rgba(30, 41, 59, 0.15) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  }
 }

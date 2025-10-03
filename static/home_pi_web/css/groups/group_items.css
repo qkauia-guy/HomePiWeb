@@ -12,26 +12,60 @@
   padding: 0;
 }
 
-/* 卡片 */
-.groups-scope .device-item {
-  border: 1px solid var(--bs-border-color);
+/* 卡片 - 白天模式毛玻璃效果 */
+html:not([data-theme="dark"]) .groups-scope .device-item {
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--card-bg);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
   display: flex;
   align-items: center;
   justify-content: space-between;
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
   text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 卡片 - 黑夜模式毛玻璃效果 */
+html[data-theme="dark"] .groups-scope .device-item {
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(30, 41, 59, 0.3);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 .groups-scope .device-item.toggleable {
   cursor: pointer;
   user-select: none;
 }
-.groups-scope .device-item:hover,
-.groups-scope .device-item:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+/* hover/active 效果 - 白天模式 */
+html:not([data-theme="dark"]) .groups-scope .device-item:hover,
+html:not([data-theme="dark"]) .groups-scope .device-item:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+/* hover/active 效果 - 黑夜模式 */
+html[data-theme="dark"] .groups-scope .device-item:hover,
+html[data-theme="dark"] .groups-scope .device-item:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
 }
 .groups-scope .device-item:focus-visible {
@@ -88,7 +122,7 @@
 
 @media (max-width: 576px) {
   .groups-scope .device-item {
-    padding: 0.65rem 0.85rem;
+    padding: 1rem 3rem !important;    /* 與 base.css 中的設定同步 */
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -126,6 +160,6 @@
 }
 
 [data-theme="dark"] .groups-scope .status-dot.on {
-  background: #51cf66 !important;
-  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.5), 0 0 12px rgba(81, 207, 102, 0.6), 0 0 20px rgba(81, 207, 102, 0.3) !important;
+  background: #fbbf24 !important;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5), 0 0 12px rgba(251, 191, 36, 0.7), 0 0 20px rgba(251, 191, 36, 0.4) !important;
 }
