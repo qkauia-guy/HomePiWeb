@@ -123,8 +123,6 @@ def offcanvas_list(request):
 def device_edit(request, pk):
     device = get_object_or_404(Device, pk=pk)
     if device.user_id != request.user.id:
-        if request.headers.get('Content-Type') == 'application/json' or request.POST.get('format') == 'json':
-            return JsonResponse({"success": False, "message": "你沒有權限編輯這台裝置。"})
         return HttpResponseForbidden("你沒有權限編輯這台裝置。")
 
     old_name_display = (
@@ -133,80 +131,51 @@ def device_edit(request, pk):
         else getattr(device, "name", "")
     )
     if request.method == "POST":
-        # 檢查是否為 AJAX 請求
-        is_ajax = (
-            request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
-            request.headers.get('Content-Type', '').startswith('multipart/form-data') or
-            'application/json' in request.headers.get('Accept', '')
-        )
-        
-        if is_ajax:
-            # 處理 SweetAlert 的 AJAX 請求
-            try:
-                display_name = request.POST.get('display_name', '').strip()
-                
-                # 更新裝置名稱
-                device.display_name = display_name
-                device.save()
-                
-                return JsonResponse({
-                    "success": True,
-                    "message": "裝置名稱已更新"
-                })
-            except Exception as e:
-                import traceback
-                return JsonResponse({
-                    "success": False,
-                    "message": f"更新失敗：{str(e)}",
-                    "debug": traceback.format_exc()
-                })
-        else:
-            # 原有的表單處理邏輯
-            form = DeviceNameForm(request.POST, instance=device)
-            if form.is_valid():
-                changed = set(form.changed_data)
-                form.save()
-                new_name_display = (
-                    device.name()
-                    if callable(getattr(device, "name", None))
-                    else getattr(device, "name", "")
-                )
-                if (old_name_display != new_name_display) and (
-                    {"name", "display_name", "label"} & changed
-                ):
-                    try:
-                        if any(
-                            getattr(f, "name", None) == "device_name_cache"
-                            for f in GroupDevice._meta.get_fields()
-                        ):
-                            GroupDevice.objects.filter(device=device).update(
-                                device_name_cache=new_name_display or ""
-                            )
-                    except Exception:
-                        pass
+        form = DeviceNameForm(request.POST, instance=device)
+        if form.is_valid():
+            changed = set(form.changed_data)
+            form.save()
+            new_name_display = (
+                device.name()
+                if callable(getattr(device, "name", None))
+                else getattr(device, "name", "")
+            )
+            if (old_name_display != new_name_display) and (
+                {"name", "display_name", "label"} & changed
+            ):
+                try:
+                    if any(
+                        getattr(f, "name", None) == "device_name_cache"
+                        for f in GroupDevice._meta.get_fields()
+                    ):
+                        GroupDevice.objects.filter(device=device).update(
+                            device_name_cache=new_name_display or ""
+                        )
+                except Exception:
+                    pass
 
-                    def _after_commit():
-                        notify_device_renamed(
+                def _after_commit():
+                    notify_device_renamed(
+                        device=device,
+                        owner=request.user,
+                        old_name=old_name_display or "",
+                        new_name=new_name_display or "",
+                        actor=request.user,
+                    )
+                    for gd in GroupDevice.objects.filter(device=device).select_related(
+                        "group"
+                    ):
+                        notify_group_device_renamed(
+                            actor=request.user,
+                            group=gd.group,
                             device=device,
-                            owner=request.user,
                             old_name=old_name_display or "",
                             new_name=new_name_display or "",
-                            actor=request.user,
                         )
-                        for gd in GroupDevice.objects.filter(device=device).select_related(
-                            "group"
-                        ):
-                            notify_group_device_renamed(
-                                actor=request.user,
-                                group=gd.group,
-                                device=device,
-                                old_name=old_name_display or "",
-                                new_name=new_name_display or "",
-                            )
 
-                    transaction.on_commit(_after_commit)
-                messages.success(request, "已更新裝置名稱。")
-                return redirect("home")
+                transaction.on_commit(_after_commit)
+            messages.success(request, "已更新裝置名稱。")
+            return redirect("home")
     else:
         form = DeviceNameForm(instance=device)
     return render(
