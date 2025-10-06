@@ -600,6 +600,136 @@ button[aria-expanded='true'] .toggle-icon {
 .spinner-industrial.lg { --size: 1.3rem; --ring: 3px;   --speed: 1000ms; }
 
 /* =========================
+   操作訊息樣式設計
+   ========================= */
+
+/* 操作訊息容器 - 毛玻璃效果 */
+#ajaxMsg {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  padding: 1rem 1.5rem !important;
+  margin: 1rem 0 !important;
+  font-weight: 500 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* 操作訊息動畫效果 */
+#ajaxMsg {
+  animation: slideInDown 0.4s ease-out !important;
+}
+
+@keyframes slideInDown {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 成功訊息樣式 */
+#ajaxMsg.alert-success {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #065f46 !important;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2), 0 4px 12px rgba(34, 197, 94, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 警告訊息樣式 */
+#ajaxMsg.alert-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #92400e !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2), 0 4px 12px rgba(245, 158, 11, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 錯誤訊息樣式 */
+#ajaxMsg.alert-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #991b1b !important;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2), 0 4px 12px rgba(239, 68, 68, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 資訊訊息樣式 */
+#ajaxMsg.alert-info {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #1e40af !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 黑夜模式操作訊息樣式 */
+[data-theme='dark'] #ajaxMsg {
+  background: rgba(30, 41, 59, 0.2) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 黑夜模式成功訊息 */
+[data-theme='dark'] #ajaxMsg.alert-success {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  color: #6ee7b7 !important;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3), 0 4px 16px rgba(34, 197, 94, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式警告訊息 */
+[data-theme='dark'] #ajaxMsg.alert-warning {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3), 0 4px 16px rgba(245, 158, 11, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式錯誤訊息 */
+[data-theme='dark'] #ajaxMsg.alert-danger {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3), 0 4px 16px rgba(239, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式資訊訊息 */
+[data-theme='dark'] #ajaxMsg.alert-info {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  color: #93c5fd !important;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3), 0 4px 16px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 手機版操作訊息優化 */
+@media (max-width: 767.98px) {
+  #ajaxMsg {
+    padding: 0.75rem 1rem !important;
+    margin: 0.75rem 0 !important;
+    font-size: 0.9rem !important;
+    border-radius: 10px !important;
+  }
+}
+
+/* =========================
    黑暗模式毛玻璃效果覆蓋
    ========================= */
 
