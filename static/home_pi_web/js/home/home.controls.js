@@ -50,6 +50,17 @@
       const response = await post(url, fd);
       console.log('請求成功:', response);
       
+      // 檢查回應是否為 JSON 格式
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const data = await response.json();
+        App.showMessagesFromJson(data);
+      } else if (response.ok) {
+        // 顯示成功訊息
+        const action = el.id.includes('unlock') ? '開鎖' : '上鎖';
+        App.toast(`電子鎖${action}成功`, true);
+      }
+      
       // 觸發狀態卡片更新
       setTimeout(() => {
         if (window.HomeUI?.triggerStatusUpdate) {
@@ -62,7 +73,8 @@
       }, 50); // 縮短延遲
     } catch (e) {
       console.error('請求失敗:', e);
-      alert('操作失敗，請再試一次：' + e.message);
+      const action = el.id.includes('unlock') ? '開鎖' : '上鎖';
+      App.toast(`電子鎖${action}失敗：${e.message}`, false);
     } finally {
       el.disabled = false;
     }
@@ -82,7 +94,18 @@
       if (el.dataset.next !== undefined) fd.append('next', el.dataset.next);
 
       try {
-        await post(url, fd);
+        const resp = await post(url, fd);
+        
+        // 檢查回應是否為 JSON 格式
+        const ct = resp.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const data = await resp.json();
+          App.showMessagesFromJson(data);
+        } else if (resp.ok) {
+          // 顯示成功訊息
+          const action = el.checked ? '開鎖' : '上鎖';
+          App.toast(`電子鎖${action}成功`, true);
+        }
         
         // 更新狀態文字和圖示（支援桌面版和手機版）
         const statusContainers = document.querySelectorAll('#lockerCard .text-muted .lock-status-text');
@@ -118,7 +141,8 @@
       } catch (e) {
         const was = !el.checked;
         el.checked = was;
-        alert('操作失敗，請再試一次：' + e.message);
+        const action = el.checked ? '開鎖' : '上鎖';
+        App.toast(`電子鎖${action}失敗：${e.message}`, false);
       } finally {
         el.disabled = false;
       }

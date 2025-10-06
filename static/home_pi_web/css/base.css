@@ -2353,7 +2353,12 @@ html:not([data-theme='dark']) .glass-table {
 }
 
 [data-theme='dark'] .glass-table {
-  background: rgba(30, 41, 59, 0.05); /* 進一步降低背景透明度，讓彩虹邊框更明顯 */
+  background: rgba(
+    30,
+    41,
+    59,
+    0.05
+  ); /* 進一步降低背景透明度，讓彩虹邊框更明顯 */
   backdrop-filter: blur(25px) saturate(150%);
   -webkit-backdrop-filter: blur(25px) saturate(150%);
 }
@@ -4321,8 +4326,6 @@ html[data-theme='dark'] .offcanvas {
   }
 }
 
-
-
 /* 白天模式 offcanvas-header 毛玻璃效果 */
 .offcanvas-header {
   background: rgba(255, 255, 255, 0.45) !important;
@@ -4611,7 +4614,7 @@ html[data-theme='dark'] #offcanvas-devices-body {
     z-index: 2147483645 !important;
     position: fixed !important;
     top: 60px !important;
-    right: 20px !important;
+    right: 40px !important; /* 增加右邊距離從 20px 到 40px */
   }
   
   /* 強制重置輪播和所有可能干擾的元素 */
@@ -4710,6 +4713,262 @@ html[data-theme='dark'] #offcanvas-devices-body {
   border-color: var(--border-color);
   opacity: 0.3;
 }
+
+/* ajaxMsg 毛玻璃效果 - 高優先級 */
+#ajaxMsg {
+  background: rgba(255, 0, 0, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 3px solid rgba(255, 0, 0, 1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(255, 0, 0, 0.5), 0 4px 12px rgba(255, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  padding: 1rem 1.5rem !important;
+  margin: 1rem 0 !important;
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: white !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+/* ajaxMsg 成功訊息毛玻璃效果 */
+#ajaxMsg.alert-success {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #065f46 !important;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2), 0 4px 12px rgba(34, 197, 94, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ajaxMsg 警告訊息毛玻璃效果 */
+#ajaxMsg.alert-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #92400e !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2), 0 4px 12px rgba(245, 158, 11, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ajaxMsg 錯誤訊息毛玻璃效果 */
+#ajaxMsg.alert-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #991b1b !important;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2), 0 4px 12px rgba(239, 68, 68, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ajaxMsg 資訊訊息毛玻璃效果 */
+#ajaxMsg.alert-info {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #1e40af !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 黑夜模式 ajaxMsg 毛玻璃效果 */
+[data-theme='dark'] #ajaxMsg {
+  background: rgba(30, 41, 59, 0.2) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 黑夜模式 ajaxMsg 成功訊息毛玻璃效果 */
+[data-theme='dark'] #ajaxMsg.alert-success {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  color: #6ee7b7 !important;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3), 0 4px 16px rgba(34, 197, 94, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式 ajaxMsg 警告訊息毛玻璃效果 */
+[data-theme='dark'] #ajaxMsg.alert-warning {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3), 0 4px 16px rgba(245, 158, 11, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式 ajaxMsg 錯誤訊息毛玻璃效果 */
+[data-theme='dark'] #ajaxMsg.alert-danger {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3), 0 4px 16px rgba(239, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式 ajaxMsg 資訊訊息毛玻璃效果 */
+[data-theme='dark'] #ajaxMsg.alert-info {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  color: #93c5fd !important;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3), 0 4px 16px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Bootstrap Alert 毛玻璃效果 */
+.alert {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  font-weight: 500 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Bootstrap Alert 成功訊息毛玻璃效果 */
+.alert-success {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #065f46 !important;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2), 0 4px 12px rgba(34, 197, 94, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Bootstrap Alert 警告訊息毛玻璃效果 */
+.alert-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #92400e !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2), 0 4px 12px rgba(245, 158, 11, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Bootstrap Alert 錯誤訊息毛玻璃效果 */
+.alert-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #991b1b !important;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2), 0 4px 12px rgba(239, 68, 68, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Bootstrap Alert 資訊訊息毛玻璃效果 */
+.alert-info {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #1e40af !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 黑夜模式 Bootstrap Alert 毛玻璃效果 */
+[data-theme='dark'] .alert {
+  background: rgba(30, 41, 59, 0.8) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.4) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 黑夜模式 Bootstrap Alert 成功訊息毛玻璃效果 */
+[data-theme='dark'] .alert-success {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  color: #6ee7b7 !important;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3), 0 4px 16px rgba(34, 197, 94, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式 Bootstrap Alert 警告訊息毛玻璃效果 */
+[data-theme='dark'] .alert-warning {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3), 0 4px 16px rgba(245, 158, 11, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式 Bootstrap Alert 錯誤訊息毛玻璃效果 */
+[data-theme='dark'] .alert-danger {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3), 0 4px 16px rgba(239, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式 Bootstrap Alert 資訊訊息毛玻璃效果 */
+[data-theme='dark'] .alert-info {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  color: #93c5fd !important;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3), 0 4px 16px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Bootstrap Toast 毛玻璃效果 */
+.toast {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 6px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  font-weight: 500 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Bootstrap Toast 成功訊息毛玻璃效果 */
+.toast.bg-success {
+  background: rgba(34, 197, 94, 0.9) !important;
+  border-color: rgba(34, 197, 94, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(34, 197, 94, 0.3), 0 6px 16px rgba(34, 197, 94, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Bootstrap Toast 錯誤訊息毛玻璃效果 */
+.toast.bg-danger {
+  background: rgba(239, 68, 68, 0.9) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.3), 0 6px 16px rgba(239, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 黑夜模式 Bootstrap Toast 毛玻璃效果 */
+[data-theme='dark'] .toast {
+  background: rgba(30, 41, 59, 0.9) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.4) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 黑夜模式 Bootstrap Toast 成功訊息毛玻璃效果 */
+[data-theme='dark'] .toast.bg-success {
+  background: rgba(34, 197, 94, 0.8) !important;
+  border-color: rgba(34, 197, 94, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(34, 197, 94, 0.4), 0 6px 16px rgba(34, 197, 94, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 黑夜模式 Bootstrap Toast 錯誤訊息毛玻璃效果 */
+[data-theme='dark'] .toast.bg-danger {
+  background: rgba(239, 68, 68, 0.8) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.4), 0 6px 16px rgba(239, 68, 68, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+
 
 /* 黑夜模式下的警告框 */
 [data-theme='dark'] .alert {
@@ -5523,6 +5782,39 @@ html:not([data-theme='dark']) .card.shadow-sm.rounded-4 .btn-primary:hover {
 [data-theme='dark'] .groups-scope .device-item {
   background-color: var(--card-bg);
   border-color: var(--card-border);
+}
+
+/* 裝置編輯頁面按鈕樣式優化 */
+.button-group {
+  margin-top: 1.5rem;
+}
+
+.button-group .btn {
+  min-width: 100px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.button-group .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 手機版按鈕優化 */
+@media (max-width: 767.98px) {
+  .button-group {
+    flex-direction: column;
+    gap: 0.75rem !important;
+  }
+  
+  .button-group .btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+
   color: var(--text-primary);
 }
 
@@ -6172,10 +6464,10 @@ html:not([data-theme='dark']) .card.shadow-sm.rounded-4 .btn-primary:hover {
 /* 手機版裝置狀態記錄優化 */
 @media (max-width: 767.98px) {
   /* 隱藏手機版所有標籤和選擇功能下拉選單 */
-  label[for="capSelect"],
+  label[for='capSelect'],
   #capSelect,
-  label[for="groupSelect"],
-  label[for="deviceSelect"] {
+  label[for='groupSelect'],
+  label[for='deviceSelect'] {
     display: none !important;
   }
 
@@ -6549,7 +6841,37 @@ html:not([data-theme='dark']) .card.shadow-sm.rounded-4 .btn-primary:hover {
     padding-top: 0 !important; /* 移除頂部內距 */
     padding-bottom: 0 !important; /* 移除底部內距 */
   }
-  
+
+  /* 手機版卡片增加 margin-top */
+  .card {
+    margin-top: 1rem !important;
+  }
+
+  /* 手機版狀態卡片例外 - 移除 margin-top */
+  .status-cards-container .card,
+  .techno-card {
+    margin-top: 0 !important;
+  }
+
+  /* 手機版狀態卡片容器保持原有設定 */
+  .status-cards-container {
+    margin-top: 0.25rem !important; /* 保持原有的壓縮設定 */
+  }
+
+  /* 手機版裝置狀態記錄容器增加 margin-top */
+  #deviceLogsWrapper {
+    margin-top: 2rem !important; /* 添加 mt-3 效果 */
+  }
+
+  /* 手機版登入、註冊、忘記密碼頁面增加 margin-top */
+  /* 使用 body 類別來識別特定頁面 */
+  body.login .container.my-5,
+  body.register .container.my-5,
+  body.password-reset .container.my-5,
+  body.password-reset-confirm .container.my-5 {
+    margin-top: 25px !important;
+  }
+
   /* 為標題添加上下邊距和樣式 */
   .container.my-5 h4:first-child {
     margin-top: 1rem !important;
@@ -6918,6 +7240,7 @@ html:not([data-theme='dark']) #sideBarGroupsLabel::after {
   #ajaxMsg.mt-3 {
     margin-top: 0.75rem !important;
   }
+  
   
   #capForms.mt-4 {
     margin-top: 0.5rem !important;
