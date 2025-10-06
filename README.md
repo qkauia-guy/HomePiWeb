@@ -77,13 +77,143 @@ python manage.py runserver 0.0.0.0:8800
 
 ## 前端與靜態資源
 
-- 前端靜態資源位於 `static/home_pi_web/`
-- Django 模板位於 `templates/`
-- 若有使用 `collectstatic`（生產環境）：
+### 技術架構
+
+- **模板引擎**：Django Templates
+- **CSS 框架**：Bootstrap 5.3.3 + 自訂 CSS
+- **JavaScript**：原生 ES6+ JavaScript（模組化設計）
+- **圖表庫**：Chart.js
+- **通知系統**：SweetAlert2
+- **圖示**：Bootstrap Icons
+
+### 目錄結構
+
+```
+static/home_pi_web/
+├── css/
+│   ├── base.css          # 基礎樣式、主題切換、響應式設計
+│   ├── home.css          # 首頁專用樣式
+│   └── groups/           # 群組相關樣式
+├── js/
+│   ├── base.js           # 基礎功能、主題切換
+│   ├── SweetAlert2.js    # 通知系統
+│   ├── home/             # 首頁功能模組
+│   │   ├── home.init.js      # 初始化
+│   │   ├── home.controls.js  # 設備控制
+│   │   ├── home.polling.js   # 狀態輪詢
+│   │   ├── home.chart.js     # 圖表功能
+│   │   ├── home.mobile.js    # 手機版適配
+│   │   └── ...
+│   ├── groups/           # 群組功能
+│   └── users/            # 使用者功能
+└── images/               # 靜態圖片資源
+
+templates/
+├── base.html             # 基礎模板
+├── home/                 # 首頁模板
+├── groups/               # 群組模板
+├── users/                # 使用者模板
+└── pi_devices/           # 設備模板
+```
+
+### 主要功能模組
+
+#### 1. 主題系統
+- **黑夜/白天模式**：自動偵測系統偏好，支援手動切換
+- **響應式設計**：桌面版和手機版適配
+- **毛玻璃效果**：現代化 UI 設計
+
+#### 2. 設備控制
+- **即時控制**：LED 開關、電子鎖控制
+- **狀態監控**：設備線上狀態、心跳檢測
+- **圖表展示**：設備使用統計、效能監控
+
+#### 3. 群組管理
+- **動態載入**：AJAX 群組和設備選擇
+- **權限控制**：基於角色的功能顯示
+- **邀請系統**：QR Code 分享、權限設定
+
+#### 4. 通知系統
+- **SweetAlert2 整合**：美觀的彈窗通知
+- **主題適配**：自動適應黑夜/白天模式
+- **訊息分類**：成功、警告、錯誤訊息
+
+### 開發指南
+
+#### 新增頁面樣式
+
+```css
+/* 在 static/home_pi_web/css/ 中新增樣式檔案 */
+/* 遵循現有的 CSS 變數和命名規範 */
+.custom-component {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+```
+
+#### 新增 JavaScript 功能
+
+```javascript
+// 在 static/home_pi_web/js/ 中新增模組
+// 遵循現有的模組化設計
+(function() {
+  'use strict';
+  
+  // 模組功能實作
+  function initCustomFeature() {
+    // 功能邏輯
+  }
+  
+  // 初始化
+  document.addEventListener('DOMContentLoaded', initCustomFeature);
+})();
+```
+
+#### 模板開發
+
+```html
+<!-- 在 templates/ 中新增模板 -->
+<!-- 繼承 base.html 並使用現有的 CSS 類別 -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'home_pi_web/css/custom.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- 使用 Bootstrap 和自訂 CSS 類別 -->
+  <div class="glass-card">
+    <div class="card-body">
+      <!-- 內容 -->
+    </div>
+  </div>
+</div>
+{% endblock %}
+```
+
+### 生產環境部署
 
 ```bash
+# 收集靜態檔案
 python manage.py collectstatic --noinput
+
+# 設定靜態檔案服務（Nginx 範例）
+location /static/ {
+    alias /path/to/static/;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
 ```
+
+### 效能優化
+
+- **CSS/JS 壓縮**：使用 `collectstatic` 收集並壓縮
+- **圖片優化**：使用適當的圖片格式和尺寸
+- **快取策略**：設定適當的 HTTP 快取標頭
+- **CDN 整合**：Bootstrap 和圖示使用 CDN 載入
 
 ---
 
@@ -91,16 +221,105 @@ python manage.py collectstatic --noinput
 
 `pi_agent/` 提供裝置偵測、HTTP 代理、HLS 串流與排程等服務，設定檔位於 `pi_agent/config/homepi.yml`。
 
-### 1. 在樹梅派建立環境
+### 1. 樹梅派環境準備
+
+#### 安裝必要套件
 
 ```bash
-# 將專案同步到樹梅派後，在樹梅派上：
-cd ~/HomePiWeb
-conda env create -n homepi -f pi_agent/environment.yml
-conda activate homepi
+# 系統套件
+sudo apt-get install -y python3-gpiozero python3-lgpio python3-smbus python3-libgpiod i2c-tools
+sudo apt install nginx -y
+sudo apt update && sudo apt install -y pigpio
+
+# Python 套件
+pip3 install smbus2 pyyaml python-dotenv adafruit-circuitpython-dht psutil
 ```
 
-### 2. 測試執行 HTTP 代理與 HLS 串流
+#### 設定 GPIO 權限
+
+```bash
+# 加入必要群組
+sudo adduser $USER dialout
+sudo adduser $USER gpio
+
+# 設定目錄權限
+sudo chown -R $USER:$USER /home/$USER/pi_agent
+```
+
+#### 安裝 Conda 環境
+
+```bash
+# 下載 Miniforge (64-bit ARM 版本，適用 Raspberry Pi 4/5)
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-aarch64.sh
+chmod +x Miniforge3-Linux-aarch64.sh
+./Miniforge3-Linux-aarch64.sh
+
+# 啟用 Conda
+source ~/miniforge3/etc/profile.d/conda.sh
+
+# 建立環境
+conda create -n HomePiWeb python=3.11 -y
+conda activate HomePiWeb
+```
+
+### 2. 專案部署
+
+#### 同步專案到樹梅派
+
+```bash
+# 方法一：使用 rsync（推薦）
+rsync -avz /path/to/HomePiWeb/pi_agent/ <樹梅派IP>:/home/<username>/pi_agent/
+
+# 方法二：使用 robocopy（Windows）
+robocopy C:\path\to\HomePiWeb\pi_agent \\<樹梅派IP>\pi_agent /MIR
+```
+
+#### 設定環境變數
+
+```bash
+cd /home/$USER/pi_agent
+nano .env
+```
+
+在 `.env` 檔案中設定：
+```
+SERIAL_NUMBER=PI-XXXXXXXX
+TOKEN=your_device_token
+SERVER_URL=http://your-server-ip:8800
+```
+
+### 3. 設備序號綁定
+
+#### 在本地專案建立設備
+
+```bash
+python manage.py shell
+```
+
+```python
+from pi_devices.models import Device
+from pi_devices.utils.qrcode_utils import generate_device_qrcode
+
+# 建立新設備
+device = Device.objects.create()
+print(f"序號: {device.serial_number}")
+print(f"Token: {device.token}")
+print(f"驗證碼: {device.verification_code}")
+
+# 產生 QR Code
+file_path = generate_device_qrcode(device)
+print(f"QR Code 已儲存於: {file_path}")
+```
+
+#### 掃描 QR Code 綁定
+
+1. 掃描產生的 QR Code
+2. 導向註冊頁面，系統會自動填入序號和驗證碼
+3. 完成註冊後設備會自動綁定
+
+### 4. 啟動服務
+
+#### 測試執行
 
 ```bash
 # 啟動 HTTP 代理（測試）
@@ -110,16 +329,81 @@ python pi_agent/http_agent.py
 python pi_agent/serve_hls.py
 ```
 
-### 3. 設定 systemd 服務（生產建議）
+#### 設定 systemd 服務（生產環境）
 
 專案內含服務範本（`pi_agent/說明文件/systemd檔案/`）：
 
-- `homepi-http-agent@.service`
-- `homepi-hls@.service`
-- `homepi-hls-www@.service`
-- `homepi-scheduler@.service`
+- `homepi-http-agent@.service` - HTTP 代理服務
+- `homepi-hls@.service` - HLS 串流服務
+- `homepi-hls-www@.service` - 輕量級網頁伺服器
+- `homepi-scheduler@.service` - 排程服務
 
-請依照 `pi_agent/說明文件/*.md` 指南安裝與啟用。
+安裝步驟：
+
+```bash
+# 複製服務檔案
+sudo cp pi_agent/說明文件/systemd檔案/*.service /etc/systemd/system/
+
+# 重新載入 systemd
+sudo systemctl daemon-reload
+
+# 啟用並啟動服務
+sudo systemctl enable homepi-http-agent@$USER.service
+sudo systemctl enable homepi-hls@$USER.service
+sudo systemctl enable homepi-scheduler@$USER.service
+
+sudo systemctl start homepi-http-agent@$USER.service
+sudo systemctl start homepi-hls@$USER.service
+sudo systemctl start homepi-scheduler@$USER.service
+
+# 檢查服務狀態
+sudo systemctl status homepi-http-agent@$USER.service
+```
+
+### 5. 進階設定
+
+#### HLS 自動清理腳本
+
+```bash
+# 建立清理腳本
+cat > cleanup_hls.sh << 'EOF'
+#!/bin/bash
+STREAM_DIR="/home/$USER/pi_agent/stream"
+MAX_SIZE="5M"
+
+echo "$(date): 開始清理 HLS 檔案..."
+LARGE_FILES=$(find "$STREAM_DIR" -name "seg_*.ts" -size +$MAX_SIZE -type f)
+
+if [ -n "$LARGE_FILES" ]; then
+    echo "$LARGE_FILES" | xargs rm -f
+    echo "已刪除異常大的 HLS 片段檔案"
+fi
+
+echo "$(date): HLS 清理完成"
+EOF
+
+chmod +x cleanup_hls.sh
+
+# 設定自動執行（每 10 分鐘）
+echo "*/10 * * * * /home/$USER/pi_agent/cleanup_hls.sh >> /home/$USER/pi_agent/cleanup.log 2>&1" | crontab -
+```
+
+#### 詳細設定指南
+
+更多詳細設定請參考 `pi_agent/說明文件/` 目錄下的文件：
+
+- [01本地環境設定.md](pi_agent/說明文件/01本地環境設定.md) - 本地開發環境設定
+- [02樹梅派環境設定.md](pi_agent/說明文件/02樹梅派環境設定.md) - 樹梅派環境完整設定
+- [03樹梅派序號綁定.md](pi_agent/說明文件/03樹梅派序號綁定.md) - 設備序號綁定流程
+- [04HTTP代理程式(homepi-http-agent@.service).md](pi_agent/說明文件/04HTTP代理程式(homepi-http-agent@.service).md) - HTTP 代理服務設定
+- [05HLS影片串流服務(homepi-hls@.service).md](pi_agent/說明文件/05HLS影片串流服務(homepi-hls@.service).md) - HLS 串流服務設定
+- [06啟動輕量級的網頁伺服器(homepi-hls-www@.service).md](pi_agent/說明文件/06啟動輕量級的網頁伺服器(homepi-hls-www@.service).md) - 網頁伺服器設定
+- [07排程服務(homepi-scheduler@.service).md](pi_agent/說明文件/07排程服務(homepi-scheduler@.service).md) - 排程服務設定
+- [08多台裝置同步誤動作排查.md](pi_agent/說明文件/08多台裝置同步誤動作排查.md) - 故障排除指南
+- [HLS自動清理腳本設定指南.md](pi_agent/說明文件/HLS自動清理腳本設定指南.md) - HLS 檔案自動清理設定
+- [快速設定腳本.md](pi_agent/說明文件/快速設定腳本.md) - 快速部署腳本
+- [pi裝置擴充設定說明.md](pi_agent/說明文件/pi裝置擴充設定說明.md) - 裝置功能擴充指南
+- [樹梅派專案結構_詳細註解.md](pi_agent/說明文件/樹梅派專案結構_詳細註解.md) - 專案結構詳細說明
 
 ---
 
@@ -183,10 +467,6 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
   - `fix: 修正問題`
   - `docs: 文件更新`
   - 其餘可依照標準延伸（如 `refactor:`, `test:`, `chore:`）
-- 發 PR 時請附上：
-  - 功能說明與影響範圍
-  - 測試結果（含手動測試步驟或自動化測試輸出）
-  - 若涉及 DB 遷移或設定變更，請明確說明
 
 ---
 
@@ -198,48 +478,65 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
 
 ---
 
-## 授權
-
-未指定，請依內部政策或後續補充。
-
----
-
 ## 設備開通與綁定流程（QR 綁定）
 
 以下為設備出廠到使用者綁定的標準流程：
 
-1. 設備出廠
-   - 樹梅派（或 ESP32）具唯一設備 ID、初始密碼與 QR Code（可編碼為網址 + token）
-   - 例：`https://example.com/bind?token=abc123`
-2. 用戶掃碼
+1. **設備出廠**
+
+   - 樹梅派具唯一設備序號（格式：`PI-XXXXXXXX`）、驗證碼與 QR Code
+   - QR Code 包含註冊 URL：`http://[伺服器IP]:8800/register/?serial=[序號]&code=[驗證碼]`
+   - 例：`http://172.28.232.36:8800/register/?serial=PI-12345678&code=ABC123`
+
+2. **用戶掃碼**
+
    - 掃描 QR Code → 導向「用戶註冊與開通設備頁」
-3. 驗證設備密碼
+   - 系統自動填入序號與驗證碼到表單中
+
+3. **驗證設備資訊**
+
+   - 系統驗證序號與驗證碼是否匹配
+   - 確認設備尚未被綁定（`is_bound=False`）
    - 確認為合法擁有者，避免隨意綁定
-4. 綁定帳號 + 開通設備
-   - 建立 `Device.user_id = request.user.id`，並將設備設為啟用
-5. 通知樹梅派設備
-   - 後端對設備 IP 發送 ping/POST，讓設備得知「被誰開通」
-   - 可做簡易 handshake，例如 `POST /register`
-6. 設備登入平台 / 記錄狀態
-   - 樹梅派儲存使用者或回報平台，建立雙向綁定
+
+4. **綁定帳號 + 開通設備**
+
+   - 建立 `Device.user_id = request.user.id`，並將設備設為啟用（`is_bound=True`）
+   - 系統發送綁定成功通知給使用者
+
+5. **設備狀態同步**
+
+   - 設備透過 API 定期 ping 伺服器回報狀態（`/api/device/ping/`）
+   - 系統記錄設備 IP 與最後 ping 時間，用於判斷線上狀態
+
+6. **雙向綁定完成**
+   - 使用者可在平台控制設備
+   - 設備可透過 API 回報狀態與接收指令
 
 ---
 
 ## 角色與權限
 
-### 角色定義
+### 系統層級角色（使用者角色）
 
-- SuperAdmin：擁有裝置密碼者，最高權限（單台裝置只有一位）。可管理群組、指派 Admin、管理設備參數
-- Admin：被授權管理設備者，協助設定設備參數，不可管理群組或指派權限
-- User：一般使用者，受邀加入，只能進行基本操作
+- **SuperAdmin**：擁有裝置密碼者，最高權限（單台裝置只有一位）。可管理群組、指派 Admin、管理設備參數
+- **Admin**：被授權管理設備者，協助設定設備參數，不可管理群組或指派權限
+- **User**：一般使用者，受邀加入，只能進行基本操作
 
-### 權限比較表
+### 群組層級角色（群組成員角色）
+
+- **群組擁有者**：建立群組的使用者，擁有該群組的最高權限
+- **群組 Admin**：被群組擁有者指派的群組管理員，可管理群組內設備和成員
+- **群組 Operator**：群組操作員，可控制群組內設備（可透過 ACL 限制特定設備）
+- **群組 Viewer**：群組觀察員，只能查看群組資訊，無法控制設備
+
+### 系統權限比較表
 
 | 權限項目                             | User | Admin | SuperAdmin |
 | ------------------------------------ | ---- | ----- | ---------- |
-| 操作智能家電                         | ✅   | ✅    | ✅         |
+| 操作智能設備                         | ✅   | ✅    | ✅         |
 | 編輯個人資料                         | ✅   | ✅    | ✅         |
-| 設定設備參數（基本，如風速）         | ✅   | ✅    | ✅         |
+| 設定設備參數（基本，如亮度）         | ✅   | ✅    | ✅         |
 | 設定設備參數（環境，如自動觸發條件） | ❌   | ✅    | ✅         |
 | 設備重命名                           | ❌   | ✅    | ✅         |
 | 成員邀請 / 建立註冊頁                | ❌   | ❌    | ✅         |
@@ -247,24 +544,43 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
 | 指定/取消 Admin 權限                 | ❌   | ❌    | ✅         |
 | 群組建立 / 刪除                      | ❌   | ❌    | ✅         |
 
+### 群組權限比較表
+
+| 權限項目          | 群組擁有者 | 群組 Admin | 群組 Operator | 群組 Viewer |
+| ----------------- | ---------- | ---------- | ------------- | ----------- |
+| 查看群組資訊      | ✅         | ✅         | ✅            | ✅          |
+| 控制群組內設備    | ✅         | ✅         | ✅            | ❌          |
+| 管理群組成員      | ✅         | ✅         | ❌            | ❌          |
+| 指派群組角色      | ✅         | ✅         | ❌            | ❌          |
+| 新增/移除群組設備 | ✅         | ✅         | ❌            | ❌          |
+| 設定設備 ACL 權限 | ✅         | ✅         | ❌            | ❌          |
+| 刪除群組          | ✅         | ❌         | ❌            | ❌          |
+
+\*群組 Operator 的設備控制權限可透過 ACL（存取控制清單）進一步限制特定設備
+
 ---
 
-## 模組功能概覽（示意）
+## 模組功能概覽（實際實作）
 
 > 實作細節以 `pi_devices/`、`notifications/` 與前端 `templates/`、`static/` 內容為準。
 
-- 解鎖（電子鎖）
-  - 人臉辨識（規劃中/可擴充）
-  - 遠端解鎖
-  - 安全參數：高/低安全等級（雙重驗證、免驗證等）
-  - 進出紀錄：次數統計、在家名單、總人數
-- 監控 / 錄影
-  - 即時監控、HLS 串流
-  - 自動錄影時段、解析度設定、回放
-  - 通知：記憶卡空間、週期上傳縮時等
-- 智能家電
-  - 電風扇：開關/方向/風速、溫度自動控制、耗電統計
-  - 電燈：開關/亮度、照度自動控制、耗電統計
+- **電子鎖控制**
+  - 遠端開鎖/上鎖（透過伺服馬達控制）
+  - 自動上鎖延遲設定
+  - LED 狀態指示（綠燈/紅燈）
+  - 按鈕手動控制
+- **監控攝影**
+  - HLS 即時串流（低延遲）
+  - 攝影機啟動/停止控制
+  - 串流代理服務（透過 IP 代理）
+- **智能照明**
+  - LED 開關控制
+  - 照度感測器自動控制（BH1750）
+  - 自動開燈/關燈（基於環境亮度）
+- **系統監控**
+  - 設備線上狀態監控
+  - 樹梅派系統指標（CPU、記憶體、溫度）
+  - 設備心跳檢測
 
 ---
 
@@ -288,12 +604,12 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
 
 常見流程摘要：
 
-- 新設備開通（會員）：掃 QR → 驗密碼 → 權限設定（是否群組共享）→ 完成 → 發通知
-- 新設備開通（未註冊）：掃 QR → 註冊 → 驗密碼 → 綁定 → 完成 → 發通知
-- 後台群組管理：建立/編輯/刪除群組（刪除需再次驗證與提醒）
-- 邀請成員：產生一次性、時效性邀請連結（Email/Line 自行整合）
-- 成員移除：需 SuperAdmin 密碼確認 → 發送通知
-- 加入群組：點邀請連結 → 確認加入或拒絕
+- **設備綁定（已登入）**：掃 QR → 填入序號/驗證碼 → 確認綁定 → 完成
+- **設備綁定（未登入）**：掃 QR → 註冊帳號 → 自動綁定設備 → 完成
+- **群組管理**：建立/編輯/刪除群組，管理群組成員與設備權限
+- **邀請成員**：產生一次性邀請連結（可限定 email），設定角色與設備權限
+- **接受邀請**：點邀請連結 → 登入/註冊 → 自動加入群組 → 完成
+- **設備分享**：群組管理員可授權成員將自己的設備加入群組
 
 忘記密碼情境：
 
@@ -307,13 +623,19 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
 | 類別     | 技術/工具                                              |
 | -------- | ------------------------------------------------------ |
 | 前端     | Django Templates + 原生 JS/CSS（`static/home_pi_web`） |
-| 後端     | Python + Django（可逐步擴充 DRF）                      |
-| 資料庫   | SQLite（開發）；可改 MySQL/PostgreSQL（生產）          |
+| 後端     | Python + Django + DRF（REST API）                      |
+| 主資料庫 | PostgreSQL（透過環境變數設定）                         |
+| 日誌資料庫 | MongoDB（`homepi_logs`，用於設備 ping 日誌）          |
 | 樹梅派   | `pi_agent`（HTTP 代理、HLS 串流、裝置偵測/控制、排程） |
 | 虛擬環境 | Conda（`environment.yml`）                             |
 | 通知     | `notifications/` app（支援 dedup/已讀/過期）           |
+| 靜態檔案 | WhiteNoise（靜態檔案服務）                             |
 
-備註：舊版文件提及 Node.js + React + DRF 套件，現況以 Django Template 為主；若未來導入前端框架，可在 `/api` 提供 DRF JSON 介面並保留原模板。
+備註：
+- 主資料庫使用 PostgreSQL，透過環境變數設定連線參數
+- MongoDB 用於儲存設備 ping 日誌等非關聯性資料
+- 已安裝 Redis、Django Channels 等套件，但目前未啟用相關功能
+- 若未來需要快取或即時通訊功能，可啟用 Redis 快取和 Channels WebSocket 支援
 
 ---
 
@@ -538,5 +860,5 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
 ## 通知機制（摘要）
 
 - 分類：會員/群組通知、設備通知
-- 功能：已讀狀態、去重鍵、過期時間、批次標記、清理過期
+- 功能：已讀狀態、去重鍵、過期時間、批次標記
 - 範例：設備設定成功、加入/移除成員、授權成功、群組異動、綁定/開通信件（可擴充）
