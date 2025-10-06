@@ -22,6 +22,14 @@ class UserRegisterForm(forms.ModelForm):
         # 額外傳入的 device token
         self.token = kwargs.pop("token", None)
         super().__init__(*args, **kwargs)
+        
+        # 如果有 token，嘗試從 URL 參數或 session 中取得序號和驗證碼
+        if self.token and hasattr(self, 'initial') and self.initial:
+            # 從 URL 參數中取得序號和驗證碼（如果有的話）
+            if 'device_serial' not in self.initial and 'serial' in self.initial:
+                self.initial['device_serial'] = self.initial['serial']
+            if 'verification_code' not in self.initial and 'code' in self.initial:
+                self.initial['verification_code'] = self.initial['code']
 
     def clean_email(self):
         # 建議統一小寫 + 唯一性檢查（若你的 User.email 已是 unique 可保險再檢一次）

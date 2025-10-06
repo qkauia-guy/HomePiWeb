@@ -33,6 +33,7 @@
                        name="serial_number" 
                        class="form-control form-control-lg" 
                        placeholder="例如：PI-7A5D3C1B" 
+                       value="{{ device.serial_number|default:'' }}"
                        required
                        autocomplete="off">
                 <div class="form-text">
@@ -50,6 +51,7 @@
                        name="verification_code" 
                        class="form-control form-control-lg" 
                        placeholder="設備上的驗證碼" 
+                       value="{{ device.verification_code|default:'' }}"
                        required
                        autocomplete="off">
                 <div class="form-text">

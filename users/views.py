@@ -78,7 +78,21 @@ def register_view(request):
 
     # ★ 把 token 傳進表單；若當下 device 為 None，就用 session 備援
     token = device.token if device else request.session.get("reg_token")
-    form = UserRegisterForm(request.POST or None, token=token)
+    
+    # 準備表單初始值
+    initial_data = {}
+    if device:
+        initial_data = {
+            'device_serial': device.serial_number,
+            'verification_code': device.verification_code,
+        }
+    elif serial and code:
+        initial_data = {
+            'device_serial': serial,
+            'verification_code': code,
+        }
+    
+    form = UserRegisterForm(request.POST or None, token=token, initial=initial_data)
 
     if request.method == "POST" and form.is_valid():
         user = form.save()  # 表單裡會用 token 完成設備驗證與綁定
