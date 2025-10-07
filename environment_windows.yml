@@ -3,19 +3,34 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.11
-  - pip
-  - psycopg2
-  - sqlite
-  - tk
-  - openssl
-  - ca-certificates
-  - setuptools
-  - wheel
-  - tzdata
-  - zlib
-  - bzip2
-  - xz
+  - bzip2=1.0.8
+  - ca-certificates=2025.8.3
+  - cyrus-sasl=2.1.28
+  - expat=2.7.1
+  - icu=75.1
+  - krb5=1.21.3
+  - libcxx=17.0.6
+  - libedit=3.1.20250104
+  - libevent=2.1.12
+  - libffi=3.4.4
+  - libkrb5=1.21.3
+  - libpq=17.6
+  - libsodium=1.0.18
+  - lmdb=0.9.31
+  - ncurses=6.5
+  - openldap=2.6.10
+  - openssl=3.5.2
+  - pip=25.1
+  - psycopg2=2.9.10
+  - python=3.11.13
+  - readline=8.3
+  - setuptools=78.1.1
+  - sqlite=3.50.2
+  - tk=8.6.14
+  - tzdata=2025b
+  - wheel=0.45.1
+  - xz=5.6.4
+  - zlib=1.2.13
   - pip:
       - asgiref==3.9.1
       - certifi==2025.8.3
@@ -39,3 +54,4 @@ dependencies:
       - sqlparse==0.5.3
       - urllib3==2.5.0
       - whitenoise==6.9.0
+prefix: /opt/anaconda3/envs/HomePiWeb
