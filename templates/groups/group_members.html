@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container my-4">
-  <h2 class="mb-3"> {{ group.name }}</h2>
+  <h2 class="glass-title mb-3"> {{ group.name }}</h2>
   {% if ms.user and ms.user.id %}
     <a class="btn btn-sm btn-outline-secondary"
       href="{% url 'member_device_acl' group.id ms.user.id %}">
@@ -11,13 +11,13 @@
     </a>
   {% endif %}
 
-  <!-- 新增成員表單 -->
-<div class="card mb-4">
-  <div class="card-header d-flex justify-content-between align-items-center">
+  <!-- 新增成員表單 - 毛玻璃效果 -->
+<div class="glass-card card mb-4">
+  <div class="glass-header card-header d-flex justify-content-between align-items-center">
     <span>建立邀請（單一連結，含多台裝置權限）</span>
     <small class="text-muted">受邀者接受後，會依下表逐台建立控制權限。</small>
   </div>
-  <div class="card-body">
+  <div class="glass-body card-body">
     <form method="post" action="{% url 'group_members' group.id %}">
       {% csrf_token %}
 
@@ -37,7 +37,7 @@
       {{ dev_formset.management_form }}
 
       <div class="table-responsive">
-        <table class="table table-sm align-middle">
+        <table class="glass-table table table-sm align-middle">
           <thead>
             <tr><th style="width:140px;">包含</th><th>裝置</th><th style="width:180px;">權限</th></tr>
           </thead>
