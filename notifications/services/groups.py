@@ -22,7 +22,7 @@ def notify_group_created(*, group, actor=None) -> Notification:
         title=f"群組已建立：{group.name}",
         group=group,
         target=group,
-        dedup_key=f"group_created:{group.id}",
+        dedup_key=f"group_created:{group.id}:{timezone.now().timestamp()}",
         meta={"by": getattr(actor, "id", None)},
     )
 
@@ -49,7 +49,7 @@ def notify_group_renamed(*, group, old_name: str, new_name: str, actor):
         payloads.append(
             {
                 "user": u,
-                "dedup_key": f"group_renamed:{group.id}:{u.id}:{new_name}",
+                "dedup_key": f"group_renamed:{group.id}:{u.id}:{new_name}:{timezone.now().timestamp()}",
                 "meta": {
                     "by": getattr(actor, "id", None),
                     "old_name": old_name,
@@ -79,7 +79,7 @@ def notify_group_deleted(*, user, group_name: str, group_id: int | None, actor=N
         event=events.GROUP_DELETED,
         title=f"群組已刪除：{group_name}",
         body="此群組已被擁有者刪除，相關裝置與權限已解除。",
-        dedup_key=f"group_deleted:{group_id or group_name}:{user.id}",
+        dedup_key=f"group_deleted:{group_id or group_name}:{user.id}:{timezone.now().timestamp()}",
         meta={
             "group_id": group_id,
             "group_name": group_name,
@@ -105,18 +105,17 @@ def notify_member_added(*, actor, group, member, role: str):
         title=f"你已加入群組：{group.name}",
         group=group,
         target=group,
-        dedup_key=f"group:{group.id}:member_added:self:{member.id}",
+        dedup_key=f"group:{group.id}:member_added:self:{member.id}:{timezone.now().timestamp()}",
         meta={"by": getattr(actor, "id", None), "role": role},
     )
 
-    # 2) 其他成員 + owner（排除新成員與操作者）
+    # 2) 其他成員 + owner（排除新成員，但保留邀請者）
     recipient_ids = set(
         group.memberships.exclude(user_id=member.id).values_list("user_id", flat=True)
     )
     if group.owner_id:
         recipient_ids.add(group.owner_id)
-    if getattr(actor, "id", None) in recipient_ids:
-        recipient_ids.remove(actor.id)
+    # 修正：不要排除邀請者，讓群長也能收到通知
 
     if not recipient_ids:
         return
@@ -129,7 +128,7 @@ def notify_member_added(*, actor, group, member, role: str):
         payloads.append(
             {
                 "user": u,
-                "dedup_key": f"group:{group.id}:member_joined:{member.id}:{u.id}",
+                "dedup_key": f"group:{group.id}:member_joined:{member.id}:{u.id}:{timezone.now().timestamp()}",
                 "meta": {
                     "by": getattr(actor, "id", None),
                     "member": member.id,
@@ -156,7 +155,7 @@ def notify_member_role_changed(*, actor, group, member, old_role, new_role):
         title=f"你在群組 {group.name} 的角色變更：{old_role} → {new_role}",
         group=group,
         target=group,
-        dedup_key=f"group:{group.id}:role_change:{member.id}:{new_role}",
+        dedup_key=f"group:{group.id}:role_change:{member.id}:{new_role}:{timezone.now().timestamp()}",
         meta={"by": actor.id, "old": old_role, "new": new_role},
     )
 
@@ -169,7 +168,7 @@ def notify_member_removed(*, actor, group, member):
         title=f"你已被移出群組：{group.name}",
         group=group,
         target=group,
-        dedup_key=f"group:{group.id}:member_removed:{member.id}",
+        dedup_key=f"group:{group.id}:member_removed:{member.id}:{timezone.now().timestamp()}",
         meta={"by": actor.id},
     )
 
@@ -188,7 +187,7 @@ def notify_member_left(*, actor, group, member):
         title=f"你已退出群組：{group.name}",
         group=group,
         target=group,
-        dedup_key=f"group:{group.id}:member_left:self:{member.id}",
+        dedup_key=f"group:{group.id}:member_left:self:{member.id}:{timezone.now().timestamp()}",
         meta={"by": getattr(actor, "id", None)},
     )
 
@@ -212,7 +211,7 @@ def notify_member_left(*, actor, group, member):
         payloads.append(
             {
                 "user": u,
-                "dedup_key": f"group:{group.id}:member_left_broadcast:{member.id}:{u.id}",
+                "dedup_key": f"group:{group.id}:member_left_broadcast:{member.id}:{u.id}:{timezone.now().timestamp()}",
                 "meta": {
                     "by": getattr(actor, "id", None),
                     "member": member.id,

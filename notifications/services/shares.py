@@ -16,7 +16,7 @@ def notify_share_request_submitted(*, requester, group, device):
             group=group,
             device=device,
             target=device,
-            dedup_key=f"share_req_submitted:{group.id}:{device.id}:{requester.id}",
+            dedup_key=f"share_req_submitted:{group.id}:{device.id}:{requester.id}:{timezone.now().timestamp()}",
             meta={"requester": requester.id},
         )
 
@@ -63,7 +63,7 @@ def notify_share_grant_opened(*, actor, group, user, grant, created: bool):
         dedup_key = ""  # 不去重：每次開通都發一則新通知
     else:
         key_part = grant.expires_at.date().isoformat() if grant.expires_at else "none"
-        dedup_key = f"share_grant_updated:{group.id}:{user.id}:{key_part}"
+        dedup_key = f"share_grant_updated:{group.id}:{user.id}:{key_part}:{timezone.now().timestamp()}"
 
     return _create_notification(
         user=user,

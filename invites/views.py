@@ -182,9 +182,10 @@ def accept_invite(request, code):
                                     },
                                 )
 
-                            if (not pre_is_member) and post_is_member:
+                            # 修正：只要用戶現在是群組成員就發送通知
+                            if post_is_member:
                                 notify_member_added(
-                                    actor=user,
+                                    actor=inv.invited_by,
                                     group=inv.group,
                                     member=user,
                                     role=inv.role,
@@ -196,9 +197,10 @@ def accept_invite(request, code):
                             return  # 單裝置流程結束
 
                         # === 多裝置（新流程：一張卡多台） ===
-                        if (not pre_is_member) and post_is_member:
+                        # 修正：只要用戶現在是群組成員就發送通知
+                        if post_is_member:
                             notify_member_added(
-                                actor=user, group=inv.group, member=user, role=inv.role
+                                actor=inv.invited_by, group=inv.group, member=user, role=inv.role
                             )
 
                         # 逐台建立/更新 ACL

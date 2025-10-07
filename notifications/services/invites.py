@@ -48,5 +48,5 @@ def notify_invite_created(*, invitation):
         group=invitation.group,
         device=getattr(invitation, "device", None),  # 允許 None
         target=invitation,
-        dedup_key=f"invite_created:{invitation.id}",
+        dedup_key=f"invite_created:{invitation.id}:{timezone.now().timestamp()}",
     )

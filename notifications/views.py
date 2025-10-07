@@ -251,6 +251,7 @@ def _event_redirect_url(n: Notification) -> str | None:
         "group_renamed",
         "member_added",
         "member_joined",
+        "member_left",
         "share_grant_opened",
         "share_grant_updated",
         "share_grant_revoked",
