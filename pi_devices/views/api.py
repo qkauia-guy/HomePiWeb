@@ -1057,6 +1057,7 @@ def device_logs(request, device_id):
         cpu_val = log.get("cpu_percent") or log.get("cpu")
         mem_val = log.get("memory_percent") or log.get("memory")
         temp_val = log.get("temperature") or log.get("temp")
+        disk_val = log.get("disk_percent")
 
         results.append(
             {
@@ -1066,6 +1067,7 @@ def device_logs(request, device_id):
                 "cpu_percent": float(cpu_val) if cpu_val is not None else None,
                 "memory_percent": float(mem_val) if mem_val is not None else None,
                 "temperature": float(temp_val) if temp_val is not None else None,
+                "disk_percent": float(disk_val) if disk_val is not None else None,
             }
         )
 

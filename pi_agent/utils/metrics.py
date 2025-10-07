@@ -9,6 +9,14 @@ def get_pi_metrics():
         metrics["cpu_percent"] = psutil.cpu_percent(interval=0.5)
         metrics["memory_percent"] = psutil.virtual_memory().percent
 
+        # 磁碟容量：取得根目錄的磁碟使用率
+        try:
+            disk_usage = psutil.disk_usage('/')
+            disk_percent = (disk_usage.used / disk_usage.total) * 100
+            metrics["disk_percent"] = round(disk_percent, 1)
+        except Exception as e:
+            print(f"[WARN] disk usage failed: {e}")
+
         # 溫度：先試 vcgencmd，再 fallback
         temp = None
         try:

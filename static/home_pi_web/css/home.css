@@ -797,6 +797,27 @@ button[aria-expanded='true'] .toggle-icon {
 }
 
 /* 手機版隱藏狀態卡片的裝置名稱顯示 */
+/* 磁碟容量樣式 */
+.disk-capacity[data-available="good"] {
+  color: #28a745 !important; /* 綠色 - 可用容量 >= 50% */
+  font-weight: 600;
+}
+
+.disk-capacity[data-available="low"] {
+  color: #ffc107 !important; /* 黃色 - 可用容量 20-49% */
+  font-weight: 600;
+}
+
+.disk-capacity[data-available="critical"] {
+  color: #dc3545 !important; /* 紅色 - 可用容量 < 20% */
+  font-weight: 700;
+}
+
+.disk-capacity {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
 @media (max-width: 767.98px) {
   .card .device-name,
   .techno-card .device-name,

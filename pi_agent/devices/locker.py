@@ -12,7 +12,7 @@ from __future__ import annotations  # ← 必須放最前面！
 import os
 import time
 import threading
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, Tuple
 
 from gpiozero import Device
 from gpiozero.pins.lgpio import LGPIOFactory
@@ -32,7 +32,7 @@ else:
     _GZ_ERR = None
 
 # 內部狀態
-_lockers: Dict[str, "LockerDevice | None"] = {}
+_lockers: Dict[str, Optional["LockerDevice"]] = {}
 _DEFAULT_NAME = "locker_1"  # 不帶參數時操作的預設名稱
 
 # 狀態回推 callback（由外部註冊；例如 http_agent 設定為 push ping）
@@ -383,7 +383,7 @@ def _pick_name(name: Optional[str]) -> str:
     return name or _DEFAULT_NAME
 
 
-def _get_locker_and_name(name: Optional[str]) -> tuple[Optional[LockerDevice], str]:
+def _get_locker_and_name(name: Optional[str]) -> Tuple[Optional[LockerDevice], str]:
     eff = _pick_name(name)
     return _lockers.get(eff), eff
 

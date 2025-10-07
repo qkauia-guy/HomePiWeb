@@ -9,7 +9,7 @@ utils/http.py
 
 import os
 import requests
-from typing import Optional
+from typing import Optional, Union
 from dotenv import load_dotenv
 
 # 從 .env 檔案載入環境變數。這是一個很好的資安實踐，
@@ -53,7 +53,7 @@ def _print_resp(prefix: str, r: requests.Response) -> None:
         print(f"{prefix}: HTTP {r.status_code} ->", r.text)
 
 
-def ping(extra: dict | None = None) -> bool:
+def ping(extra: Optional[dict] = None) -> bool:
     """
     向伺服器發送「心跳」訊號，表明裝置還活著。
     可以選擇性地附帶裝置的當前狀態 (caps/state) 等額外資訊。
@@ -91,7 +91,7 @@ def pull(max_wait: int = 20) -> Optional[dict]:
         max_wait: 等待伺服器回應的最長時間（秒）。
 
     Returns:
-        dict | None: 如果有新指令，則回傳包含指令內容的字典；
+        Optional[dict]: 如果有新指令，則回傳包含指令內容的字典；
                      如果沒有新指令（HTTP 204）或發生錯誤，則回傳 None。
     """
     url = f"{API_BASE}{PULL_PATH}"
@@ -122,7 +122,7 @@ def pull(max_wait: int = 20) -> Optional[dict]:
     return data
 
 
-def ack(req_id: str, ok: bool = True, error: str = "", state: dict | None = None):
+def ack(req_id: str, ok: bool = True, error: str = "", state: Optional[dict] = None):
     """
     回報指令的執行結果給伺服器。
 
@@ -163,12 +163,12 @@ def ack(req_id: str, ok: bool = True, error: str = "", state: dict | None = None
         print("ack ok")
 
 
-def fetch_schedules() -> list[dict]:
+def fetch_schedules() -> list:
     """
     向伺服器請求未來的排程清單。
 
     Returns:
-        list[dict]: 包含所有排程的字典清單。如果發生錯誤，則回傳空清單。
+        list: 包含所有排程的字典清單。如果發生錯誤，則回傳空清單。
     """
     url = f"{API_BASE}{SCHEDULES_PATH}"
     payload = {"serial_number": SERIAL, "token": TOKEN}
