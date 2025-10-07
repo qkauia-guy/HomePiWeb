@@ -75,6 +75,9 @@
       loadLightForm(groupSelect.value, deviceSelect.value);
     } else if (capability === 'locker') {
       loadLockerForm(groupSelect.value, deviceSelect.value);
+    } else if (capability === 'camera') {
+      // 監控錄影不需要載入表單，直接初始化卡片狀態
+      initCameraCardDirect(groupSelect.value, deviceSelect.value);
     }
   }
 
@@ -128,6 +131,35 @@
     }
   }
 
+  // 直接初始化監控錄影卡片（不載入表單）
+  async function initCameraCardDirect(groupId, deviceId) {
+    try {
+      console.log('直接初始化監控錄影卡片，群組ID:', groupId, '裝置ID:', deviceId);
+      
+      // 使用快取的裝置狀態
+      const statusData = await getCachedDeviceStatus(deviceId, groupId);
+      console.log('裝置狀態回應:', statusData);
+      
+      if (statusData && statusData.ok && statusData.is_online && statusData.capabilities && statusData.capabilities.camera) {
+        const cameraCap = statusData.capabilities.camera;
+        console.log('找到監控錄影能力:', cameraCap);
+        
+        // 直接初始化監控錄影卡片
+        const cameraCard = $('#cameraCard');
+        if (cameraCard && window.initCameraCard) {
+          window.initCameraCard(cameraCard, deviceId, groupId);
+          showBanner('success', '監控錄影已就緒');
+        }
+      } else {
+        showBanner('warning', '此裝置沒有監控錄影功能或裝置離線');
+      }
+      
+    } catch (error) {
+      console.error('初始化監控錄影卡片失敗:', error);
+      showBanner('error', `初始化失敗: ${error.message}`);
+    }
+  }
+
   // 初始化狀態卡片
   async function initStatusCards() {
     console.log('初始化狀態卡片...');
@@ -166,6 +198,12 @@
           lightCard.dataset.burst = '0';
           lightCard.dataset.isAuto = '0';
           
+          // 更新裝置名稱
+          const lightDeviceName = lightCard.querySelector('#lightDeviceName');
+          if (lightDeviceName && data.device_name) {
+            lightDeviceName.textContent = data.device_name;
+          }
+          
           console.log('燈光卡片已初始化:', lightCard.dataset.statusUrl);
           
           // 觸發燈光卡片輪詢
@@ -198,6 +236,12 @@
           lockerCard.dataset.burst = '0';
           lockerCard.dataset.isLocked = '0';
           
+          // 更新裝置名稱
+          const lockerDeviceName = lockerCard.querySelector('#lockerDeviceName');
+          if (lockerDeviceName && data.device_name) {
+            lockerDeviceName.textContent = data.device_name;
+          }
+          
           console.log('電子鎖卡片已初始化:', lockerCard.dataset.statusUrl);
           
           // 觸發電子鎖卡片輪詢
@@ -214,6 +258,25 @@
             window.fetchLockerState(lockerCard).catch((e) => {
               console.error('電子鎖狀態更新失敗:', e);
             });
+          }
+        }
+
+        // 初始化監控錄影卡片
+        const cameraCard = $('#cameraCard');
+        if (cameraCard && data.capabilities.camera) {
+          const cameraCap = data.capabilities.camera;
+          
+          cameraCard.dataset.capId = cameraCap.id;
+          cameraCard.dataset.statusUrl = `/api/cap/${cameraCap.id}/status/` + 
+            (g ? `?group_id=${encodeURIComponent(g)}` : '');
+          cameraCard.dataset.deviceId = deviceId;
+          cameraCard.dataset.groupId = g;
+          
+          console.log('監控錄影卡片已初始化:', cameraCard.dataset.statusUrl);
+          
+          // 初始化監控錄影卡片（會自動更新裝置名稱）
+          if (window.initCameraCard) {
+            window.initCameraCard(cameraCard, deviceId, g);
           }
         }
       }
@@ -309,13 +372,37 @@
     }, 3000);
   }
 
+  // 隱藏手機版的裝置名稱顯示
+  function hideMobileDeviceNames() {
+    if (!isMobile()) return;
+    
+    const deviceNameElements = document.querySelectorAll('.device-name');
+    deviceNameElements.forEach(element => {
+      element.style.display = 'none';
+      element.style.visibility = 'hidden';
+      element.style.height = '0';
+      element.style.margin = '0';
+      element.style.padding = '0';
+      element.style.overflow = 'hidden';
+    });
+    
+    console.log('已隱藏手機版裝置名稱顯示，元素數量:', deviceNameElements.length);
+  }
+
   // 初始化手機版功能
   function initMobileFeatures() {
     if (!isMobile()) return;
 
+    // 隱藏手機版的裝置名稱顯示
+    hideMobileDeviceNames();
+
+    // 初始化裝置選擇事件處理
+    initMobileDeviceHandlers();
+
     // 綁定狀態卡片點擊事件
     const lightCard = $('#lightCard');
     const lockerCard = $('#lockerCard');
+    const cameraCard = $('#cameraCard');
     
     if (lightCard) {
       lightCard.addEventListener('click', handleMobileCardClick);
@@ -324,14 +411,69 @@
     if (lockerCard) {
       lockerCard.addEventListener('click', handleMobileCardClick);
     }
+
+    if (cameraCard) {
+      cameraCard.addEventListener('click', handleMobileCardClick);
+    }
   }
 
   // 頁面載入完成後初始化
   document.addEventListener('DOMContentLoaded', initMobileFeatures);
 
+  // 手機版裝置選擇事件處理
+  function initMobileDeviceHandlers() {
+    const groupSelect = $('#groupSelect');
+    const deviceSelect = $('#deviceSelect');
+    
+    // 群組選擇事件
+    groupSelect?.addEventListener('change', () => {
+      // 重置監控錄影卡片
+      const cameraCard = $('#cameraCard');
+      if (cameraCard && window.resetCameraCard) {
+        window.resetCameraCard(cameraCard);
+      }
+      
+      // 如果有選擇裝置，嘗試初始化監控錄影卡片
+      setTimeout(() => {
+        const deviceId = deviceSelect?.value;
+        const groupId = groupSelect?.value;
+        if (deviceId && groupId && window.initCameraCard) {
+          window.initCameraCard(cameraCard, deviceId, groupId);
+        }
+      }, 500);
+    });
+    
+    // 裝置選擇事件
+    deviceSelect?.addEventListener('change', () => {
+      // 重置監控錄影卡片
+      const cameraCard = $('#cameraCard');
+      if (cameraCard && window.resetCameraCard) {
+        window.resetCameraCard(cameraCard);
+      }
+      
+      // 嘗試初始化監控錄影卡片
+      setTimeout(() => {
+        const deviceId = deviceSelect?.value;
+        const groupId = groupSelect?.value;
+        if (deviceId && groupId && window.initCameraCard) {
+          window.initCameraCard(cameraCard, deviceId, groupId);
+        }
+      }, 500);
+    });
+  }
+
+  // 導出到全域
+  window.initMobileDeviceHandlers = initMobileDeviceHandlers;
+
   // 視窗大小改變時重新初始化
   window.addEventListener('resize', () => {
-    setTimeout(initMobileFeatures, 100);
+    setTimeout(() => {
+      initMobileFeatures();
+      // 重新隱藏裝置名稱（如果切換到手機版）
+      if (isMobile()) {
+        hideMobileDeviceNames();
+      }
+    }, 100);
   });
 
 })();
