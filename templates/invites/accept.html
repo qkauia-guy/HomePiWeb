@@ -1,29 +1,156 @@
 {% extends "base.html" %}
-{% block content %}
-<h3>接受邀請</h3>
-<p>群組：<strong>{{ inv.group.name }}</strong></p>
-<p>裝置：<code>{{ inv.device.serial_number }}</code></p>
-<p class="text-muted">本連結僅限受邀者使用，使用一次後即失效。</p>
+{% load static %}
 
-<div class="row mt-4">
-  <div class="col-md-6">
-    <h5>已有帳號登入</h5>
-    <form method="post" class="mt-2">
-      {% csrf_token %}
-      <input type="hidden" name="login" value="1">
-      {{ login_form.as_p }}
-      <button class="btn btn-success">登入並加入群組</button>
-    </form>
-  </div>
-  <div class="col-md-6">
-    <h5>受邀註冊</h5>
-    <p class="text-muted">受邀註冊會建立一般會員（不可調整裝置環境/不可群組管理）。</p>
-    <form method="post" class="mt-2">
-      {% csrf_token %}
-      <input type="hidden" name="register" value="1">
-      {{ register_form.as_p }}
-      <button class="btn btn-primary">註冊並加入群組</button>
-    </form>
+{% block content %}
+<div class="invite-accept-container">
+  <div class="container">
+    <div class="glass-card invite-main-card">
+      <div class="invite-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-envelope-open-fill icon-large text-primary"></i>
+            <div>
+              <h2 class="mb-0">接受邀請</h2>
+              <p class="mb-0">加入群組，開始使用裝置權限</p>
+            </div>
+          </div>
+          <div class="text-end">
+            <small>本連結僅限受邀者使用</small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="invite-body">
+        <!-- 邀請資訊 -->
+        <div class="row g-3 g-md-4 mb-4">
+          <div class="col-12 col-md-4">
+            <div class="info-card invite-info-card">
+              <h5 class="mb-3">
+                <i class="bi bi-info-circle icon-medium"></i>邀請資訊
+              </h5>
+              <p class="mb-0">使用一次後即失效</p>
+            </div>
+          </div>
+          
+          <div class="col-12 col-md-4">
+            <div class="info-card group-info-card">
+              <h5 class="mb-3">
+                <i class="bi bi-people-fill icon-medium"></i>群組
+              </h5>
+              <h4 class="text-primary mb-2">{{ inv.group.name }}</h4>
+              <p class="mb-0">你將加入此群組</p>
+            </div>
+          </div>
+          
+          <div class="col-12 col-md-4">
+            <div class="info-card device-info-card">
+              <h5 class="mb-3">
+                <i class="bi bi-cpu icon-medium"></i>裝置
+              </h5>
+              {% if inv.device %}
+                <h4 class="text-success mb-2">{{ inv.device.display_name|default:inv.device.serial_number }}</h4>
+                <p class="mb-0">獲得操作權限</p>
+              {% else %}
+                <h4 class="text-success mb-2">多台裝置</h4>
+                <p class="mb-0">獲得群組中所有裝置權限</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+    <!-- 登入/註冊選項 - 拉出毛玻璃卡片 -->
+    <div class="row g-3 g-md-4 mt-4">
+      <div class="col-12 col-md-6">
+        <div class="form-card w-100">
+          <div class="d-flex align-items-center mb-4">
+            <div class="login-icon me-3">
+              <i class="bi bi-box-arrow-in-right fs-2 text-success"></i>
+            </div>
+            <div>
+              <h5 class="mb-1">已有帳號登入</h5>
+              <p class="small mb-0">使用現有帳號快速加入</p>
+            </div>
+          </div>
+        
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="login" value="1">
+            
+            <div class="mb-4">
+              <label for="{{ login_form.username.id_for_label }}" class="form-label">
+                <i class="bi bi-envelope icon-medium"></i>帳號
+              </label>
+              {{ login_form.username }}
+            </div>
+            
+            <div class="mb-4">
+              <label for="{{ login_form.password.id_for_label }}" class="form-label">
+                <i class="bi bi-lock icon-medium"></i>密碼
+              </label>
+              {{ login_form.password }}
+            </div>
+            
+            <button class="btn btn-success w-100 btn-lg">
+              <i class="bi bi-check-circle me-2"></i>登入並加入群組
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <div class="col-12 col-md-6">
+        <div class="form-card w-100">
+          <div class="d-flex align-items-center mb-4">
+            <div class="register-icon me-3">
+              <i class="bi bi-person-plus fs-2 text-primary"></i>
+            </div>
+            <div>
+              <h5 class="mb-1">受邀註冊</h5>
+              <p class="small mb-0">建立新帳號加入群組</p>
+            </div>
+          </div>
+        
+          <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            <small>權限調整可以向群長請求</small>
+          </div>
+          
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="register" value="1">
+            
+            <div class="mb-3">
+              <label for="{{ register_form.email.id_for_label }}" class="form-label">
+                <i class="bi bi-envelope icon-medium"></i>帳號
+              </label>
+              {{ register_form.email }}
+            </div>
+            
+            <div class="mb-3">
+              <label for="{{ register_form.password1.id_for_label }}" class="form-label">
+                <i class="bi bi-lock icon-medium"></i>密碼
+              </label>
+              {{ register_form.password1 }}
+            </div>
+            
+            <div class="mb-4">
+              <label for="{{ register_form.password2.id_for_label }}" class="form-label">
+                <i class="bi bi-lock-fill icon-medium"></i>確認密碼
+              </label>
+              {{ register_form.password2 }}
+            </div>
+            
+            <button class="btn btn-primary w-100 btn-lg">
+              <i class="bi bi-person-check me-2"></i>註冊並加入群組
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

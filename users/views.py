@@ -58,7 +58,7 @@ def register_view(request):
     if request.user.is_authenticated:
         if not device:
             # 已登入但沒有有效裝置參數 → 回主要頁
-            return redirect("group_list")
+            return redirect("home")
 
         if request.method == "POST":
             # 不再要求 action=bind；只要 POST 就綁
@@ -102,7 +102,7 @@ def register_view(request):
         # 綁定成功後清掉備援
         request.session.pop("reg_token", None)
         request.session.pop("pending_device_bind", None)
-        return redirect("group_list")
+        return redirect("home")
 
     return render(request, "users/register.html", {"form": form, "device": device})
 

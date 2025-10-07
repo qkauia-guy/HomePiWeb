@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'home_pi_web/css/groups/group_members.css' %}?v=20250108_2">
+<link rel="stylesheet" href="{% static 'home_pi_web/css/groups/group_members.css' %}?v=20250108_3">
 <style>
 /* 覆蓋 base.css 的樣式，確保群組成員頁面正常顯示 */
 .container.my-4 {
@@ -33,24 +33,10 @@
   padding: 2rem !important;
 }
 
-/* 確保表單樣式正常 */
-.form-floating > .form-control {
-  height: calc(3.5rem + 2px);
-  line-height: 1.25;
-  border-radius: 0.5rem;
-  border: 1px solid var(--bs-border-color);
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-}
-
-.form-floating > .form-control:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-.form-floating > label {
-  color: var(--bs-secondary);
-  font-weight: 500;
+/* 修復 floating label */
+.form-floating > .form-control:not(:placeholder-shown) {
+  padding-top: 1.625rem;
+  padding-bottom: 0.625rem;
 }
 
 /* 表格樣式 */
@@ -161,8 +147,8 @@ html:not([data-theme='dark']) .glass-body {
         <div class="row g-3 mb-4">
           <div class="col-md-6">
             <div class="form-floating">
-              {{ form.email }}
-              <label for="{{ form.email.id_for_label }}">Email 地址</label>
+              <input type="email" name="email" placeholder=" " class="form-control" maxlength="320" required="" id="id_email">
+              <label for="id_email">Email 地址</label>
             </div>
           </div>
           <div class="col-md-6">

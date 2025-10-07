@@ -1,4 +1,87 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+/* 群組建立頁面專用樣式 */
+.device-selection-container {
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.device-checkbox {
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.device-checkbox:hover {
+  background: var(--bs-tertiary-bg);
+  border-color: var(--bs-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.device-checkbox input[type="checkbox"]:checked + label {
+  color: var(--bs-primary);
+  font-weight: 600;
+}
+
+.device-checkbox input[type="checkbox"]:checked + label .device-checkbox {
+  background: var(--bs-primary-bg-subtle);
+  border-color: var(--bs-primary);
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.device-name {
+  font-weight: 500;
+  color: var(--bs-body-color);
+}
+
+/* 黑夜模式調整 */
+[data-theme='dark'] .device-selection-container {
+  background: rgba(30, 41, 59, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .device-checkbox {
+  background: rgba(30, 41, 59, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .device-checkbox:hover {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: var(--bs-primary);
+}
+
+/* 白天模式調整 */
+html:not([data-theme='dark']) .device-selection-container {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html:not([data-theme='dark']) .device-checkbox {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html:not([data-theme='dark']) .device-checkbox:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--bs-primary);
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -20,13 +103,65 @@
             
             <!-- 表單欄位區域 -->
             <div class="form-section">
-              {{ form.as_p }}
+              <!-- 群組名稱 -->
+              <div class="mb-4">
+                <label for="{{ form.name.id_for_label }}" class="form-label">
+                  <i class="bi bi-tag me-2"></i>{{ form.name.label }}
+                </label>
+                {{ form.name }}
+                {% if form.name.help_text %}
+                  <div class="form-text">{{ form.name.help_text }}</div>
+                {% endif %}
+                {% if form.name.errors %}
+                  <div class="text-danger">{{ form.name.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- 裝置選擇 -->
+              <div class="mb-4">
+                <label for="{{ form.devices.id_for_label }}" class="form-label">
+                  <i class="bi bi-laptop me-2"></i>{{ form.devices.label }}
+                </label>
+                <div class="device-selection-container">
+                  <div class="row g-3">
+                    {% for device in form.devices %}
+                      <div class="col-12">
+                        <div class="form-check device-checkbox">
+                          <input class="form-check-input" type="checkbox" 
+                                 name="{{ form.devices.name }}" 
+                                 value="{{ device.data.value }}" 
+                                 id="{{ device.id_for_label }}"
+                                 {% if device.data.selected %}checked{% endif %}>
+                          <label class="form-check-label" for="{{ device.id_for_label }}">
+                            <div class="device-info">
+                              <div class="device-name">{{ device.choice_label }}</div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    {% empty %}
+                      <div class="col-12">
+                        <div class="alert alert-info">
+                          <i class="bi bi-info-circle me-2"></i>
+                          您目前沒有可選的裝置，先建立群組，之後再加入也可以。
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% if form.devices.help_text %}
+                  <div class="form-text">{{ form.devices.help_text }}</div>
+                {% endif %}
+                {% if form.devices.errors %}
+                  <div class="text-danger">{{ form.devices.errors }}</div>
+                {% endif %}
+              </div>
             </div>
             
             <!-- 按鈕區域 -->
             <div class="button-group mt-4 pt-3 border-top">
               <div class="d-flex gap-3 justify-content-end">
-                <a href="{% url 'group_list' %}" class="btn btn-outline-secondary">
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">
                   <i class="fas fa-arrow-left me-2"></i>
                   返回
                 </a>
@@ -43,4 +178,70 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 裝置選擇增強功能
+  const deviceCheckboxes = document.querySelectorAll('.device-checkbox input[type="checkbox"]');
+  const deviceContainer = document.querySelector('.device-selection-container');
+  
+  // 全選/取消全選按鈕
+  if (deviceCheckboxes.length > 0) {
+    const selectAllContainer = document.createElement('div');
+    selectAllContainer.className = 'mb-3 d-flex gap-2';
+    selectAllContainer.innerHTML = `
+      <button type="button" class="btn btn-sm btn-outline-primary" id="selectAllBtn">
+        <i class="bi bi-check-square me-1"></i>全選
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAllBtn">
+        <i class="bi bi-square me-1"></i>取消全選
+      </button>
+      <span class="text-muted align-self-center" id="selectionCount">已選擇 0 台裝置</span>
+    `;
+    
+    deviceContainer.insertBefore(selectAllContainer, deviceContainer.firstChild);
+    
+    // 全選功能
+    document.getElementById('selectAllBtn').addEventListener('click', function() {
+      deviceCheckboxes.forEach(checkbox => {
+        checkbox.checked = true;
+        updateSelectionCount();
+      });
+    });
+    
+    // 取消全選功能
+    document.getElementById('deselectAllBtn').addEventListener('click', function() {
+      deviceCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        updateSelectionCount();
+      });
+    });
+    
+    // 更新選擇計數
+    function updateSelectionCount() {
+      const selectedCount = document.querySelectorAll('.device-checkbox input[type="checkbox"]:checked').length;
+      document.getElementById('selectionCount').textContent = `已選擇 ${selectedCount} 台裝置`;
+    }
+    
+    // 監聽複選框變化
+    deviceCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', updateSelectionCount);
+    });
+    
+    // 初始化計數
+    updateSelectionCount();
+  }
+  
+  // 點擊整個卡片區域也能選取
+  document.querySelectorAll('.device-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('click', function(e) {
+      if (e.target.type !== 'checkbox') {
+        const input = this.querySelector('input[type="checkbox"]');
+        input.checked = !input.checked;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+});
+</script>
 {% endblock %}

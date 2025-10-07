@@ -265,9 +265,9 @@ def _event_redirect_url(n: Notification) -> str | None:
     }:
         if n.group_id:
             return reverse("group_detail", args=[n.group_id])
-        # group_deleted 沒 group 可去時，回群組列表
+        # group_deleted 沒 group 可去時，回首頁
         if ev == "group_deleted":
-            return reverse("group_list")
+            return reverse("home")
 
     if ev == "invite_created":
         # 你有邀請列表頁就導過去，沒有的話導群組頁
@@ -276,11 +276,11 @@ def _event_redirect_url(n: Notification) -> str | None:
                 return reverse("invite_list", args=[n.group_id])
             except Exception:
                 return reverse("group_detail", args=[n.group_id])
-        return reverse("group_list")
+        return reverse("home")
 
     if ev == "member_removed":
-        # 被移出群組，回群組清單
-        return reverse("group_list")
+        # 被移出群組，回首頁
+        return reverse("home")
 
     # --- 裝置類 ---
     if ev in {"device_bound", "device_unbound", "device_renamed", "device_ip_changed"}:

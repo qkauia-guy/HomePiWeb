@@ -1,9 +1,171 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+/* 毛玻璃卡片樣式 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem 1rem 0 0;
+}
+
+.glass-body {
+  background: transparent;
+  padding: 2rem;
+}
+
+.device-info {
+  background: var(--bs-info-bg-subtle);
+  border: 1px solid var(--bs-info-border-subtle);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.group-info {
+  background: var(--bs-primary-bg-subtle);
+  border: 1px solid var(--bs-primary-border-subtle);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+/* 黑夜模式毛玻璃效果 */
+[data-theme='dark'] .glass-card {
+  background: rgba(30, 41, 59, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .glass-header {
+  background: rgba(30, 41, 59, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .device-info {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme='dark'] .group-info {
+  background: rgba(147, 51, 234, 0.1);
+  border-color: rgba(147, 51, 234, 0.3);
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<h3>加入成功！</h3>
-<p>你已加入群組：<strong>{{ group.name }}</strong></p>
-<p>可操作裝置：<code>{{ device.serial_number }}</code></p>
-<div class="mt-3">
-  <a href="{% url 'group_detail' group.id %}" class="btn btn-primary">前往群組</a>
+<div class="container my-4">
+  <!-- 毛玻璃主卡片 -->
+  <div class="glass-card card">
+    <div class="glass-header card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-check-circle-fill text-success fs-1"></i>
+          <div>
+            <h2 class="glass-title mb-0">加入成功！</h2>
+            <p class="mb-0 text-muted">歡迎加入群組，開始使用你的裝置權限</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="glass-body card-body">
+      <!-- 群組資訊區塊 -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="group-info">
+            <h5 class="mb-3">
+              <i class="bi bi-people-fill me-2"></i>群組資訊
+            </h5>
+            <h4 class="text-primary mb-2">{{ group.name }}</h4>
+            <p class="text-muted mb-0">你現在是這個群組的成員</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="device-info">
+            <h5 class="mb-3">
+              <i class="bi bi-cpu me-2"></i>可操作裝置
+            </h5>
+            {% if device %}
+              <h4 class="text-info mb-2">{{ device.display_name|default:device.serial_number }}</h4>
+              <p class="text-muted mb-0">裝置名稱</p>
+            {% else %}
+              <h4 class="text-info mb-2">多台裝置</h4>
+              <p class="text-muted mb-0">你已獲得群組中所有裝置的權限</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 功能說明區塊 -->
+      <div class="mb-4">
+        <h5 class="mb-4">
+          <i class="bi bi-lightbulb me-2"></i>接下來你可以：
+        </h5>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="d-flex align-items-center p-3 bg-light rounded">
+              <i class="bi bi-eye-fill text-primary me-3 fs-4"></i>
+              <div>
+                <h6 class="mb-1">查看裝置狀態</h6>
+                <small class="text-muted">監控裝置運行狀況</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="d-flex align-items-center p-3 bg-light rounded">
+              <i class="bi bi-gear-fill text-success me-3 fs-4"></i>
+              <div>
+                <h6 class="mb-1">控制裝置</h6>
+                <small class="text-muted">遠端操作裝置功能</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="d-flex align-items-center p-3 bg-light rounded">
+              <i class="bi bi-people-fill text-warning me-3 fs-4"></i>
+              <div>
+                <h6 class="mb-1">與群組互動</h6>
+                <small class="text-muted">與其他成員協作</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作按鈕 -->
+      <div class="d-flex gap-3 justify-content-center pt-3 border-top">
+        <a href="{% url 'group_detail' group.id %}" class="btn btn-primary btn-lg">
+          <i class="bi bi-arrow-right me-2"></i>前往群組
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg">
+          <i class="bi bi-house me-2"></i>回到首頁
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

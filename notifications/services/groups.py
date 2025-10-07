@@ -174,6 +174,62 @@ def notify_member_removed(*, actor, group, member):
     )
 
 
+def notify_member_left(*, actor, group, member):
+    """
+    成員主動退出群組：
+    - 發給退出者本人（member_left）
+    - 廣播給群組中其他成員與 owner（member_left_broadcast），排除退出者
+    """
+    # 1) 退出者本人
+    _create_notification(
+        user=member,
+        kind="member",
+        event=events.MEMBER_LEFT,
+        title=f"你已退出群組：{group.name}",
+        group=group,
+        target=group,
+        dedup_key=f"group:{group.id}:member_left:self:{member.id}",
+        meta={"by": getattr(actor, "id", None)},
+    )
+
+    # 2) 其他成員 + owner（排除退出者）
+    recipient_ids = set(
+        group.memberships.exclude(user_id=member.id).values_list("user_id", flat=True)
+    )
+    if group.owner_id:
+        recipient_ids.add(group.owner_id)
+    if getattr(actor, "id", None) in recipient_ids:
+        recipient_ids.remove(actor.id)
+
+    if not recipient_ids:
+        return
+
+    User = get_user_model()
+    recipients = list(User.objects.filter(id__in=recipient_ids))
+
+    payloads = []
+    for u in recipients:
+        payloads.append(
+            {
+                "user": u,
+                "dedup_key": f"group:{group.id}:member_left_broadcast:{member.id}:{u.id}",
+                "meta": {
+                    "by": getattr(actor, "id", None),
+                    "member": member.id,
+                },
+            }
+        )
+
+    _bulk_create_notifications(
+        user_payloads=payloads,
+        kind="member",
+        event=events.MEMBER_LEFT,
+        title=f"{member.email} 退出群組：{group.name}",
+        target=group,
+        group=group,
+    )
+
+
 def notify_group_device_added(*, actor, group, device, include_actor: bool = True):
     """
     群組加入裝置：廣播給群組 owner、所有成員，以及裝置擁有者（若存在）。

@@ -34,7 +34,7 @@
           <div class="device-actions" id="act-{{ g.id }}">
             <div class="actions-inner px-3 mt-2">
               <div class="actions-buttons">
-                <a class="btn btn-sm btn-primary" href="{{ home_url }}?g=g{{ g.id }}">前往控制</a>
+                <a class="btn btn-sm btn-primary" href="{{ home_url }}?g=g{{ g.id }}">控制台</a>
                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'group_detail' group_id=g.id %}">群組詳細</a>
               </div>
             </div>
@@ -46,7 +46,7 @@
 
   {% else %}
     <p class="text-muted mb-2">尚無群組</p>
-    <a href="{{ group_list_url }}" class="btn btn-success w-100">建立群組</a>
+    <a href="{% url 'group_create' %}" class="btn btn-success w-100">建立群組</a>
   {% endif %}
 
 </div>

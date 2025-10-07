@@ -39,6 +39,7 @@ from notifications.services import (
     notify_invite_created,  # 邀請建立
     notify_member_role_changed,  # 角色變更
     notify_member_removed,  # 成員移除
+    notify_member_left,  # 成員退出
     notify_group_device_added,  # 群組掛入裝置
     notify_group_device_removed,  # 群組移除裝置
     notify_share_request_submitted,  # 成員送出分享申請
@@ -186,7 +187,7 @@ def group_delete(request, group_id):
         transaction.on_commit(_send_notifications)
 
         messages.success(request, "群組已刪除")
-        return redirect("group_list")
+        return redirect("home")
 
     return render(request, "groups/group_confirm_delete.html", {"group": group})
 
@@ -199,7 +200,7 @@ def group_detail(request, group_id):
     is_member = GroupMembership.objects.filter(group=group, user=request.user).exists()
     if (group.owner_id != request.user.id) and (not is_member):
         messages.error(request, "沒有權限檢視此群組")
-        return redirect("group_list")
+        return redirect("home")
 
     # 群組內裝置（含 owner、加入者）
     group_devices = (
@@ -895,13 +896,20 @@ def group_leave(request, group_id):
     membership = GroupMembership.objects.filter(group=group, user=request.user).first()
     if not membership:
         messages.info(request, "你不是此群組成員。")
-        return redirect("group_list")
+        return redirect("home")
 
     with transaction.atomic():
         # 清掉在此群組的裝置操控 ACL（若你有此模型）
         GroupDevicePermission.objects.filter(group=group, user=request.user).delete()
         membership.delete()
 
+        # 發送退出群組通知
+        transaction.on_commit(
+            lambda: notify_member_left(
+                actor=request.user, group=group, member=request.user
+            )
+        )
+
     messages.success(request, f"已退出「{group.name}」。")
-    # 退出後回群組列表；若這是你的唯一群組，你的 middleware 會導去建立群組頁，正好。
-    return redirect("group_list")
+    # 退出後轉跳首頁
+    return redirect("home")

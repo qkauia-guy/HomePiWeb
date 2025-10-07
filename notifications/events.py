@@ -13,6 +13,7 @@ MEMBER_ADDED = "member_added"
 MEMBER_JOINED = "member_joined"
 MEMBER_ROLE_CHANGED = "member_role_changed"
 MEMBER_REMOVED = "member_removed"
+MEMBER_LEFT = "member_left"
 
 GROUP_CREATED = "group_created"
 GROUP_RENAMED = "group_renamed"
