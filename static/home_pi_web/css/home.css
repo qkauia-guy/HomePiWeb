@@ -795,3 +795,26 @@ button[aria-expanded='true'] .toggle-icon {
     -webkit-backdrop-filter: blur(15px) saturate(200%) !important;
   }
 }
+
+/* 手機版隱藏狀態卡片的裝置名稱顯示 */
+@media (max-width: 767.98px) {
+  .card .device-name,
+  .techno-card .device-name,
+  #lightCard .device-name,
+  #lockerCard .device-name,
+  #cameraCard .device-name,
+  .card-body .device-name,
+  .techno-card .card-body .device-name {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  /* 隱藏 CPU 圖示 */
+  .device-name .bi-cpu {
+    display: none !important;
+  }
+}

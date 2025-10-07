@@ -17,6 +17,11 @@
             <span id="lightSpinner" class="spinner-industrial d-none mb-1" aria-label="loading"></span>
           </span>
         </h5>
+        <div class="device-name mb-2">
+          <small class="text-muted">
+            <i class="bi bi-cpu me-1"></i> 裝置：<span id="lightDeviceName">未選擇</span>
+          </small>
+        </div>
         <p id="lightText" class="card-text fs-6 mb-0">點擊操作</p>
         <div class="small text-muted mt-2">
           <i class="bi bi-clock-history me-1"></i> 下次開燈： <span id="schedOnText"> 未排程 </span><br>
@@ -42,6 +47,11 @@
             <span id="lockerSpinner" class="spinner-industrial d-none mb-1" aria-label="loading"></span>
           </span>
         </h5>
+        <div class="device-name mb-2">
+          <small class="text-muted">
+            <i class="bi bi-cpu me-1"></i> 裝置：<span id="lockerDeviceName">未選擇</span>
+          </small>
+        </div>
         <p id="lockerText" class="card-text fs-6 mb-0">點擊操作</p>
         <div class="small text-muted mt-2">
           <i class="bi bi-clock-history me-1"></i> 下次開鎖： <span id="lockerSchedOnText"> 未排程 </span><br>
@@ -53,20 +63,32 @@
 
   <!-- 監視錄影 -->
   <div class="col-md-4">
-    <div class="card h-100 techno-card techno-sweep">
+    <div class="card h-100 techno-card techno-sweep mobile-clickable"
+         id="cameraCard"
+         data-device-id=""
+         data-group-id="{{ group_id|default:'' }}"
+         data-capability="camera">
       <div class="card-body">
         <h5 class="card-title d-flex align-items-center justify-content-between">
           <span><i class="bi bi-camera-video me-2"></i> 監視錄影</span>
-          <span class="badge h6 bg-success px-3 py-1 rounded-pill sweep mt-1">監控中</span>
+          <span class="status-bar">
+            <span id="cameraBadge" class="badge h6 bg-secondary px-3 py-1 rounded-pill mt-1">未綁定</span>
+          </span>
         </h5>
-        <p class="card-text fs-6 mb-0">
-          <a class="btn btn-success btn-sm" target="_blank" rel="noopener" href="/live/51/51/?group_id=g10">
+        <div class="device-name mb-2">
+          <small class="text-muted">
+            <i class="bi bi-cpu me-1"></i> 裝置：<span id="cameraDeviceName">未選擇</span>
+          </small>
+        </div>
+        <p id="cameraText" class="card-text fs-6 mb-0">點擊操作</p>
+        <div class="mt-2">
+          <a id="cameraLiveBtn" class="btn btn-success btn-sm" target="_blank" rel="noopener" href="#" style="display: none;">
             開始直播（開新視窗）
           </a>
-        </p>
+        </div>
         <div class="small text-muted mt-2">
-          <i class="bi bi-record-circle me-1"></i> 錄影品質： <span>1080p</span><br>
-          <i class="bi bi-info-circle me-1"></i> 提示： <span>按「開始直播」會另開視窗播放。</span>
+          <i class="bi bi-record-circle me-1"></i> 錄影品質： <span id="cameraQualityText">未設定</span><br>
+          <i class="bi bi-info-circle me-1"></i> 提示： <span id="cameraTipText">請先選擇群組和裝置。</span>
         </div>
       </div>
     </div>

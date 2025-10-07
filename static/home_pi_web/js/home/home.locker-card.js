@@ -108,6 +108,7 @@
     const badge = card.querySelector('#lockerBadge');
     const text = card.querySelector('#lockerText');
     const spin = card.querySelector('#lockerSpinner');
+    const deviceName = card.querySelector('#lockerDeviceName');
 
     const isLocked = !!state.locked;
 
@@ -145,6 +146,11 @@
     if (schedOffText) {
       console.log('[Locker] 更新上鎖排程:', state.next_lock);
       schedOffText.textContent = state.next_lock ? formatScheduleTime(state.next_lock) : ' 未排程 ';
+    }
+
+    // 更新裝置名稱
+    if (deviceName && state.device_name) {
+      deviceName.textContent = state.device_name;
     }
 
     // spinner：pending 顯示
@@ -258,12 +264,18 @@
     }
   }
 
-  function resetLockerCard(card, msg = '請先從上方選擇「電子鎖」能力') {
+  function resetLockerCard(card, msg = null) {
+    // 根據螢幕大小決定預設訊息
+    if (!msg) {
+      const isMobile = window.innerWidth <= 767.98;
+      msg = isMobile ? '點擊卡片操作電子鎖' : '請先從上方選擇「電子鎖」能力';
+    }
     const badge = card.querySelector('#lockerBadge');
     const text = card.querySelector('#lockerText');
     const spin = card.querySelector('#lockerSpinner');
     const statusText = card.querySelector('#lockerStatusText');
     const autoText = card.querySelector('#lockerAutoText');
+    const deviceName = card.querySelector('#lockerDeviceName');
     
     badge.classList.remove('bg-success', 'bg-secondary', 'bg-warning');
     badge.classList.add('bg-secondary');
@@ -279,6 +291,11 @@
     const schedOffText = card.querySelector('#lockerSchedOffText');
     if (schedOnText) schedOnText.textContent = ' 未排程 ';
     if (schedOffText) schedOffText.textContent = ' 未排程 ';
+    
+    // 重置裝置名稱
+    if (deviceName) {
+      deviceName.textContent = '未選擇';
+    }
     
     card.dataset.capId = '';
     card.dataset.statusUrl = '';
@@ -468,7 +485,7 @@
         stopLockerPoll = null;
       }
       const card = document.getElementById('lockerCard');
-      if (card) resetLockerCard(card, '請先從上方選擇「電子鎖」能力');
+      if (card) resetLockerCard(card);
       
       // 群組選擇時不嘗試顯示狀態，因為還沒有選擇裝置和能力
     });
@@ -480,7 +497,7 @@
         stopLockerPoll = null;
       }
       const card = document.getElementById('lockerCard');
-      if (card) resetLockerCard(card, '請先從上方選擇「電子鎖」能力');
+      if (card) resetLockerCard(card);
       
       // 等待能力選單載入完成後，嘗試顯示裝置狀態
       setTimeout(() => {

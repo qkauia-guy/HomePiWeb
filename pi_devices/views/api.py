@@ -700,6 +700,7 @@ def api_device_status(request, device_id: int):
         "ok": True,
         "device_id": device.id,
         "device_name": device.label,
+        "is_online": device.is_online(),
         "capabilities": {},
         "server_ts": int(timezone.now().timestamp()),
     }
@@ -718,6 +719,8 @@ def api_device_status(request, device_id: int):
             "last_lux": st.get("last_lux", None),
             "locked": bool(st.get("locked", False)),
             "auto_lock_running": bool(st.get("auto_lock_running", False)),
+            "is_streaming": bool(st.get("is_streaming", False)),
+            "hls_url": st.get("hls_url", None),
             "last_change_ts": st.get("last_change_ts", None),
         }
         
@@ -879,6 +882,7 @@ def api_cap_status(request, cap_id: int):
 
     resp_data = {
         "ok": True,
+        "device_name": cap.device.label,
         "light_is_on": light_is_on,
         "auto_light_running": auto_running,
         "last_lux": last_lux,

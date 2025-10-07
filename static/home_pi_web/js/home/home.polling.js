@@ -78,15 +78,29 @@
     else card.querySelector('#lightSpinner')?.classList.add('d-none');
   }
 
-  function resetLightCard(card, msg = '請先從上方選擇「燈光」能力') {
+  function resetLightCard(card, msg = null) {
     const badge = card.querySelector('#lightBadge');
     const text = card.querySelector('#lightText');
     const spin = card.querySelector('#lightSpinner');
+    const deviceName = card.querySelector('#lightDeviceName');
+    
+    // 根據螢幕大小決定預設訊息
+    if (!msg) {
+      const isMobile = window.innerWidth <= 767.98;
+      msg = isMobile ? '點擊卡片操作燈光' : '請先從上方選擇「燈光」能力';
+    }
+    
     badge.classList.remove('bg-success', 'bg-info');
     badge.classList.add('bg-secondary');
     badge.textContent = '未綁定';
     text.textContent = msg;
     spin?.classList.add('d-none');
+    
+    // 重置裝置名稱
+    if (deviceName) {
+      deviceName.textContent = '未選擇';
+    }
+    
     card.dataset.capId = '';
     card.dataset.statusUrl = '';
     card.dataset.reqToken = '0';
@@ -169,9 +183,23 @@
         stopLightPoll = null;
       }
       const card = $('#lightCard');
-      if (card) resetLightCard(card, '請先從上方選擇「燈光」能力');
+      if (card) resetLightCard(card);
+      
+      // 重置監控錄影卡片
+      const cameraCard = $('#cameraCard');
+      if (cameraCard && window.resetCameraCard) {
+        window.resetCameraCard(cameraCard);
+      }
       
       // 群組選擇時不嘗試顯示狀態，因為還沒有選擇裝置和能力
+      // 但可以嘗試初始化監控錄影卡片（如果有選擇裝置）
+      setTimeout(() => {
+        const deviceId = deviceSelect?.value;
+        const groupId = groupSelect?.value;
+        if (deviceId && groupId && window.initCameraCard) {
+          window.initCameraCard(cameraCard, deviceId, groupId);
+        }
+      }, 500);
     });
     deviceSelect?.addEventListener('change', () => {
       if (stopLightPoll) {
@@ -179,9 +207,23 @@
         stopLightPoll = null;
       }
       const card = $('#lightCard');
-      if (card) resetLightCard(card, '請先從上方選擇「燈光」能力');
+      if (card) resetLightCard(card);
+      
+      // 重置監控錄影卡片
+      const cameraCard = $('#cameraCard');
+      if (cameraCard && window.resetCameraCard) {
+        window.resetCameraCard(cameraCard);
+      }
       
       // 裝置選擇時不嘗試顯示狀態，因為能力選單會被重置
+      // 但可以嘗試初始化監控錄影卡片
+      setTimeout(() => {
+        const deviceId = deviceSelect?.value;
+        const groupId = groupSelect?.value;
+        if (deviceId && groupId && window.initCameraCard) {
+          window.initCameraCard(cameraCard, deviceId, groupId);
+        }
+      }, 500);
     });
 
     capSelect?.addEventListener('change', () => {
