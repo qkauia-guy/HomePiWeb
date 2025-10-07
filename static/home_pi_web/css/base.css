@@ -1884,7 +1884,7 @@ html:not([data-theme='dark']) .btn-outline-primary:hover {
   right: -1px; /* 最初外推1px */
   bottom: -1px; /* 最初外推1px */
   border-radius: 21px; /* 增加1px以配合外推 */
-  padding: 2px;
+  padding: 4px;
   background: linear-gradient(
     45deg,
     #ff6b6b,
@@ -1902,7 +1902,7 @@ html:not([data-theme='dark']) .btn-outline-primary:hover {
   mask-composite: xor;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
-  z-index: -1; /* 恢復為-1，避免干擾表單點擊事件 */
+  z-index: 1; /* 提高 z-index 確保彩虹邊框可見 */
   pointer-events: none; /* 確保彩虹邊框不會攔截點擊事件 */
 }
 
@@ -2324,7 +2324,7 @@ html:not([data-theme='dark']) .section-divider {
   right: -1px; /* 最初外推1px */
   bottom: -1px; /* 最初外推1px */
   border-radius: 21px; /* 增加1px以配合外推 */
-  padding: 2px;
+  padding: 4px;
   background: linear-gradient(
     45deg,
     #ff6b6b,
@@ -2342,7 +2342,7 @@ html:not([data-theme='dark']) .section-divider {
   mask-composite: xor;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
-  z-index: -1; /* 恢復為-1，避免干擾表單點擊事件 */
+  z-index: 1; /* 提高 z-index 確保彩虹邊框可見 */
   pointer-events: none; /* 確保彩虹邊框不會攔截點擊事件 */
 }
 
@@ -2392,6 +2392,98 @@ html:not([data-theme='dark']) .glass-card::before {
 
 .glass-card {
   z-index: 2 !important; /* 確保卡片內容在彩虹邊框之上 */
+}
+
+/* 毛玻璃標題樣式 */
+.glass-title {
+  display: inline-block;
+  padding: 1rem 2rem;
+  border-radius: 20px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+/* 毛玻璃標題彩虹邊框 */
+.glass-title::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 22px;
+  padding: 4px;
+  background: linear-gradient(
+    45deg,
+    #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff, #5f27cd
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 3s ease infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 白天模式毛玻璃標題 */
+html:not([data-theme='dark']) .glass-title {
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #374151;
+}
+
+/* 黑夜模式毛玻璃標題 */
+[data-theme='dark'] .glass-title {
+  background: rgba(30, 41, 59, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+}
+
+/* 毛玻璃標題懸停效果 */
+.glass-title:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* 手機版毛玻璃標題調整 */
+@media (max-width: 767.98px) {
+  .glass-title {
+    padding: 0.8rem 1.5rem !important;
+    border-radius: 16px !important;
+    font-size: 1.5rem !important;
+  }
+  
+  .glass-title::before {
+    border-radius: 18px !important;
+    padding: 3px !important;
+    z-index: 1 !important;
+    opacity: 1 !important;
+    display: block !important;
+  }
+}
+
+/* 超小螢幕毛玻璃標題調整 */
+@media (max-width: 575.98px) {
+  .glass-title {
+    padding: 0.6rem 1.2rem !important;
+    border-radius: 12px !important;
+    font-size: 1.3rem !important;
+  }
+  
+  .glass-title::before {
+    border-radius: 14px !important;
+    padding: 2px !important;
+    z-index: 1 !important;
+    opacity: 1 !important;
+    display: block !important;
+  }
 }
 
 .glass-table .table {
@@ -2569,6 +2661,35 @@ html:not([data-theme='dark']) .glass-table .badge.bg-secondary-subtle {
   border-radius: 12px !important;
 }
 
+/* 黑夜模式表格內 Badge 配色 */
+[data-theme='dark'] .glass-table .badge.text-bg-info {
+  background: linear-gradient(145deg, #1e3a8a 0%, #1e40af 100%) !important;
+  color: #dbeafe !important;
+  border-color: #3b82f6 !important;
+  border-radius: 12px !important;
+}
+
+[data-theme='dark'] .glass-table .badge.text-bg-secondary {
+  background: linear-gradient(145deg, #374151 0%, #4b5563 100%) !important;
+  color: #e5e7eb !important;
+  border-color: #6b7280 !important;
+  border-radius: 12px !important;
+}
+
+[data-theme='dark'] .glass-table .badge.bg-success-subtle {
+  background: linear-gradient(145deg, #064e3b 0%, #065f46 100%) !important;
+  color: #a7f3d0 !important;
+  border-color: #10b981 !important;
+  border-radius: 12px !important;
+}
+
+[data-theme='dark'] .glass-table .badge.bg-secondary-subtle {
+  background: linear-gradient(145deg, #374151 0%, #4b5563 100%) !important;
+  color: #d1d5db !important;
+  border-color: #6b7280 !important;
+  border-radius: 12px !important;
+}
+
 /* 白天模式按鈕配色 */
 html:not([data-theme='dark']) .glass-table .btn {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -2741,7 +2862,7 @@ html:not([data-theme='dark']) .device-item:hover {
   /* 手機版表格彩虹邊框調整 - 內縮1px */
   .glass-table::before {
     border-radius: 16px !important; /* 保持表格圓角 */
-    padding: 1px !important; /* 手機版彩虹邊框更細 */
+    padding: 2px !important; /* 手機版彩虹邊框 */
     z-index: 1 !important; /* 確保彩虹邊框可見 */
     opacity: 1 !important; /* 確保完全不透明 */
     top: 0px !important; /* 內縮1px，不溢出 */
@@ -3137,7 +3258,7 @@ html:not([data-theme='dark']) .device-item:hover {
 
   /* 超小螢幕表格彩虹邊框更細 - 內縮1px */
   .glass-table::before {
-    padding: 0.5px !important; /* 超小螢幕彩虹邊框最細 */
+    padding: 1px !important; /* 超小螢幕彩虹邊框 */
     border-radius: 12px !important; /* 配合表格圓角 */
     z-index: 1 !important; /* 確保彩虹邊框可見 */
     opacity: 1 !important; /* 確保完全不透明 */
