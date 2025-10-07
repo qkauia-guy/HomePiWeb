@@ -1,28 +1,415 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'home_pi_web/css/groups/group_members.css' %}?v=20250108_2">
+<style>
+/* 邀請成功頁面專用樣式 */
+.invite-success-card {
+  background: var(--bs-body-bg);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin: 1rem 0;
+  border: 1px solid var(--bs-border-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.invite-success-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.invite-link-container {
+  background: var(--bs-success-bg-subtle);
+  border: 1px solid var(--bs-success-border-subtle);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.invite-link {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  user-select: all;
+}
+
+.device-permissions-table {
+  background: var(--bs-body-bg);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--bs-border-color);
+}
+
+.device-permissions-table thead th {
+  background: var(--bs-tertiary-bg);
+  border-bottom: 2px solid var(--bs-border-color);
+  font-weight: 600;
+  color: var(--bs-body-color);
+  padding: 1rem 0.75rem;
+}
+
+.device-permissions-table tbody tr {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.device-permissions-table tbody tr:hover {
+  background: var(--bs-tertiary-bg);
+}
+
+.device-permissions-table tbody td {
+  padding: 1rem 0.75rem;
+  vertical-align: middle;
+}
+
+/* 黑夜模式調整 */
+[data-theme='dark'] .invite-success-card {
+  background: rgba(30, 41, 59, 0.3);
+  backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .invite-link-container {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+[data-theme='dark'] .invite-link {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 白天模式調整 */
+html:not([data-theme='dark']) .invite-success-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html:not([data-theme='dark']) .invite-link-container {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+html:not([data-theme='dark']) .invite-link {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: var(--bs-dark);
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<h3>邀請已建立</h3>
-<p class="mb-2">群組：<strong>{{ group.name }}</strong></p>
+<div class="container my-4">
+  <!-- 邀請成功卡片 -->
+  <div class="glass-card card mb-4">
+    <div class="glass-header card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <h2 class="glass-title mb-0">邀請已建立</h2>
+          <h4 class="mb-0">{{ group.name }}</h4>
+        </div>
+        <a href="{% url 'group_detail' group.id %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>回群組
+        </a>
+      </div>
+    </div>
+    <div class="glass-body card-body">
+      <!-- 成功訊息 -->
+      <div class="alert alert-success d-flex align-items-center mb-4">
+        <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+        <div>
+          <strong>邀請建立成功！</strong><br>
+          <small>受邀者 <strong>{{ inv.email|default:"未指定" }}</strong> 可以透過下方連結加入群組</small>
+        </div>
+      </div>
 
-<div class="alert alert-success">
-  受邀連結：<a href="{{ invite_url }}">{{ invite_url }}</a>
-</div>
+      <!-- 邀請連結 -->
+      <div class="invite-link-container">
+        <h6 class="mb-3">
+          <i class="bi bi-link-45deg me-2"></i>受邀連結
+        </h6>
+        <div class="invite-link" onclick="selectAll(this)" style="cursor: pointer;" title="點擊選取全部文字">{{ invite_url }}</div>
+        <div class="mt-2">
+          <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('{{ invite_url }}')">
+            <i class="bi bi-clipboard me-1"></i>複製連結
+          </button>
+          <button class="btn btn-sm btn-outline-success ms-2" onclick="shareInvite()">
+            <i class="bi bi-share me-1"></i>分享邀請
+          </button>
+        </div>
+      </div>
 
-{% if items %}
-  <div class="card">
-    <div class="card-header">此邀請包含的裝置與權限</div>
-    <div class="card-body p-0">
-      <table class="table table-sm mb-0">
-        <thead><tr><th>裝置</th><th>權限</th></tr></thead>
-        <tbody>
-          {% for it in items %}
-            <tr>
-              <td>{{ it.device.display_name|default:it.device.serial_number }} <small class="text-muted">#{{ it.device.id }}</small></td>
-              <td>{{ it.can_control|yesno:"可控制,僅查看" }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <!-- 裝置權限列表 -->
+      {% if items %}
+        <div class="mt-4">
+          <h6 class="mb-3">
+            <i class="bi bi-laptop me-2"></i>此邀請包含的裝置與權限
+          </h6>
+          <div class="device-permissions-table">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>
+                    <i class="bi bi-laptop me-1"></i>裝置
+                  </th>
+                  <th>
+                    <i class="bi bi-shield-check me-1"></i>權限
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for it in items %}
+                  <tr>
+                    <td>
+                      <div class="device-info">
+                        <div class="device-name">{{ it.device.display_name|default:it.device.serial_number }}</div>
+                        <small class="text-muted">序號: #{{ it.device.id }}</small>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge {% if it.can_control %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if it.can_control %}
+                          <i class="bi bi-check-circle me-1"></i>可控制
+                        {% else %}
+                          <i class="bi bi-eye me-1"></i>僅查看
+                        {% endif %}
+                      </span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- 操作按鈕 -->
+      <div class="d-flex gap-2 mt-4 pt-3 border-top">
+        <a href="{% url 'group_detail' group.id %}" class="btn btn-primary">
+          <i class="bi bi-people me-1"></i>前往群組
+        </a>
+        <a href="{% url 'group_members' group.id %}" class="btn btn-outline-secondary">
+          <i class="bi bi-person-plus me-1"></i>建立新邀請
+        </a>
+      </div>
     </div>
   </div>
-{% endif %}
+</div>
+
+<script>
+function copyToClipboard(text) {
+  // 嘗試使用現代 Clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function() {
+      showCopySuccess();
+    }).catch(function(err) {
+      console.error('Clipboard API 複製失敗:', err);
+      fallbackCopy(text);
+    });
+  } else {
+    // 降級到傳統方法
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  // 建立臨時文字區域
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopySuccess();
+    } else {
+      showCopyError();
+    }
+  } catch (err) {
+    console.error('傳統複製方法失敗:', err);
+    showCopyError();
+  } finally {
+    document.body.removeChild(textArea);
+  }
+}
+
+function showCopySuccess() {
+  const btn = event.target.closest('button');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="bi bi-check me-1"></i>已複製';
+  btn.classList.remove('btn-outline-primary');
+  btn.classList.add('btn-success');
+  
+  setTimeout(() => {
+    btn.innerHTML = originalText;
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-outline-primary');
+  }, 2000);
+}
+
+function showCopyError() {
+  alert('複製失敗，請手動複製連結：\n' + '{{ invite_url }}');
+}
+
+function selectAll(element) {
+  if (window.getSelection) {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  } else if (document.selection) {
+    const range = document.body.createTextRange();
+    range.moveToElementText(element);
+    range.select();
+  }
+}
+
+function shareInvite() {
+  console.log('分享按鈕被點擊');
+  const inviteUrl = '{{ invite_url }}';
+  const shareText = '邀請您加入群組：{{ group.name }}';
+  
+  console.log('邀請連結:', inviteUrl);
+  console.log('分享文字:', shareText);
+  
+  // 嘗試使用 Web Share API (手機版支援較好)
+  if (navigator.share) {
+    console.log('使用 Web Share API');
+    navigator.share({
+      title: '群組邀請',
+      text: shareText,
+      url: inviteUrl
+    }).then(() => {
+      console.log('分享成功');
+    }).catch(err => {
+      console.log('分享取消或失敗:', err);
+      // 如果 Web Share API 失敗，降級到分享選單
+      showShareMenu(inviteUrl, shareText);
+    });
+  } else {
+    console.log('Web Share API 不支援，使用分享選單');
+    // 降級到分享選單
+    showShareMenu(inviteUrl, shareText);
+  }
+}
+
+function showShareMenu(url, text) {
+  console.log('顯示分享選單');
+  
+  // 簡單的分享選項
+  const shareOptions = [
+    {
+      name: 'LINE',
+      url: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`,
+      icon: 'bi-chat-dots'
+    },
+    {
+      name: 'WhatsApp', 
+      url: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
+      icon: 'bi-whatsapp'
+    },
+    {
+      name: 'Facebook',
+      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      icon: 'bi-facebook'
+    }
+  ];
+  
+  // 建立分享選單 HTML
+  let menuHtml = `
+    <div id="shareMenu" style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 1050;
+      min-width: 250px;
+    ">
+      <h6 class="mb-3">選擇分享方式</h6>
+      <div class="d-grid gap-2">
+  `;
+  
+  shareOptions.forEach(option => {
+    menuHtml += `
+      <button class="btn btn-outline-secondary btn-sm" onclick="openShare('${option.url}')">
+        <i class="bi ${option.icon} me-2"></i>${option.name}
+      </button>
+    `;
+  });
+  
+  menuHtml += `
+        <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard('${url}')">
+          <i class="bi bi-clipboard me-2"></i>複製連結
+        </button>
+      </div>
+      <button class="btn btn-secondary btn-sm w-100 mt-3" onclick="closeShareMenu()">取消</button>
+    </div>
+    <div id="shareOverlay" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 1040;
+    " onclick="closeShareMenu()"></div>
+  `;
+  
+  // 添加到頁面
+  document.body.insertAdjacentHTML('beforeend', menuHtml);
+  
+  // 根據主題調整毛玻璃效果
+  const menu = document.getElementById('shareMenu');
+  if (menu) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      menu.style.background = 'rgba(30, 41, 59, 0.3)';
+      menu.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+      menu.style.color = 'rgba(255, 255, 255, 0.9)';
+    } else {
+      menu.style.background = 'rgba(255, 255, 255, 0.7)';
+      menu.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+      menu.style.color = 'var(--bs-dark)';
+    }
+  }
+  
+  // 設定全域函數
+  window.openShare = function(url) {
+    console.log('開啟分享:', url);
+    window.open(url, '_blank', 'width=600,height=400');
+    closeShareMenu();
+  };
+  
+  window.closeShareMenu = function() {
+    const menu = document.getElementById('shareMenu');
+    const overlay = document.getElementById('shareOverlay');
+    if (menu) menu.remove();
+    if (overlay) overlay.remove();
+  };
+}
+</script>
 {% endblock %}
