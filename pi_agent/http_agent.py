@@ -10,6 +10,7 @@ http_agent.py
 import os
 import time
 from copy import deepcopy
+from typing import Optional
 
 # === 設定載入與能力偵測 ===
 from config.loader import load as load_config
@@ -172,7 +173,7 @@ def _push_state_from_locker():
         print("[locker] push state err:", e)
 
 
-def run_action(action: str, payload: dict | None = None):
+def run_action(action: str, payload: Optional[dict] = None):
     """本地排程器執行函式"""
     global _LAST_LIGHT_SLUG, _CAPS_SNAPSHOT
 
@@ -469,8 +470,19 @@ def get_pi_metrics():
     """取得樹莓派運行狀況"""
     metrics = {}
     try:
+        # CPU / Mem
         metrics["cpu_percent"] = psutil.cpu_percent(interval=0.5)
         metrics["memory_percent"] = psutil.virtual_memory().percent
+
+        # 磁碟容量：取得根目錄的磁碟使用率
+        try:
+            disk_usage = psutil.disk_usage('/')
+            disk_percent = (disk_usage.used / disk_usage.total) * 100
+            metrics["disk_percent"] = round(disk_percent, 1)
+        except Exception as e:
+            print(f"[WARN] disk usage failed: {e}")
+
+        # 溫度：先試 vcgencmd，再 fallback
         temp = None
         try:
             output = subprocess.check_output(
@@ -478,13 +490,21 @@ def get_pi_metrics():
             )
             temp = float(output.replace("temp=", "").replace("'C", "").strip())
         except Exception:
-            temps = psutil.sensors_temperatures()
-            if "cpu-thermal" in temps:
-                temp = temps["cpu-thermal"][0].current
+            try:
+                with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                    milli = int(f.read().strip())
+                temp = milli / 1000.0
+            except Exception:
+                temps = psutil.sensors_temperatures()
+                if "cpu-thermal" in temps:
+                    temp = temps["cpu-thermal"][0].current
+
         if temp is not None:
             metrics["temperature"] = temp
+
     except Exception as e:
         print(f"[WARN] get_pi_metrics failed: {e}")
+
     return metrics
 
 

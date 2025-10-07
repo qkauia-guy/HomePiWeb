@@ -26,12 +26,28 @@ document.addEventListener('DOMContentLoaded', () => {
       tableBody.innerHTML = '';
       logs.forEach((log) => {
         const row = document.createElement('tr');
+        
+        // 計算可用容量百分比（100 - 使用百分比）
+        let diskDisplay = '-';
+        let capacityClass = '';
+        if (log.disk_percent != null) {
+          const availablePercent = 100 - log.disk_percent;
+          diskDisplay = availablePercent.toFixed(1) + '%';
+          
+          // 根據可用容量設定顏色
+          if (availablePercent >= 50) {
+            capacityClass = 'data-available="good"';
+          } else if (availablePercent >= 20) {
+            capacityClass = 'data-available="low"';
+          } else {
+            capacityClass = 'data-available="critical"';
+          }
+        }
+        
         row.innerHTML = `
           <td>${log.ping_at || '-'}</td>
-          <td class="${
-            log.status === 'online' ? 'status-online' : 'status-offline'
-          }">
-            ${log.status || '-'}
+          <td class="disk-capacity" ${capacityClass}>
+            ${diskDisplay}
           </td>
           <td>${log.ip || '-'}</td>
           <td>${
