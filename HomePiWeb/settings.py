@@ -21,6 +21,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://192.168.67.42:8800",
     "http://192.168.0.100:8800",
     "http://172.28.232.36:8800",
+    "http://172.28.104.118:8888",
 ]
 
 AUTH_USER_MODEL = "users.User"  # 自訂 User 模型是在 users app 內，叫 User 這個 class
@@ -196,23 +197,23 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # 日誌設定
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'loggers': {
-        'pi_devices.views.capability': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
+    "loggers": {
+        "pi_devices.views.capability": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
         },
-        'notifications.services.devices': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
+        "notifications.services.devices": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
