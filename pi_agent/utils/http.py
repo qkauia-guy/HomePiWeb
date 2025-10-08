@@ -26,8 +26,8 @@ SERIAL = os.getenv("SERIAL", "default-serial")
 # 掛上自己裝置的 token
 TOKEN = os.getenv("TOKEN", "default-token")
 # 後端 API 的基礎網址，通常是固定不變的。
+# API_BASE = os.getenv("API_BASE", "http://172.28.104.118:8888/")
 API_BASE = os.getenv("API_BASE", "http://172.28.232.36:8800")
-
 # API 接口路徑
 PING_PATH = "/api/device/ping/"
 PULL_PATH = "/api/device/pull/"
@@ -132,7 +132,9 @@ def ack(req_id: str, ok: bool = True, error: str = "", state: Optional[dict] = N
         error: 如果執行失敗，提供錯誤訊息。
         state: 可選擇性地附帶裝置的最新狀態。
     """
-    print(f"[DEBUG] ack 開始發送: req_id={req_id}, ok={ok}, error='{error}', state={state}")
+    print(
+        f"[DEBUG] ack 開始發送: req_id={req_id}, ok={ok}, error='{error}', state={state}"
+    )
     url = f"{API_BASE}{ACK_PATH}"
     payload = {
         "serial_number": SERIAL,

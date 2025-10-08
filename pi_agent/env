@@ -1,8 +1,0 @@
-# === 掛上自己裝置的 裝置序號 ===
-SERIAL=PI-98A26E24
-# ex: SERIAL=PI-E2390XXX
-# === 掛上自己裝置的 token ===
-TOKEN=cbbe6e36756a4e6a9318b2124a15f2d2
-# ex: TOKEN=3de6279eae104e0b858b648dxxxxxxxx
-# === 固定勿修改 ===
-API_BASE=http://172.28.232.36:8800

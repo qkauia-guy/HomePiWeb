@@ -252,6 +252,61 @@
   // 頁面載入時檢查是否需要打開 offcanvas
   document.addEventListener('DOMContentLoaded', openOffcanvasIfNeeded);
 
+  // ===== 移除排程功能 =====
+  async function removeSchedule(capability) {
+    const groupSelect = document.getElementById('groupSelect');
+    const deviceSelect = document.getElementById('deviceSelect');
+    
+    if (!groupSelect?.value || !deviceSelect?.value) {
+      toast('請先選擇群組和裝置', false);
+      return;
+    }
+
+    // 找到對應的按鈕並設定載入狀態
+    const buttonId = capability === 'light' ? 'lightRemoveScheduleBtn' : 'lockerRemoveScheduleBtn';
+    const button = document.querySelector(`#${buttonId} .btn`);
+    
+    if (button) {
+      button.disabled = true;
+      button.classList.add('loading');
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('group_id', groupSelect.value);
+      formData.append('device_id', deviceSelect.value);
+      formData.append('capability', capability);
+
+      const response = await postForm('/remove_schedule/', formData);
+      
+      if (response.ok) {
+        const data = await response.json();
+        showMessagesFromJson(data);
+        
+        // 觸發狀態卡片更新
+        setTimeout(() => {
+          if (window.HomeUI?.triggerStatusUpdate) {
+            window.HomeUI.triggerStatusUpdate();
+          }
+          if (window.initStatusCards) {
+            window.initStatusCards();
+          }
+        }, 100);
+      } else {
+        throw new Error('移除排程失敗');
+      }
+    } catch (error) {
+      console.error('移除排程錯誤:', error);
+      toast('移除排程失敗：' + (error?.message || error), false);
+    } finally {
+      // 恢復按鈕狀態
+      if (button) {
+        button.disabled = false;
+        button.classList.remove('loading');
+      }
+    }
+  }
+
   // ===== 導出到全域（給其他頁用）=====
   window.App = Object.assign(window.App || {}, {
     getCsrf,
@@ -261,6 +316,10 @@
     showMessagesFromJson,
     cleanUrl,
     openOffcanvasIfNeeded,
+    removeSchedule,
     paths: { LOGIN_PATH, GROUP_CREATE_PATH },
   });
+
+  // 將 removeSchedule 函數也直接掛到全域，方便 HTML 直接呼叫
+  window.removeSchedule = removeSchedule;
 })();

@@ -71,6 +71,7 @@ urlpatterns = [
         name="device_schedule_ack",
     ),
     path("schedules/create/", device_views.create_schedule, name="create_schedule"),
+    path("remove_schedule/", device_views.remove_schedule, name="remove_schedule"),
     path(
         "api/device/<int:device_id>/schedules/",
         device_views.upcoming_schedules,

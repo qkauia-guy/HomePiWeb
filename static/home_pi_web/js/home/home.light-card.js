@@ -111,6 +111,13 @@
       schedOffText.textContent = state.next_off ? formatScheduleTime(state.next_off) : ' 未排程 ';
     }
 
+    // 控制移除排程按鈕顯示/隱藏
+    const removeScheduleBtn = card.querySelector('#lightRemoveScheduleBtn');
+    if (removeScheduleBtn) {
+      const hasSchedule = state.next_on || state.next_off;
+      removeScheduleBtn.classList.toggle('d-none', !hasSchedule);
+    }
+
     // 更新裝置名稱
     if (deviceName && state.device_name) {
       deviceName.textContent = state.device_name;

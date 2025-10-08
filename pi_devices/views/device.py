@@ -556,3 +556,85 @@ def upcoming_schedules(request, device_id: int):
     )
     resp["Cache-Control"] = "no-store"
     return resp
+
+
+@login_required
+@require_POST
+def remove_schedule(request):
+    """
+    移除指定裝置和功能的排程
+    參數：
+    - device_id: 裝置 ID
+    - group_id: 群組 ID（用於權限驗證）
+    - capability: 功能類型（light/locker）
+    """
+    device_id = request.POST.get("device_id")
+    group_id = request.POST.get("group_id")
+    capability = request.POST.get("capability")
+    
+    # 調試資訊
+    print(f"[DEBUG] remove_schedule 請求參數:")
+    print(f"  device_id: {device_id}")
+    print(f"  group_id: {group_id}")
+    print(f"  capability: {capability}")
+    print(f"  user: {request.user}")
+    
+    if not device_id or not group_id or not capability:
+        return JsonResponse({
+            "ok": False, 
+            "error": "缺少必要參數：device_id, group_id, capability"
+        }, status=400)
+    
+    try:
+        device = get_object_or_404(Device, pk=device_id)
+        
+        # 權限驗證：裝置需在使用者可見群組
+        visible = device.groups.filter(
+            Q(owner=request.user) | Q(memberships__user=request.user)
+        ).exists()
+        print(f"[DEBUG] 權限驗證: visible={visible}")
+        if not visible:
+            return JsonResponse({
+                "ok": False, 
+                "error": "無權限操作此裝置"
+            }, status=403)
+        
+        # 根據功能類型決定要移除的排程動作
+        actions_to_remove = []
+        if capability == "light":
+            actions_to_remove = ["light_on", "light_off", "auto_light_on", "auto_light_off"]
+        elif capability == "locker":
+            actions_to_remove = ["locker_unlock", "locker_lock"]
+        else:
+            return JsonResponse({
+                "ok": False, 
+                "error": f"不支援的功能類型：{capability}"
+            }, status=400)
+        
+        # 移除未執行的排程
+        now = timezone.now()
+        print(f"[DEBUG] 要移除的動作: {actions_to_remove}")
+        
+        # 先查詢符合條件的排程數量
+        matching_schedules = DeviceSchedule.objects.filter(
+            device=device,
+            action__in=actions_to_remove,
+            status="pending",
+            run_at__gte=now - timedelta(seconds=120)  # 容忍 2 分鐘的時鐘漂移
+        )
+        print(f"[DEBUG] 找到 {matching_schedules.count()} 個符合條件的排程")
+        
+        removed_count = matching_schedules.update(status="canceled")
+        print(f"[DEBUG] 成功移除 {removed_count} 個排程")
+        
+        return JsonResponse({
+            "ok": True,
+            "message": f"已移除 {removed_count} 個排程",
+            "removed_count": removed_count
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            "ok": False, 
+            "error": f"移除排程失敗：{str(e)}"
+        }, status=500)

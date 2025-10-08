@@ -796,6 +796,114 @@ button[aria-expanded='true'] .toggle-icon {
   }
 }
 
+/* =========================
+   移除排程按鈕樣式覆蓋
+   ========================= */
+
+/* 移除排程按鈕容器樣式 */
+#lightRemoveScheduleBtn,
+#lockerRemoveScheduleBtn {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 0.75rem;
+}
+
+/* 黑夜模式容器分隔線 */
+html[data-theme='dark'] #lightRemoveScheduleBtn,
+html[data-theme='dark'] #lockerRemoveScheduleBtn {
+  border-top: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+/* 移除排程按鈕樣式 - 彩虹邊框版 */
+#lightRemoveScheduleBtn .btn,
+#lockerRemoveScheduleBtn .btn {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 移除排程按鈕彩虹邊框效果 */
+#lightRemoveScheduleBtn .btn::before,
+#lockerRemoveScheduleBtn .btn::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  );
+  background-size: 400% 400%;
+  animation: rainbowBorder 3s ease-in-out infinite;
+  border-radius: 0.5rem;
+  z-index: -1;
+}
+
+/* 移除排程按鈕 hover 效果 */
+#lightRemoveScheduleBtn .btn:hover,
+#lockerRemoveScheduleBtn .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 黑夜模式按鈕彩虹邊框增強 */
+html[data-theme='dark'] #lightRemoveScheduleBtn .btn::before,
+html[data-theme='dark'] #lockerRemoveScheduleBtn .btn::before {
+  z-index: -1 !important;
+  opacity: 1 !important;
+}
+
+/* 移除排程按鈕載入狀態 */
+.btn.loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.btn.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1rem;
+  height: 1rem;
+  margin: -0.5rem 0 0 -0.5rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 手機版優化 */
+@media (max-width: 767.98px) {
+  #lightRemoveScheduleBtn,
+  #lockerRemoveScheduleBtn {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+  
+  #lightRemoveScheduleBtn .btn,
+  #lockerRemoveScheduleBtn .btn {
+    font-size: 0.9rem;
+    padding: 0.625rem 1.25rem;
+  }
+}
+
 /* 手機版隱藏狀態卡片的裝置名稱顯示 */
 /* 磁碟容量樣式 */
 .disk-capacity[data-available="good"] {

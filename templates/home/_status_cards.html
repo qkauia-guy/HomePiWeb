@@ -27,6 +27,12 @@
           <i class="bi bi-clock-history me-1"></i> 下次開燈： <span id="schedOnText"> 未排程 </span><br>
           <i class="bi bi-clock me-1"></i> 下次關燈： <span id="schedOffText"> 未排程 </span>
         </div>
+        <!-- 移除排程按鈕（僅在有排程時顯示） -->
+        <div class="mt-3 d-none" id="lightRemoveScheduleBtn">
+          <button class="btn btn-outline-warning btn-sm w-100" onclick="removeSchedule('light')">
+            <i class="bi bi-x-circle me-1"></i> 移除排程 <i class="bi bi-x-circle ms-1"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -56,6 +62,12 @@
         <div class="small text-muted mt-2">
           <i class="bi bi-clock-history me-1"></i> 下次開鎖： <span id="lockerSchedOnText"> 未排程 </span><br>
           <i class="bi bi-clock me-1"></i> 下次上鎖： <span id="lockerSchedOffText"> 未排程 </span>
+        </div>
+        <!-- 移除排程按鈕（僅在有排程時顯示） -->
+        <div class="mt-3 d-none" id="lockerRemoveScheduleBtn">
+          <button class="btn btn-outline-warning btn-sm w-100" onclick="removeSchedule('locker')">
+            <i class="bi bi-x-circle me-1"></i> 移除排程 <i class="bi bi-x-circle ms-1"></i>
+          </button>
         </div>
       </div>
     </div>
