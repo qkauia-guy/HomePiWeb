@@ -5,6 +5,102 @@
   box-sizing: border-box !important;
 }
 
+/* 邀請列表頁面樣式 */
+.invite-list-page .glass-card {
+  margin: 1rem 0;
+}
+
+/* 邀請列表頁面表格樣式 */
+.invite-list-page .table th {
+  border-top: none;
+  font-weight: 600;
+}
+
+.invite-list-page .table td {
+  vertical-align: middle;
+}
+
+/* 邀請列表頁面手機版卡片樣式 */
+.invite-list-page .card {
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+html[data-theme='dark'] .invite-list-page .card {
+  background-color: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+html[data-theme='dark'] .invite-list-page .card-header {
+  background-color: rgba(51, 65, 85, 0.5);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme='dark'] .invite-list-page .card-body {
+  color: #f1f5f9;
+}
+
+/* 邀請列表頁面文字顏色修正 */
+html[data-theme='dark'] .invite-list-page .table td,
+html[data-theme='dark'] .invite-list-page .table td *,
+html[data-theme='dark'] .invite-list-page .table td span,
+html[data-theme='dark'] .invite-list-page .table td div,
+html[data-theme='dark'] .invite-list-page .table td small,
+html[data-theme='dark'] .invite-list-page .table td code,
+html[data-theme='dark'] .invite-list-page .table td a {
+  color: #cbd5e1 !important;
+}
+
+html[data-theme='dark'] .invite-list-page .table td .text-muted {
+  color: #94a3b8 !important;
+}
+
+html[data-theme='dark'] .invite-list-page .table td .badge {
+  color: #ffffff !important;
+}
+
+/* 邀請列表頁面手機版文字顏色修正 */
+html[data-theme='dark'] .invite-list-page .card-body,
+html[data-theme='dark'] .invite-list-page .card-body *,
+html[data-theme='dark'] .invite-list-page .card-body span,
+html[data-theme='dark'] .invite-list-page .card-body div,
+html[data-theme='dark'] .invite-list-page .card-body small,
+html[data-theme='dark'] .invite-list-page .card-body code {
+  color: #f1f5f9 !important;
+}
+
+html[data-theme='dark'] .invite-list-page .card-body .text-muted {
+  color: #cbd5e1 !important;
+}
+
+/* 邀請列表頁面表格樣式優化 */
+.invite-list-page .table td {
+  vertical-align: middle;
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+}
+
+.invite-list-page .table th {
+  text-align: center;
+  font-weight: 600;
+  padding: 0.75rem 0.5rem;
+}
+
+/* 特定欄位置中 */
+.invite-list-page .table td:nth-child(3), /* 角色 */
+.invite-list-page .table td:nth-child(5), /* 到期 */
+.invite-list-page .table td:nth-child(6), /* 狀態 */
+.invite-list-page .table td:nth-child(7), /* 連結 */
+.invite-list-page .table td:nth-child(8) { /* 操作 */
+  text-align: center;
+}
+
+/* 按鈕樣式優化 */
+.invite-list-page .table .btn {
+  white-space: nowrap;
+}
+
 /* 移除全域覆蓋，讓 Bootstrap grid 系統正常工作 */
 
 /* 主容器 */

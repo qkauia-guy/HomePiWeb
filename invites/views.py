@@ -68,6 +68,7 @@ def invitation_list(request, group_id):
 
 @login_required
 @require_http_methods(["POST"])
+@transaction.atomic
 def revoke_invitation(request, code):
     """撤銷（停用）單一邀請；只允許群組擁有者/群組管理員。"""
     inv = Invitation.objects.select_for_update().select_related("group").get(code=code)
