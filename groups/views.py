@@ -515,7 +515,7 @@ def member_set_role(request, group_id, membership_id):
     else:
         messages.error(request, "更新失敗，請確認欄位")
 
-    return redirect("group_members", group_id=group.id)
+    return redirect("group_detail", group_id=group.id)
 
 
 # ========== 成員：移除 ==========
