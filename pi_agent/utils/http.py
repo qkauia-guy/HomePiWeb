@@ -26,8 +26,8 @@ SERIAL = os.getenv("SERIAL", "default-serial")
 # 掛上自己裝置的 token
 TOKEN = os.getenv("TOKEN", "default-token")
 # 後端 API 的基礎網址，通常是固定不變的。
-# API_BASE = os.getenv("API_BASE", "http://172.28.104.118:8888/")
-API_BASE = os.getenv("API_BASE", "http://172.28.232.36:8800")
+API_BASE = os.getenv("API_BASE", "http://172.28.104.118:8888/")
+# API_BASE = os.getenv("API_BASE", "http://172.28.232.36:8800")
 # API 接口路徑
 PING_PATH = "/api/device/ping/"
 PULL_PATH = "/api/device/pull/"

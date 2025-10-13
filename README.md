@@ -119,21 +119,25 @@ templates/
 ### 主要功能模組
 
 #### 1. 主題系統
+
 - **黑夜/白天模式**：自動偵測系統偏好，支援手動切換
 - **響應式設計**：桌面版和手機版適配
 - **毛玻璃效果**：現代化 UI 設計
 
 #### 2. 設備控制
+
 - **即時控制**：LED 開關、電子鎖控制
 - **狀態監控**：設備線上狀態、心跳檢測
 - **圖表展示**：設備使用統計、效能監控
 
 #### 3. 群組管理
+
 - **動態載入**：AJAX 群組和設備選擇
 - **權限控制**：基於角色的功能顯示
 - **邀請系統**：QR Code 分享、權限設定
 
 #### 4. 通知系統
+
 - **SweetAlert2 整合**：美觀的彈窗通知
 - **主題適配**：自動適應黑夜/白天模式
 - **訊息分類**：成功、警告、錯誤訊息
@@ -157,14 +161,14 @@ templates/
 ```javascript
 // 在 static/home_pi_web/js/ 中新增模組
 // 遵循現有的模組化設計
-(function() {
+(function () {
   'use strict';
-  
+
   // 模組功能實作
   function initCustomFeature() {
     // 功能邏輯
   }
-  
+
   // 初始化
   document.addEventListener('DOMContentLoaded', initCustomFeature);
 })();
@@ -175,14 +179,11 @@ templates/
 ```html
 <!-- 在 templates/ 中新增模板 -->
 <!-- 繼承 base.html 並使用現有的 CSS 類別 -->
-{% extends "base.html" %}
-{% load static %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'home_pi_web/css/custom.css' %}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% load static %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{% static 'home_pi_web/css/custom.css' %}" />
+{% endblock %} {% block content %}
 <div class="container">
   <!-- 使用 Bootstrap 和自訂 CSS 類別 -->
   <div class="glass-card">
@@ -282,6 +283,7 @@ nano .env
 ```
 
 在 `.env` 檔案中設定：
+
 ```
 SERIAL_NUMBER=PI-XXXXXXXX
 TOKEN=your_device_token
@@ -392,18 +394,18 @@ echo "*/10 * * * * /home/$USER/pi_agent/cleanup_hls.sh >> /home/$USER/pi_agent/c
 
 更多詳細設定請參考 `pi_agent/說明文件/` 目錄下的文件：
 
-- [01本地環境設定.md](pi_agent/說明文件/01本地環境設定.md) - 本地開發環境設定
-- [02樹梅派環境設定.md](pi_agent/說明文件/02樹梅派環境設定.md) - 樹梅派環境完整設定
-- [03樹梅派序號綁定.md](pi_agent/說明文件/03樹梅派序號綁定.md) - 設備序號綁定流程
-- [04HTTP代理程式(homepi-http-agent@.service).md](pi_agent/說明文件/04HTTP代理程式(homepi-http-agent@.service).md) - HTTP 代理服務設定
-- [05HLS影片串流服務(homepi-hls@.service).md](pi_agent/說明文件/05HLS影片串流服務(homepi-hls@.service).md) - HLS 串流服務設定
-- [06啟動輕量級的網頁伺服器(homepi-hls-www@.service).md](pi_agent/說明文件/06啟動輕量級的網頁伺服器(homepi-hls-www@.service).md) - 網頁伺服器設定
-- [07排程服務(homepi-scheduler@.service).md](pi_agent/說明文件/07排程服務(homepi-scheduler@.service).md) - 排程服務設定
-- [08多台裝置同步誤動作排查.md](pi_agent/說明文件/08多台裝置同步誤動作排查.md) - 故障排除指南
-- [HLS自動清理腳本設定指南.md](pi_agent/說明文件/HLS自動清理腳本設定指南.md) - HLS 檔案自動清理設定
+- [01 本地環境設定.md](pi_agent/說明文件/01本地環境設定.md) - 本地開發環境設定
+- [02 樹梅派環境設定.md](pi_agent/說明文件/02樹梅派環境設定.md) - 樹梅派環境完整設定
+- [03 樹梅派序號綁定.md](pi_agent/說明文件/03樹梅派序號綁定.md) - 設備序號綁定流程
+- [04HTTP 代理程式(homepi-http-agent@.service).md](<pi_agent/說明文件/04HTTP代理程式(homepi-http-agent@.service).md>) - HTTP 代理服務設定
+- [05HLS 影片串流服務(homepi-hls@.service).md](<pi_agent/說明文件/05HLS影片串流服務(homepi-hls@.service).md>) - HLS 串流服務設定
+- [06 啟動輕量級的網頁伺服器(homepi-hls-www@.service).md](<pi_agent/說明文件/06啟動輕量級的網頁伺服器(homepi-hls-www@.service).md>) - 網頁伺服器設定
+- [07 排程服務(homepi-scheduler@.service).md](<pi_agent/說明文件/07排程服務(homepi-scheduler@.service).md>) - 排程服務設定
+- [08 多台裝置同步誤動作排查.md](pi_agent/說明文件/08多台裝置同步誤動作排查.md) - 故障排除指南
+- [HLS 自動清理腳本設定指南.md](pi_agent/說明文件/HLS自動清理腳本設定指南.md) - HLS 檔案自動清理設定
 - [快速設定腳本.md](pi_agent/說明文件/快速設定腳本.md) - 快速部署腳本
-- [pi裝置擴充設定說明.md](pi_agent/說明文件/pi裝置擴充設定說明.md) - 裝置功能擴充指南
-- [樹梅派專案結構_詳細註解.md](pi_agent/說明文件/樹梅派專案結構_詳細註解.md) - 專案結構詳細說明
+- [pi 裝置擴充設定說明.md](pi_agent/說明文件/pi裝置擴充設定說明.md) - 裝置功能擴充指南
+- [樹梅派專案結構\_詳細註解.md](pi_agent/說明文件/樹梅派專案結構_詳細註解.md) - 專案結構詳細說明
 
 ---
 
@@ -515,34 +517,12 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
 
 ---
 
-## 角色與權限
-
-### 系統層級角色（使用者角色）
-
-- **SuperAdmin**：擁有裝置密碼者，最高權限（單台裝置只有一位）。可管理群組、指派 Admin、管理設備參數
-- **Admin**：被授權管理設備者，協助設定設備參數，不可管理群組或指派權限
-- **User**：一般使用者，受邀加入，只能進行基本操作
-
-### 群組層級角色（群組成員角色）
+## 群組層級角色（群組成員角色）
 
 - **群組擁有者**：建立群組的使用者，擁有該群組的最高權限
 - **群組 Admin**：被群組擁有者指派的群組管理員，可管理群組內設備和成員
 - **群組 Operator**：群組操作員，可控制群組內設備（可透過 ACL 限制特定設備）
 - **群組 Viewer**：群組觀察員，只能查看群組資訊，無法控制設備
-
-### 系統權限比較表
-
-| 權限項目                             | User | Admin | SuperAdmin |
-| ------------------------------------ | ---- | ----- | ---------- |
-| 操作智能設備                         | ✅   | ✅    | ✅         |
-| 編輯個人資料                         | ✅   | ✅    | ✅         |
-| 設定設備參數（基本，如亮度）         | ✅   | ✅    | ✅         |
-| 設定設備參數（環境，如自動觸發條件） | ❌   | ✅    | ✅         |
-| 設備重命名                           | ❌   | ✅    | ✅         |
-| 成員邀請 / 建立註冊頁                | ❌   | ❌    | ✅         |
-| 成員加入審核 / 通知查看              | ❌   | ❌    | ✅         |
-| 指定/取消 Admin 權限                 | ❌   | ❌    | ✅         |
-| 群組建立 / 刪除                      | ❌   | ❌    | ✅         |
 
 ### 群組權限比較表
 
@@ -620,18 +600,19 @@ curl -H "Authorization: Token <YOUR_TOKEN>" \
 
 ## 系統技術架構（現況）
 
-| 類別     | 技術/工具                                              |
-| -------- | ------------------------------------------------------ |
-| 前端     | Django Templates + 原生 JS/CSS（`static/home_pi_web`） |
-| 後端     | Python + Django + DRF（REST API）                      |
-| 主資料庫 | PostgreSQL（透過環境變數設定）                         |
-| 日誌資料庫 | MongoDB（`homepi_logs`，用於設備 ping 日誌）          |
-| 樹梅派   | `pi_agent`（HTTP 代理、HLS 串流、裝置偵測/控制、排程） |
-| 虛擬環境 | Conda（`environment.yml`）                             |
-| 通知     | `notifications/` app（支援 dedup/已讀/過期）           |
-| 靜態檔案 | WhiteNoise（靜態檔案服務）                             |
+| 類別       | 技術/工具                                              |
+| ---------- | ------------------------------------------------------ |
+| 前端       | Django Templates + 原生 JS/CSS（`static/home_pi_web`） |
+| 後端       | Python + Django + DRF（REST API）                      |
+| 主資料庫   | PostgreSQL（透過環境變數設定）                         |
+| 日誌資料庫 | MongoDB（`homepi_logs`，用於設備 ping 日誌）           |
+| 樹梅派     | `pi_agent`（HTTP 代理、HLS 串流、裝置偵測/控制、排程） |
+| 虛擬環境   | Conda（`environment.yml`）                             |
+| 通知       | `notifications/` app（支援 dedup/已讀/過期）           |
+| 靜態檔案   | WhiteNoise（靜態檔案服務）                             |
 
 備註：
+
 - 主資料庫使用 PostgreSQL，透過環境變數設定連線參數
 - MongoDB 用於儲存設備 ping 日誌等非關聯性資料
 - 已安裝 Redis、Django Channels 等套件，但目前未啟用相關功能
